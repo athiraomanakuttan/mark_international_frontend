@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Lock, User, Zap, ArrowRight } from 'lucide-react';
 import  {useFetchFormData} from '@/hook/FormHook'
 import { LoginType } from '@/types/formTypes';
+import { loginUser } from '@/service/loginService';
 
 interface FloatingElement {
   id: number;
@@ -37,8 +38,9 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    setTimeout(() => {
+    setTimeout(async () => {
       console.log(formData)
+      const response =  await loginUser(formData)
       setIsLoading(false);
     }, 2000);
   };
