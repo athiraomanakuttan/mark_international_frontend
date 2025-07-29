@@ -1,249 +1,401 @@
-'use client';
+"use client"
 
-import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Lock, User, Zap, ArrowRight } from 'lucide-react';
-import  {useFetchFormData} from '@/hook/FormHook'
-import { LoginType } from '@/types/formTypes';
-import { loginUser } from '@/service/loginService';
+import type React from "react"
+import { useState, useEffect } from "react"
+import { Eye, EyeOff, PhoneCall, Lock, Check, BookOpen, Globe, GraduationCap, Plane } from "lucide-react"
+import { useFetchFormData } from "@/hook/FormHook"
+import type { LoginType } from "@/types/form-types"
+import { loginUser } from "@/service/loginService"
+import { toast } from "react-toastify"
 
 interface FloatingElement {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  delay: number;
-  duration: number;
+  id: number
+  x: number
+  y: number
+  size: number
+  delay: number
+  duration: number
+  type: "book" | "globe" | "graduation" | "plane"
 }
 
 const LoginPage: React.FC = () => {
-  const {formData, setForm} = useFetchFormData<LoginType>()
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [floatingElements, setFloatingElements] = useState<FloatingElement[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [focusedInput, setFocusedInput] = useState<string>('');
+  const { formData, setForm } = useFetchFormData<LoginType>()
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [rememberMe, setRememberMe] = useState<boolean>(false)
+  const [floatingElements, setFloatingElements] = useState<FloatingElement[]>([])
 
   useEffect(() => {
-    const elements: FloatingElement[] = Array.from({ length: 20 }, (_, i) => ({
+    // Generate education-themed floating elements
+    const types: Array<"book" | "globe" | "graduation" | "plane"> = ["book", "globe", "graduation", "plane"]
+    const elements: FloatingElement[] = Array.from({ length: 12 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 60 + 20,
+      size: Math.random() * 20 + 15,
       delay: Math.random() * 5,
-      duration: Math.random() * 10 + 15,
-    }));
-    setFloatingElements(elements);
-  }, []);
+      duration: Math.random() * 8 + 12,
+      type: types[Math.floor(Math.random() * types.length)],
+    }))
+    setFloatingElements(elements)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    setIsLoading(true);
-    
+    e.preventDefault()
+    setIsLoading(true)
+
     setTimeout(async () => {
-      console.log(formData)
-      const response =  await loginUser(formData)
-      setIsLoading(false);
-    }, 2000);
-  };
+      const response = await loginUser(formData)
+
+      if (response.status) {
+        toast.success(response.message || "Welcome to your study abroad journey!")
+      } else {
+        toast.error(response.message || "Login failed. Please try again.")
+      }
+
+      setIsLoading(false)
+    }, 2000)
+  }
+
+  const getFloatingIcon = (type: string, size: number) => {
+    const iconProps = { size, className: "text-blue-300 opacity-60" }
+    switch (type) {
+      case "book":
+        return <BookOpen {...iconProps} />
+      case "globe":
+        return <Globe {...iconProps} />
+      case "graduation":
+        return <GraduationCap {...iconProps} />
+      case "plane":
+        return <Plane {...iconProps} />
+      default:
+        return <BookOpen {...iconProps} />
+    }
+  }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #405189 50%, #1e40af 100%)' }}>
-      
-      {/* Animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Education-themed animated background */}
       <div className="absolute inset-0">
-        {/* Gradient orbs */}
-        <div className="absolute top-0 -left-4 w-72 h-72 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ backgroundColor: '#405189' }}></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ backgroundColor: '#6366f1', animationDelay: '2s' }}></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ backgroundColor: '#3b82f6', animationDelay: '4s' }}></div>
-        
-        {/* Floating geometric shapes */}
+        {/* Gradient orbs with education colors */}
+        <div className="absolute top-20 left-20 w-72 h-72 rounded-full bg-gradient-to-br from-blue-200/40 to-indigo-200/40 blur-3xl animate-pulse"></div>
+        <div
+          className="absolute bottom-20 right-20 w-80 h-80 rounded-full bg-gradient-to-br from-purple-200/30 to-pink-200/30 blur-3xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/4 w-64 h-64 rounded-full bg-gradient-to-br from-emerald-200/35 to-teal-200/35 blur-3xl animate-pulse"
+          style={{ animationDelay: "4s" }}
+        ></div>
+
+        {/* Floating education icons */}
         {floatingElements.map((element) => (
           <div
             key={element.id}
-            className="absolute opacity-10"
+            className="absolute"
             style={{
               left: `${element.x}%`,
               top: `${element.y}%`,
-              width: `${element.size}px`,
-              height: `${element.size}px`,
-              animation: `float ${element.duration}s infinite ease-in-out`,
+              animation: `educationFloat ${element.duration}s infinite ease-in-out`,
               animationDelay: `${element.delay}s`,
             }}
           >
-            <div className="w-full h-full bg-gradient-to-br from-white to-transparent rounded-lg transform rotate-45"></div>
+            {getFloatingIcon(element.type, element.size)}
           </div>
         ))}
       </div>
 
-      {/* Animated grid pattern */}
-      <div 
+      {/* Animated world map pattern */}
+      <div
         className="absolute inset-0 opacity-5"
         style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)`,
-          backgroundSize: '50px 50px',
-          animation: 'grid-move 20s linear infinite'
+          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(59,130,246,.2) 2px, transparent 2px), radial-gradient(circle at 75% 75%, rgba(139,69,19,.2) 2px, transparent 2px)`,
+          backgroundSize: "60px 60px",
+          animation: "worldMove 25s linear infinite",
         }}
       />
 
       <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
+        @keyframes educationFloat {
+          0%, 100% { 
+            transform: translateY(0px) rotate(0deg) scale(1); 
+            opacity: 0.6;
+          }
+          25% { 
+            transform: translateY(-30px) rotate(90deg) scale(1.1); 
+            opacity: 0.8;
+          }
+          50% { 
+            transform: translateY(-20px) rotate(180deg) scale(0.9); 
+            opacity: 0.7;
+          }
+          75% { 
+            transform: translateY(-35px) rotate(270deg) scale(1.05); 
+            opacity: 0.9;
+          }
         }
         
-        @keyframes grid-move {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(50px, 50px); }
+        @keyframes worldMove {
+          0% { transform: translate(0, 0) rotate(0deg); }
+          100% { transform: translate(60px, 60px) rotate(360deg); }
         }
         
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes slideInLeft {
+          from { 
+            opacity: 0; 
+            transform: translateX(-50px); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateX(0); 
+          }
         }
         
-        @keyframes glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(64, 81, 137, 0.3); }
-          50% { box-shadow: 0 0 30px rgba(64, 81, 137, 0.5); }
+        @keyframes slideInRight {
+          from { 
+            opacity: 0; 
+            transform: translateX(50px); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateX(0); 
+          }
         }
         
-        .slide-up { animation: slideUp 0.8s ease-out; }
-        .input-glow { animation: glow 2s ease-in-out infinite; }
+        @keyframes bookFlip {
+          0%, 100% { transform: rotateY(0deg); }
+          50% { transform: rotateY(180deg); }
+        }
+        
+        @keyframes globeSpin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        
+        .slide-in-left { 
+          animation: slideInLeft 0.8s ease-out; 
+        }
+        .slide-in-right { 
+          animation: slideInRight 0.8s ease-out; 
+        }
       `}</style>
 
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-md">
-          
-          {/* Logo Section */}
-          <div className="text-center mb-8 slide-up">
-            <div className="inline-block relative group">
-              <div className="absolute -inset-4 rounded-2xl blur-lg opacity-30 group-hover:opacity-50 transition-all duration-300" style={{ background: 'linear-gradient(45deg, #405189, #6366f1)' }}></div>
-              <div className="relative bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-white/20 group-hover:scale-105 transition-transform duration-300">
-                <img 
-                  src="/uploads/main-logo.jpg" 
-                  alt="Mark International Logo" 
-                  className="h-16 w-auto object-contain max-w-[200px] mx-auto"
-                />
-              </div>
-            </div>
-            <h1 className="mt-6 text-3xl font-bold text-white">Welcome Back</h1>
-            <p className="mt-2 text-gray-300">Sign in to your account</p>
-          </div>
+      {/* Main container */}
+      <div className="w-full max-w-6xl mx-auto relative z-10">
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[600px] flex">
+          {/* Left side - Study Abroad Illustration */}
+          <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-50 p-12 flex items-center justify-center slide-in-left">
+            <div className="relative w-full max-w-md">
+              {/* Background circle */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-200/50 to-indigo-200/50 rounded-full transform scale-110 animate-pulse"></div>
 
-          {/* Login Card */}
-          <div className="slide-up bg-white/10 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20" style={{ animationDelay: '0.2s' }}>
-            
-            <div className="space-y-6">
-              
-              {/* Username Input */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-200 ml-1">Username</label>
-                                  <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    value={formData.userName}
-                    onChange={(e) => setForm('userName',e.target.value)}
-                    onFocus={() => setFocusedInput('username')}
-                    onBlur={() => setFocusedInput('')}
-                    className={`w-full pl-12 pr-4 py-4 bg-black/20 border-2 ${
-                      focusedInput === 'username' ? 'border-blue-400 input-glow' : 'border-gray-600'
-                    } rounded-xl focus:outline-none transition-all duration-300 text-white placeholder-gray-400`}
-                    style={{
-                      focusBorderColor: '#405189',
-                      '--focus-color': '#405189'
-                    }}
-                    placeholder="Enter username"
-                  />
+              {/* Study abroad illustration */}
+              <div className="relative z-10 flex items-center justify-center h-80">
+                {/* Desk */}
+                <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2">
+                  <div className="w-52 h-4 bg-gradient-to-r from-amber-300 to-orange-300 rounded-lg shadow-lg"></div>
+                  <div className="w-2 h-16 bg-gradient-to-b from-amber-400 to-amber-500 absolute left-4 -bottom-16"></div>
+                  <div className="w-2 h-16 bg-gradient-to-b from-amber-400 to-amber-500 absolute right-4 -bottom-16"></div>
                 </div>
-              </div>
 
-              {/* Password Input */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-200 ml-1">Password</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={(e) => setForm('password',e.target.value)}
-                    onFocus={() => setFocusedInput('password')}
-                    onBlur={() => setFocusedInput('')}
-                    className={`w-full pl-12 pr-12 py-4 bg-black/20 border-2 ${
-                      focusedInput === 'password' ? 'border-blue-400 input-glow' : 'border-gray-600'
-                    } rounded-xl focus:outline-none transition-all duration-300 text-white placeholder-gray-400`}
-                    style={{
-                      focusBorderColor: '#405189'
-                    }}
-                    placeholder="Enter password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-white transition-colors"
+                {/* Student 1 - studying */}
+                <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 -translate-x-12">
+                  {/* Body */}
+                  <div className="w-8 h-14 bg-gradient-to-b from-blue-400 to-blue-500 rounded-full"></div>
+                  {/* Head */}
+                  <div className="w-7 h-7 bg-gradient-to-br from-amber-200 to-amber-300 rounded-full absolute -top-5 left-0.5"></div>
+                  {/* Hair */}
+                  <div className="w-8 h-4 bg-gradient-to-br from-gray-800 to-gray-900 rounded-full absolute -top-7 left-0"></div>
+                  {/* Book */}
+                  <div className="w-6 h-4 bg-gradient-to-br from-red-400 to-red-500 rounded absolute top-4 -right-1 transform -rotate-12 animate-pulse"></div>
+                </div>
+
+                {/* Student 2 - with laptop */}
+                <div className="absolute bottom-20 right-1/2 transform translate-x-1/2 translate-x-8">
+                  {/* Body */}
+                  <div className="w-7 h-12 bg-gradient-to-b from-purple-400 to-purple-500 rounded-full"></div>
+                  {/* Head */}
+                  <div className="w-6 h-6 bg-gradient-to-br from-amber-200 to-amber-300 rounded-full absolute -top-4 left-0.5"></div>
+                  {/* Hair */}
+                  <div className="w-7 h-3 bg-gradient-to-br from-brown-600 to-brown-700 rounded-full absolute -top-6 left-0"></div>
+                  {/* Laptop */}
+                  <div className="w-8 h-5 bg-gradient-to-br from-gray-300 to-gray-400 rounded absolute top-2 -right-1 transform rotate-6"></div>
+                  <div className="w-8 h-1 bg-gradient-to-r from-blue-400 to-blue-500 absolute top-2 -right-1 transform rotate-6"></div>
+                </div>
+
+                {/* World Map on wall */}
+                <div className="absolute top-8 left-8 w-16 h-12 bg-gradient-to-br from-green-200 to-green-300 rounded-lg border-2 border-brown-400">
+                  <div className="w-3 h-2 bg-brown-500 absolute top-1 left-2 rounded"></div>
+                  <div className="w-2 h-3 bg-brown-500 absolute top-2 right-3 rounded"></div>
+                  <div className="w-4 h-1 bg-brown-500 absolute bottom-2 left-1 rounded"></div>
+                </div>
+
+                {/* Globe */}
+                <div className="absolute top-12 right-8">
+                  <div
+                    className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full relative"
+                    style={{ animation: "globeSpin 8s linear infinite" }}
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
+                    <div className="w-2 h-3 bg-green-400 absolute top-1 left-1 rounded"></div>
+                    <div className="w-1.5 h-2 bg-green-400 absolute bottom-1 right-1 rounded"></div>
+                  </div>
+                  <div className="w-1 h-6 bg-gray-600 absolute -bottom-6 left-1/2 transform -translate-x-1/2"></div>
                 </div>
+
+                {/* Books stack */}
+                <div className="absolute bottom-20 left-8">
+                  <div className="w-8 h-2 bg-red-400 rounded"></div>
+                  <div className="w-7 h-2 bg-blue-400 rounded absolute top-2"></div>
+                  <div className="w-9 h-2 bg-green-400 rounded absolute top-4"></div>
+                </div>
+
+                {/* Graduation cap */}
+                <div className="absolute top-16 left-1/2 transform -translate-x-1/2">
+                  <div className="w-8 h-1 bg-black rounded-full"></div>
+                  <div className="w-6 h-6 bg-black absolute -top-3 left-1 transform rotate-12"></div>
+                  <div className="w-1 h-3 bg-yellow-400 absolute -top-1 right-0"></div>
+                </div>
+
+                {/* Airplane */}
+                <div className="absolute top-6 right-16">
+                  <Plane
+                    className="w-6 h-6 text-blue-500 transform rotate-45 animate-bounce"
+                    style={{ animationDuration: "3s" }}
+                  />
+                </div>
+
+                {/* Floating educational elements */}
+                <div
+                  className="absolute bottom-8 right-16 w-3 h-3 bg-yellow-400 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.5s" }}
+                ></div>
+                <div
+                  className="absolute top-20 left-16 w-2 h-2 bg-pink-400 rounded-full animate-pulse"
+                  style={{ animationDelay: "1s" }}
+                ></div>
+                <div
+                  className="absolute top-32 right-4 w-2.5 h-2.5 bg-green-400 rounded-full animate-bounce"
+                  style={{ animationDelay: "1.5s" }}
+                ></div>
+
+                {/* Study abroad text elements */}
+                <div className="absolute bottom-4 left-4 text-xs text-blue-600 font-semibold opacity-60">STUDY</div>
+                <div className="absolute bottom-4 right-4 text-xs text-purple-600 font-semibold opacity-60">ABROAD</div>
               </div>
 
-              {/* Options */}
-              <div className="flex items-center justify-between">
-                <label className="flex items-center">
-                 
-                </label>
-                <a href="#" className="text-sm text-blue-400 hover:text-blue-300 transition-colors" style={{ color: '#6b9eff' }}>
-                  Forgot password?
-                </a>
+              {/* Pagination dot */}
+              <div className="flex justify-center mt-8">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
               </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full relative group overflow-hidden rounded-xl p-[2px] transition-all duration-300 hover:scale-105 disabled:opacity-70 disabled:hover:scale-100"
-                style={{ background: 'linear-gradient(45deg, #405189, #6366f1)' }}
-                onClick={handleSubmit}
-              >
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm" style={{ background: 'linear-gradient(45deg, #405189, #6366f1)' }}></div>
-                <div className="relative text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center space-x-2 transition-all duration-300" style={{ background: 'linear-gradient(45deg, #405189, #5a67d8)' }}>
-                  {isLoading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Signing in...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-5 h-5" />
-                      <span>Sign In</span>
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
-                </div>
-              </button>
-
             </div>
-
-            {/* Footer */}
-            
           </div>
 
-          {/* Additional Info */}
-          <div className="mt-6 text-center slide-up" style={{ animationDelay: '0.4s' }}>
-            <p className="text-gray-400 text-sm">
-              Don't have an account? 
-              <a href="#" className="text-blue-400 hover:text-blue-300 ml-1 transition-colors" style={{ color: '#6b9eff' }}>
-                Contact Support
-              </a>
-            </p>
-          </div>
+          {/* Right side - Login form */}
+          <div className="flex-1 p-12 flex items-center justify-center slide-in-right">
+            <div className="w-full max-w-sm">
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome!</h1>
+                <p className="text-gray-600 text-sm">Start your study abroad journey</p>
+              </div>
 
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Email field */}
+                <div>
+                  <div className="relative">
+                    <PhoneCall className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <input
+                      type="text"
+                      value={formData.phoneNumber || ""}
+                      onChange={(e) => setForm("phoneNumber", e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 hover:bg-white"
+                      placeholder="phone number"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Password field */}
+                <div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password || ""}
+                      onChange={(e) => setForm("password", e.target.value)}
+                      className="w-full pl-12 pr-12 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 hover:bg-white"
+                      placeholder="Password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-300"
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Remember me and Forgot password */}
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center cursor-pointer">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div
+                        className={`w-5 h-5 rounded border-2 transition-all duration-300 ${
+                          rememberMe ? "bg-green-500 border-green-500" : "border-gray-300 hover:border-green-400"
+                        }`}
+                      >
+                        {rememberMe && <Check className="w-3 h-3 text-white absolute top-0.5 left-0.5" />}
+                      </div>
+                    </div>
+                    <span className="ml-3 text-sm text-gray-600">Remember me</span>
+                  </label>
+                  <a href="#" className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-300">
+                    Forgot password?
+                  </a>
+                </div>
+
+                {/* Sign in button */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-70 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                      Signing in...
+                    </div>
+                  ) : (
+                    "Sign in"
+                  )}
+                </button>
+              </form>
+
+              {/* Sign up link */}
+              <div className="text-center mt-8">
+                <p className="text-gray-600">
+                  Don't have an account?{" "}
+                  <a
+                    href="#"
+                    className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-300"
+                  >
+                    Sign up
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage

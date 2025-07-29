@@ -1,15 +1,28 @@
-import { BASICRESPONSE } from "@/constance/BasicResponseType";
-import { LoginType } from "@/types/formTypes";
-import axios from "axios";
-const NEXT_PUBLIC_BACKEND_URI = process.env.NEXT_PUBLIC_BACKEND_URI;
+import type { LoginType, LoginResponse } from "@/types/form-types"
+import axios from "./axiosInstance"
+export async function loginUser(credentials: LoginType): Promise<LoginResponse> {
+  try {
+   const response  = await axios.post<LoginResponse>("/auth/login", credentials)
+   console.log(response.data)
+    if (response.data.status) {
+        //set the access token in local storage
+        localStorage.setItem("accessToken", response.data.token || "")
+        return {
+          status: true,
+          message: "Login successful",
+          data: response.data.data,
+          token: response.data.token,
+        } as LoginResponse
+    }else {
+      return {
+        status: false,
+        message: response.data.message || "Login failed",
+      } }
 
-export const loginUser = async (data : LoginType)=>{
-try {
-    console.log("working",data)
-    const response = await axios.post(`${NEXT_PUBLIC_BACKEND_URI}/auth/login`,{phoneNumber:data.userName,password:data.password});
-    return response.data
-} catch (error) {
-    console.log(error)
-    return BASICRESPONSE
-}
+  } catch (error) {
+    return {
+      status: false,
+      message: "Network error. Please try again later.",
+    }
+  }
 }

@@ -1,11 +1,32 @@
-import { useState } from "react";
+"use client"
+
+import { useState } from "react"
 
 export function useFetchFormData<T extends Record<string, any>>() {
-  const [formData, setFormData] = useState<T>({} as T);
+  const [formData, setFormData] = useState<T>({} as T)
 
-  const setForm = <K extends keyof T>(name: K, value: T[K]) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const setForm = <K extends keyof T>(key: K, value: T[K]) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }))
+  }
 
-  return { formData, setForm };
+  const resetForm = () => {
+    setFormData({} as T)
+  }
+
+  const updateForm = (data: Partial<T>) => {
+    setFormData((prev) => ({
+      ...prev,
+      ...data,
+    }))
+  }
+
+  return {
+    formData,
+    setForm,
+    resetForm,
+    updateForm,
+  }
 }
