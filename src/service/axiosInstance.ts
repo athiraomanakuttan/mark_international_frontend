@@ -4,7 +4,8 @@ import axios, {
   InternalAxiosRequestConfig
 } from 'axios';
 
-const BACKEND_URI = process.env.BACKEND_URI
+const BACKEND_URI = process.env.NEXT_PUBLIC_BACKEND_URI
+console.log("BACKEND_URI", BACKEND_URI);
 const axiosInstance = axios.create({
   baseURL: BACKEND_URI,
   headers: {

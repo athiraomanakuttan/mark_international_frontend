@@ -1,12 +1,14 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
+import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, PhoneCall, Lock, Check, BookOpen, Globe, GraduationCap, Plane } from "lucide-react"
 import { useFetchFormData } from "@/hook/FormHook"
 import type { LoginType } from "@/types/form-types"
 import { loginUser } from "@/service/loginService"
 import { toast } from "react-toastify"
+import {useAppDispatch} from '@/lib/redux/hook'
+import { setUser, setLoading } from '@/lib/redux/features/userSlice'
 
 interface FloatingElement {
   id: number
@@ -25,6 +27,9 @@ const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState<boolean>(false)
   const [floatingElements, setFloatingElements] = useState<FloatingElement[]>([])
 
+  const dispatch = useAppDispatch()
+  const router = useRouter()
+
   useEffect(() => {
     // Generate education-themed floating elements
     const types: Array<"book" | "globe" | "graduation" | "plane"> = ["book", "globe", "graduation", "plane"]
@@ -41,21 +46,44 @@ const LoginPage: React.FC = () => {
   }, [])
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    setTimeout(async () => {
-      const response = await loginUser(formData)
-
-      if (response.status) {
-        toast.success(response.message || "Welcome to your study abroad journey!")
-      } else {
-        toast.error(response.message || "Login failed. Please try again.")
-      }
-
+  e.preventDefault()
+  
+  if (isLoading) return
+  
+  setIsLoading(true)
+  dispatch(setLoading(true))
+  try {
+    const response = await loginUser(formData)
+    console.log("Response ==> ", response?.data?.accessToken )
+    if (response.status) {
+      // First update Redux state
+      dispatch(setUser({ 
+        user: response?.data?.user, 
+        token: response?.data?.accessToken  || ""
+      }))
+      
+      // Show success message
+      toast.success(response.message || "Welcome to Mark International!")
+      
+      // Small delay to ensure Redux state is updated and toast is shown
+      setTimeout(() => {
+        console.log('Redirecting to dashboard...')
+        router.push("/dashboard")
+      }, 100)
+      
+    } else {
+      dispatch(setLoading(false))
       setIsLoading(false)
-    }, 2000)
+      toast.error(response.message || "Login failed. Please try again.")
+    }
+
+  } catch (error) {
+    console.error('Login error:', error)
+    dispatch(setLoading(false))
+    setIsLoading(false)
+    toast.error("An unexpected error occurred. Please try again.")
   }
+}
 
   const getFloatingIcon = (type: string, size: number) => {
     const iconProps = { size, className: "text-blue-300 opacity-60" }
