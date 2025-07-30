@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { Plus, SquarePen, Trash2, Eye, Search, User, Lock, Mail, ImageIcon, DollarSign } from "lucide-react"
+import { useState , useMemo} from "react"
+import { Plus, SquarePen, Trash2, Eye, Search, User, Lock, Mail, ImageIcon, DollarSign, Flag } from "lucide-react"
 
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label"
 
 import { useFetchFormData} from '@/hook/FormHook'
 import { StaffBasicType } from "@/types/staff-type"
-import {phoneCode} from '@/data/phoneCodeData'
+import {phoneCodes} from '@/data/phoneCodeData'
 // Placeholder data for staff members
 const staffData = [
   {
@@ -53,7 +53,17 @@ export default function StaffManagementViewPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const { formData, setForm } = useFetchFormData<StaffBasicType>()
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedPhoneCode, setSelectedPhoneCode] = useState({ name: "India", code: "+91" })
 
+  const filteredPhoneCodes = useMemo(() => {
+    if (!searchTerm) {
+      return phoneCodes
+    }
+    return phoneCodes.filter(
+      (code) => code.name.toLowerCase().includes(searchTerm.toLowerCase()) || code.code.includes(searchTerm),
+    )
+  }, [searchTerm])
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0])
@@ -76,144 +86,194 @@ export default function StaffManagementViewPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">Staff Management</h1>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="mr-2 h-4 w-4" /> Add Staff
+      <DialogTrigger asChild>
+        <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Plus className="mr-2 h-4 w-4" /> Add Staff
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px] p-6">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-slate-900">Add New Staff</DialogTitle>
+          <DialogDescription className="text-slate-600">
+            Fill in the details to add a new staff member.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-slate-700 font-medium">
+              Name<span className="text-red-500">*</span>
+            </Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                id="name"
+                placeholder="Enter Full Name"
+                required
+                className="pl-10"
+                onChange={(e) => setForm("name", e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="text-slate-700 font-medium">
+              Phone Number<span className="text-red-500">*</span>
+            </Label>
+            <div className="flex items-center space-x-2">
+              <Select 
+  defaultValue="India-+91" 
+  onValueChange={(value) => {
+    // Parse the value to get country name and phone code
+    const [countryName, phoneCode] = value.split('-')
+    const selectedCountry = { name: countryName, code: phoneCode }
+    setSelectedPhoneCode(selectedCountry)
+    setForm("phoneCode", phoneCode)
+  }}
+>
+  <SelectTrigger className="w-[140px] flex-shrink-0">
+    <SelectValue asChild>
+      <div className="flex items-center gap-2">
+        <Flag className="h-4 w-4" />
+        <span>{selectedPhoneCode.code}</span>
+      </div>
+    </SelectValue>
+  </SelectTrigger>
+  <SelectContent className="max-h-60 overflow-y-auto">
+    <div className="px-2 py-1 sticky top-0 bg-white z-10 border-b border-slate-200">
+      <Input
+        placeholder="Search country name or country code..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="mb-2"
+      />
+    </div>
+    {filteredPhoneCodes.map((code, index) => (
+      <SelectItem 
+        key={`${code.name}-${index}`}        // Unique key
+        value={`${code.name}-${code.code}`}  // Unique value combining country and code
+      >
+        <div className="flex items-center gap-2">
+          <Flag className="h-4 w-4" />
+          <span>
+            {code.name} {code.code}
+          </span>
+        </div>
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+              <div className="relative flex-1">
+                <Input
+                  id="phone"
+                  placeholder="Enter Phone Number"
+                  required
+                  onChange={(e) => setForm("phoneNumber", e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-slate-700 font-medium">
+              Password<span className="text-red-500">*</span>
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                id="password"
+                type="text"
+                placeholder="password"
+                required
+                className="pl-10"
+                onChange={(e) => setForm("password", e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="designation" className="text-slate-700 font-medium">
+              Designation<span className="text-red-500">*</span>
+            </Label>
+            <Select required onValueChange={(value) => setForm("designation", value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="education-consultant">Education Consultant</SelectItem>
+                <SelectItem value="business-development-manager">Business Development Manager</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-slate-700 font-medium">
+              Email Id
+            </Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter Your Email"
+                className="pl-10"
+                onChange={(e) => setForm("email", e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="staff-image" className="text-slate-700 font-medium">
+              Staff Image
+            </Label>
+            <div className="flex items-center space-x-2">
+              <Button type="button" variant="outline" className="flex items-center space-x-2 bg-transparent">
+                <ImageIcon className="h-4 w-4" />
+                <Label htmlFor="staff-image" className="cursor-pointer">
+                  Choose File
+                </Label>
+                <Input id="staff-image" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] p-6">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-slate-900">Add New Staff</DialogTitle>
-                <DialogDescription className="text-slate-600">
-                  Fill in the details to add a new staff member.
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-slate-700 font-medium">
-                    Name<span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input id="name" placeholder="Enter Full Name" required className="pl-10" onChange={(e)=>setForm("name", e.target.value)}/>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-slate-700 font-medium">
-                    Phone Number<span className="text-red-500">*</span>
-                  </Label>
-                  <div className="flex items-center space-x-2">
-                    <Select defaultValue="+91" onValueChange={(value) => setForm("phoneCode", value)}>
-                      <SelectTrigger className="w-[80px]">
-                        <SelectValue placeholder="+91" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {
-                          phoneCode.map((code) => (
-                            <SelectItem key={code.code} value={code.code}>
-                              {code.code}
-                            </SelectItem>
-                          ))
-                        }
-                      </SelectContent>
-                    </Select>
-                    <div className="relative flex-1">
-                      <Input id="phone" placeholder="Enter Phone Number" required onChange={(e)=>setForm("phoneNumber", e.target.value)} />
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-slate-700 font-medium">
-                    Password<span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input id="password" type="text" placeholder="password" required className="pl-10" onChange={(e)=>setForm("password", e.target.value)} />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="designation" className="text-slate-700 font-medium">
-                    Designation<span className="text-red-500">*</span>
-                  </Label>
-                  <Select required>
-                    <SelectTrigger className="w-full">
-                      {" "}
-                      {/* Added w-full here */}
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="education-consultant">Education Consultant</SelectItem>
-                      <SelectItem value="business-development-manager">Business Development Manager</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-slate-700 font-medium">
-                    Email Id
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input id="email" type="email" placeholder="Enter Your Email" className="pl-10"  onChange={(e)=>setForm("email", e.target.value)}/>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="staff-image" className="text-slate-700 font-medium">
-                    Staff Image
-                  </Label>
-                  <div className="flex items-center space-x-2">
-                    <Button type="button" variant="outline" className="flex items-center space-x-2 bg-transparent">
-                      <ImageIcon className="h-4 w-4" />
-                      <Label htmlFor="staff-image" className="cursor-pointer">
-                        Choose File
-                      </Label>
-                      <Input
-                        id="staff-image"
-                        type="file"
-                        className="sr-only"
-                        onChange={handleFileChange}
-                        accept="image/*"
-                      />
-                    </Button>
-                    <span className="text-slate-500 text-sm">
-                      {selectedFile ? selectedFile.name : "No file chosen"}
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="accessible-users" className="text-slate-700 font-medium">
-                    Accessible Users
-                  </Label>
-                  <Select onValueChange={(value) => setForm("accessibleUsers",[...formData.accessibleUsers || [], parseInt(value)])}>
-                    <SelectTrigger className="w-full">
-                      {" "}
-                      {/* Added w-full here */}
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user1">User 1</SelectItem>
-                      <SelectItem value="user2">User 2</SelectItem>
-                      <SelectItem value="user3">User 3</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="opening-balance" className="text-slate-700 font-medium">
-                    Opening Balance
-                  </Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input id="opening-balance" type="number" placeholder="Enter Opening balance" className="pl-10" />
-                  </div>
-                </div>
-                <DialogFooter className="md:col-span-2 mt-6">
-                  <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Submit
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+              <span className="text-slate-500 text-sm">{selectedFile ? selectedFile.name : "No file chosen"}</span>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="accessible-users" className="text-slate-700 font-medium">
+              Accessible Users
+            </Label>
+            <Select
+              onValueChange={(value) =>
+                setForm("accessibleUsers", [...(formData.accessibleUsers || []), Number.parseInt(value)])
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">User 1</SelectItem>
+                <SelectItem value="2">User 2</SelectItem>
+                <SelectItem value="3">User 3</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="opening-balance" className="text-slate-700 font-medium">
+              Opening Balance
+            </Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                id="opening-balance"
+                type="number"
+                placeholder="Enter Opening balance"
+                className="pl-10"
+                onChange={(e) => setForm("openingBalance", Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <DialogFooter className="md:col-span-2 mt-6">
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+              Submit
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
         </div>
 
         {/* Filters and Search */}
@@ -269,8 +329,8 @@ export default function StaffManagementViewPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {staffData.map((staff) => (
-                <TableRow key={staff.id}>
+              {staffData.map((staff,index) => (
+                <TableRow key={index}>
                   <TableCell className="font-medium">{staff.id}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-3">
