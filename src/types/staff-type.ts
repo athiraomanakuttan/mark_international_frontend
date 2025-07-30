@@ -7,5 +7,5 @@ export interface StaffBasicType {
   email?: string;
   profilePic?: File;
   accessibleUsers?: number[];
-  openingBalance: number;
+  openingBalance?: number;
 }
