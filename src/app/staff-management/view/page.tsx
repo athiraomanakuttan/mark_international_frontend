@@ -120,7 +120,7 @@ export default function StaffManagementViewPage() {
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input id="password" type="password" placeholder="password" required className="pl-10" />
+                    <Input id="password" type="text" placeholder="password" required className="pl-10" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -128,7 +128,9 @@ export default function StaffManagementViewPage() {
                     Designation<span className="text-red-500">*</span>
                   </Label>
                   <Select required>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
+                      {" "}
+                      {/* Added w-full here */}
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
@@ -175,7 +177,9 @@ export default function StaffManagementViewPage() {
                     Accessible Users
                   </Label>
                   <Select>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
+                      {" "}
+                      {/* Added w-full here */}
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
