@@ -4,7 +4,7 @@ import type { NextFetchEvent } from 'next/server'
 import jwt from 'jsonwebtoken'
 
 const PUBLIC_ROUTES = ['/login', '/signup'];
-const ADMIN_ROUTES = ['/dashboard'];
+const ADMIN_ROUTES = ['/dashboard','/staff-management','/staff-management/view', '/lead-management', '/settings'];
 const STAFF_ROUTES = ['/staff'];
 
 interface DecodedToken {
@@ -31,6 +31,7 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
   let decoded: DecodedToken | null;
   try {
     decoded = jwt.decode(token) as DecodedToken | null;
+    console.log('✅ Token decoded:', decoded);
     if (!decoded) throw new Error('Invalid token');
   } catch (error) {
     console.log('❌ Failed to decode token');
@@ -48,13 +49,14 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
     return response;
   }
 
-  if (ADMIN_ROUTES.some(path => pathname.startsWith(path)) && role !== 'admin') {
-    return NextResponse.redirect(new URL('/unauthorized', request.url));
-  }
+  if (ADMIN_ROUTES.some(path => pathname === path || pathname.startsWith(`${path}/`)) && role.toLowerCase() !== 'admin') {
+  return NextResponse.redirect(new URL('/unauthorized', request.url));
+}
 
-  if (STAFF_ROUTES.some(path => pathname.startsWith(path)) && role !== 'staff') {
-    return NextResponse.redirect(new URL('/unauthorized', request.url));
-  }
+if (STAFF_ROUTES.some(path => pathname === path || pathname.startsWith(`${path}/`)) && role.toLowerCase() !== 'staff') {
+  return NextResponse.redirect(new URL('/unauthorized', request.url));
+}
+
 
   console.log('✅ Access granted');
   return NextResponse.next();
