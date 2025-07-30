@@ -20,8 +20,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 
+import { useFetchFormData} from '@/hook/FormHook'
+import { StaffBasicType } from "@/types/staff-type"
+import {phoneCode} from '@/data/phoneCodeData'
 // Placeholder data for staff members
 const staffData = [
   {
@@ -50,10 +52,12 @@ const staffData = [
 export default function StaffManagementViewPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const { formData, setForm } = useFetchFormData<StaffBasicType>()
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0])
+      setForm("profilePic", event.target.files[0]) 
     } else {
       setSelectedFile(null)
     }
@@ -62,7 +66,7 @@ export default function StaffManagementViewPage() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     // Handle form submission logic here
-    console.log("Form submitted!")
+    console.log("Form submitted!", formData)
     setIsModalOpen(false) // Close modal on submit
   }
 
@@ -91,7 +95,7 @@ export default function StaffManagementViewPage() {
                   </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input id="name" placeholder="Enter Full Name" required className="pl-10" />
+                    <Input id="name" placeholder="Enter Full Name" required className="pl-10" onChange={(e)=>setForm("name", e.target.value)}/>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -99,18 +103,22 @@ export default function StaffManagementViewPage() {
                     Phone Number<span className="text-red-500">*</span>
                   </Label>
                   <div className="flex items-center space-x-2">
-                    <Select defaultValue="+91">
+                    <Select defaultValue="+91" onValueChange={(value) => setForm("phoneCode", value)}>
                       <SelectTrigger className="w-[80px]">
                         <SelectValue placeholder="+91" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="+91">+91</SelectItem>
-                        <SelectItem value="+1">+1</SelectItem>
-                        <SelectItem value="+44">+44</SelectItem>
+                        {
+                          phoneCode.map((code) => (
+                            <SelectItem key={code.code} value={code.code}>
+                              {code.code}
+                            </SelectItem>
+                          ))
+                        }
                       </SelectContent>
                     </Select>
                     <div className="relative flex-1">
-                      <Input id="phone" placeholder="Enter Phone Number" required />
+                      <Input id="phone" placeholder="Enter Phone Number" required onChange={(e)=>setForm("phoneNumber", e.target.value)} />
                     </div>
                   </div>
                 </div>
@@ -120,7 +128,7 @@ export default function StaffManagementViewPage() {
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input id="password" type="text" placeholder="password" required className="pl-10" />
+                    <Input id="password" type="text" placeholder="password" required className="pl-10" onChange={(e)=>setForm("password", e.target.value)} />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -146,7 +154,7 @@ export default function StaffManagementViewPage() {
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input id="email" type="email" placeholder="Enter Your Email" className="pl-10" />
+                    <Input id="email" type="email" placeholder="Enter Your Email" className="pl-10"  onChange={(e)=>setForm("email", e.target.value)}/>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -176,7 +184,7 @@ export default function StaffManagementViewPage() {
                   <Label htmlFor="accessible-users" className="text-slate-700 font-medium">
                     Accessible Users
                   </Label>
-                  <Select>
+                  <Select onValueChange={(value) => setForm("accessibleUsers",[...formData.accessibleUsers || [], parseInt(value)])}>
                     <SelectTrigger className="w-full">
                       {" "}
                       {/* Added w-full here */}
@@ -198,20 +206,6 @@ export default function StaffManagementViewPage() {
                     <Input id="opening-balance" type="number" placeholder="Enter Opening balance" className="pl-10" />
                   </div>
                 </div>
-                <div className="md:col-span-2 space-y-2 mt-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="whatsapp-access" />
-                    <Label htmlFor="whatsapp-access" className="text-slate-700 font-medium">
-                      Access Official Whatsapp
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="phone-call-log" />
-                    <Label htmlFor="phone-call-log" className="text-slate-700 font-medium">
-                      Access Phone Call Log
-                    </Label>
-                  </div>
-                </div>
                 <DialogFooter className="md:col-span-2 mt-6">
                   <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
                     Submit
@@ -226,7 +220,7 @@ export default function StaffManagementViewPage() {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
             <span className="text-slate-700 font-medium">Permissions</span>
-            <Select defaultValue="all">
+            <Select defaultValue="all" onValueChange={(value) => setForm("designation", value)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="All" />
               </SelectTrigger>
