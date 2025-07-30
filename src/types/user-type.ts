@@ -13,4 +13,4 @@ export interface UserState {
   token: string | null
   isAuthenticated: boolean
   loading: boolean
-}
+} 

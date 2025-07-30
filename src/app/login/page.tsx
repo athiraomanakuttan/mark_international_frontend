@@ -9,6 +9,7 @@ import { loginUser } from "@/service/loginService"
 import { toast } from "react-toastify"
 import {useAppDispatch} from '@/lib/redux/hook'
 import { setUser, setLoading } from '@/lib/redux/features/userSlice'
+import  Cookies from 'js-cookie'
 
 interface FloatingElement {
   id: number
@@ -57,6 +58,7 @@ const LoginPage: React.FC = () => {
     console.log("Response ==> ", response?.data?.accessToken )
     if (response.status) {
       // First update Redux state
+      Cookies.set('accessToken', response?.data?.accessToken || "", { expires: 7 })
       dispatch(setUser({ 
         user: response?.data?.user, 
         token: response?.data?.accessToken  || ""
