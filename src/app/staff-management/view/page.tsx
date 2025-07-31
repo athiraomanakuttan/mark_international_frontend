@@ -110,23 +110,33 @@ export default function StaffManagementViewPage() {
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const isValidate = staffFormValidation(formData)
+  event.preventDefault();
 
-    if (!isValidate.isValid) {
-      console.error("Form validation failed", isValidate.errors);
-      toast.error(isValidate.errors);
-      return;
-    }
-    const response = await createStaff(formData)
-    if(response.status){
-      toast.success("Staff member added successfully!");
-    setIsModalOpen(false); // Close modal on submit
-      
-    }
-    // Handle form submission logic here
-    console.log("Form submitted!", formData);
+  const isValidate = staffFormValidation(formData);
+
+  if (!isValidate.isValid) {
+    console.error("Form validation failed", isValidate.errors);
+    toast.error(isValidate.errors);
+    return;
+  }
+
+  // Merge phoneCode + phoneNumber without updating the original state
+  const finalFormData = {
+    ...formData,
+    phoneNumber: formData.phoneCode + formData.phoneNumber,
   };
+
+  console.log("Submitting form data:", finalFormData);
+  const response = await createStaff(finalFormData);
+
+  if (response.status) {
+    toast.success("Staff member added successfully!");
+    setIsModalOpen(false); // Close modal on submit
+  }
+
+  console.log("Form submitted!", finalFormData);
+};
+
 
   return (
     <ModernDashboardLayout>
