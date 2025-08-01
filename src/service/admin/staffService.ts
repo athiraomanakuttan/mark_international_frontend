@@ -3,7 +3,6 @@ import axiosInstance from "../axiosInstance"
 
 export const createStaff = async (data: StaffBasicType) => {
   try {
-    console.log("Original data =========>", data);
 
     const formData = new FormData();
     (Object.keys(data) as Array<keyof StaffBasicType>).forEach((key) => {
@@ -16,9 +15,9 @@ export const createStaff = async (data: StaffBasicType) => {
     const response = await axiosInstance.post("/admin/staff", formData); // ❌ no custom headers here
     console.log("response", response);
     return response.data;
-  } catch (error) {
-    console.error("Error creating staff:", error);
-    throw error;
+  } catch (error:any) {
+    console.log("Error creating staff:", error.response?.data?.error);
+    throw {message:  error.response?.data?.error || "Failed to create staff member."};
   }
 }
 

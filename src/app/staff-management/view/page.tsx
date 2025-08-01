@@ -126,15 +126,18 @@ export default function StaffManagementViewPage() {
     phoneNumber: formData.phoneCode + formData.phoneNumber,
   };
 
-  console.log("Submitting form data:", finalFormData);
-  const response = await createStaff(finalFormData);
+  try {
+    const response = await createStaff(finalFormData);
 
   if (response.status) {
     toast.success("Staff member added successfully!");
     setIsModalOpen(false); // Close modal on submit
   }
+  } catch (error :any) {
+    toast.error(error?.message ||"Failed to add staff member. Please try again.");
+  }
+  
 
-  console.log("Form submitted!", finalFormData);
 };
 
 
