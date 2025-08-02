@@ -52,30 +52,10 @@ import { phoneCodes } from "@/data/phoneCodeData";
 import { staffFormValidation } from "@/validation/staffValidation";
 import {createStaff} from "@/service/admin/staffService";
 import { toast } from "react-toastify";
+import { getStaffList } from "@/service/admin/staffService";
+import { StaffDataType } from "@/types/staff-type";
 // Placeholder data for staff members/
-const staffData = [
-  {
-    id: 1,
-    name: "Ann",
-    phone: "918921895055",
-    designation: "EDUCATION CONSULTANT",
-    avatar: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    id: 2,
-    name: "Smitha",
-    phone: "447877833168",
-    designation: "EDUCATION CONSULTANT",
-    avatar: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    id: 3,
-    name: "Ernakulam Branch",
-    phone: "919363575984",
-    designation: "BUSINESS DEVELOPMENT MANA",
-    avatar: "/placeholder.svg?height=32&width=32",
-  },
-];
+
 
 export default function StaffManagementViewPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,6 +66,43 @@ export default function StaffManagementViewPage() {
     name: "India",
     code: "+91",
   });
+  const [staffStatus, setStaffStatus] = useState(1);
+  const [loading,setLoading] = useState(false);
+const [paginationData, setPaginationData]= useState({
+    currentPage: 1,
+    totalPages: 1,
+    limit:5,
+    totalItems: 0,
+})
+  const [staffData, setStaffData] = useState<StaffDataType[]>([]);
+  const getData = async (pageOverride?: number) => {
+  try {
+    setLoading(true);
+    const currentPage = pageOverride ?? paginationData.currentPage;
+    const response = await getStaffList(staffStatus, currentPage, paginationData.limit);
+
+    if (response.status) {
+      const { users, totalRecords } = response.data;
+      setStaffData(users);
+      setPaginationData((prev) => ({
+        ...prev,
+        totalItems: totalRecords || 0,
+        totalPages: Math.ceil((totalRecords || 0) / prev.limit),
+      }));
+    }
+
+    setLoading(false);
+  } catch (error) {
+    console.error("Error fetching staff list", error);
+    setLoading(false);
+  }
+};
+
+  useEffect(() => {
+  getData();
+}, [paginationData.currentPage]);
+
+
   useEffect(()=>{
     setForm("phoneCode", selectedPhoneCode.code);
   },[selectedPhoneCode]) 
@@ -139,6 +156,18 @@ export default function StaffManagementViewPage() {
   
 
 };
+
+const changeLimit = (value: string) => {
+  console.log("Selected limit:", value);
+  const limit = Number(value);
+  setPaginationData((prev) => ({ ...prev, limit }));
+
+  
+  getData();  
+};
+  const changePage = (page: number) => {
+    setPaginationData((prev) => ({ ...prev, currentPage: page }));
+  };
 
 
   return (
@@ -416,7 +445,7 @@ export default function StaffManagementViewPage() {
           <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
             <div className="flex items-center space-x-2">
               <span className="text-slate-700 font-medium">Show</span>
-              <Select defaultValue="10">
+              <Select defaultValue="10" onValueChange={(value) => changeLimit(value)}>
                 <SelectTrigger className="w-[70px]">
                   <SelectValue placeholder="10" />
                 </SelectTrigger>
@@ -452,20 +481,34 @@ export default function StaffManagementViewPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {staffData.map((staff, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{staff.id}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
+              {/* load a spinner n loading */}
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4">
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : staffData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4">
+                    No staff members found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                staffData.length > 0 && staffData.map((staff, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{index+1}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">   
                       <img
-                        src={staff.avatar || "/placeholder.svg"}
+                        src={staff?.profilePic || "/placeholder.svg"}
                         alt={staff.name}
                         className="w-8 h-8 rounded-full object-cover"
                       />
                       <span>{staff.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{staff.phone}</TableCell>
+                  <TableCell>{staff?.phoneNumber}</TableCell>
                   <TableCell>{staff.designation}</TableCell>
                   <TableCell className="flex justify-center space-x-2">
                     <Button
@@ -491,11 +534,45 @@ export default function StaffManagementViewPage() {
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
+              )) )}
             </TableBody>
           </Table>
-        </div>
+          
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-slate-200">
+  {/* Pagination Summary */}
+  <span className="text-sm text-slate-600">
+    Showing page <strong>{paginationData.currentPage}</strong> of{" "}
+    <strong>{paginationData.totalPages}</strong>
+  </span>
+
+  {/* Pagination Buttons */}
+  <div className="flex items-center gap-2">
+    <Button
+      className="bg-blue-600 hover:bg-blue-700 text-white"
+      variant="outline"
+      disabled={paginationData.currentPage === 1}
+      onClick={() => changePage(paginationData.currentPage - 1)}
+    >
+      Previous
+    </Button>
+
+    <span className="text-sm text-slate-600">
+      Page {paginationData.currentPage} of {paginationData.totalPages}
+    </span>
+
+    <Button
+    className="bg-blue-600 hover:bg-blue-700 text-white"
+      variant="outline"
+      disabled={paginationData.currentPage === paginationData.totalPages}
+      onClick={() => changePage(paginationData.currentPage + 1)}
+    >
+      Next
+    </Button>
+  </div>
+</div>
+
       </div>
+    </div>
     </ModernDashboardLayout>
   );
 }

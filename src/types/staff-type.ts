@@ -9,3 +9,16 @@ export interface StaffBasicType {
   accessibleUsers?: number[];
   openingBalance?: number;
 }
+
+
+export interface StaffDataType {
+    id :string,
+    name: string,
+    phoneNumber: string,
+    designation : string,
+    profilePic ?: string,
+    createdAt ?: string,
+    status ?: number
+}
+
+

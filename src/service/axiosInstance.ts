@@ -3,6 +3,7 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig
 } from 'axios';
+import { toast } from 'react-toastify';
 
 const BACKEND_URI = process.env.NEXT_PUBLIC_BACKEND_URI
 console.log("BACKEND_URI", BACKEND_URI);
@@ -80,7 +81,7 @@ axiosInstance.interceptors.response.use(
         processQueue(refreshError, null);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        alert('Session expired. Please log in again.');
+        toast.error('Session expired. Please log in again.');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {

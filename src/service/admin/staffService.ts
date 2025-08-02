@@ -20,4 +20,15 @@ export const createStaff = async (data: StaffBasicType) => {
     throw {message:  error.response?.data?.error || "Failed to create staff member."};
   }
 }
+export const getStaffList = async (status: number,page: number, limit:number) => {
+  console.log("Fetching staff list with status:", status, "page:", page, "limit:", limit);
+  try {
+    //geting user details pass with query
+    const response = await axiosInstance.get(`/admin/staff?status=${status}&page=${page}&limit=${limit}`);
+    return response.data;
+  } catch (error: any) {
+    console.log("Error fetching staff list:", error.response?.data?.error);
+    throw {message:  error.response?.data?.error || "Failed to fetch staff list."};
+  }
+}
 
