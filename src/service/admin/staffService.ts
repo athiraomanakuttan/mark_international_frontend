@@ -51,7 +51,7 @@ export const updateStaff = async (id: string, data: StaffUpdateType) => {
 
 export const updateStatus = async (id: string, status: number) => {
   try {
-    const response = await axiosInstance.patch(`/admin/staff/${id}/status`, { status });
+    const response = await axiosInstance.patch(`/admin/staff/${id}/${status}`, { status });
     return response.data;
   } catch (error:any) {
     console.log("Error updating staff status:", error.response?.data?.error);

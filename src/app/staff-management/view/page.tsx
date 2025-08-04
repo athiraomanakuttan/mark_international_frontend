@@ -15,6 +15,7 @@ import {
   ImageIcon,
   DollarSign,
   Flag,
+  RefreshCcw
 } from "lucide-react";
 
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar";
@@ -72,11 +73,13 @@ export default function StaffManagementViewPage() {
   const [loading,setLoading] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<StaffDataType | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
 
-  const DeleteUserBtn = () => {
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
-  }
+  const handleClickDelete = (staffId: string) => {
+    setSelectedStaffId(staffId);
+    setConfirmOpen(true);
+  };
 const [paginationData, setPaginationData]= useState({
     currentPage: 1,
     totalPages: 1,
@@ -127,18 +130,32 @@ const [paginationData, setPaginationData]= useState({
     );
   }, [searchTerm]);
 
-  const updateStaffStatus = async (staffId: string, status: number) => {
+  const handleConfirmDelete = async () => {
+    if (!selectedStaffId) return;
     try {
-      const response = await updateStatus(staffId, status );
+      const response = await updateStatus(selectedStaffId, 0);
       if (response.status) {
         toast.success("Staff status updated successfully!");
-        getData(); // Refresh the staff list
+        getData();
       }
     } catch (error: any) {
       toast.error(error?.message || "Failed to update staff status.");
+    } finally {
+      setConfirmOpen(false);
+      setSelectedStaffId(null);
     }
   };
-
+  const updateStaffStat = async (staffId: string,status=-1) => {
+    try {
+      const response = await updateStatus(staffId, status);
+      if (response.status) {
+        toast.success("Staff deleted successfully!");
+        getData();
+      }
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to delete staff.");
+    }
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -454,18 +471,17 @@ const changeLimit = (value: string) => {
         {/* Filters and Search */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-            <span className="text-slate-700 font-medium">Permissions</span>
+            <span className="text-slate-700 font-medium">Staff Status</span>
             <Select
-              defaultValue="all"
-              onValueChange={(value) => setForm("designation", value)}
+              defaultValue="1"
+              onValueChange={(value)=>setStaffStatus(Number(value))}
             >
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All" />
+                <SelectValue placeholder="Active" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="staff">Staff</SelectItem>
+                <SelectItem value="1">Active</SelectItem>
+                <SelectItem value="0">Deleted</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -543,7 +559,8 @@ const changeLimit = (value: string) => {
                   </TableCell>
                   <TableCell>{staff?.phoneNumber}</TableCell>
                   <TableCell>{staff.designation}</TableCell>
-                  <TableCell className="flex justify-center space-x-2">
+                  { staffStatus === 1 ? (
+                    <TableCell className="flex justify-center space-x-2">
                     <Button
                       variant="outline"
                       size="icon"
@@ -559,7 +576,7 @@ const changeLimit = (value: string) => {
                       variant="outline"
                       size="icon"
                       className="bg-red-100 hover:bg-red-200 text-red-600"
-                      onClick={() => updateStaffStatus(staff.id, -1)}
+                       onClick={() => handleClickDelete(staff.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -571,6 +588,28 @@ const changeLimit = (value: string) => {
                       <Eye className="h-4 w-4" />
                     </Button>
                   </TableCell>
+                  ):(
+                    <TableCell className="flex justify-center space-x-2">
+                    
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="bg-red-100 hover:bg-red-200 text-red-600"
+                       onClick={() => updateStaffStat(staff.id,-1)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="bg-blue-100 hover:bg-blue-200 text-blue-600"
+                      onClick={() => {updateStaffStat(staff.id,1)}}
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                  )}
+                  
                 </TableRow>
               )) )}
             </TableBody>
@@ -608,6 +647,12 @@ const changeLimit = (value: string) => {
     </Button>
   </div>
 </div>
+<ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        message="Are you sure you want to delete this user?"
+      />
 
       </div>
     </div>
