@@ -45,15 +45,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import {ConfirmDialog} from '@/components/confirmBox'
 
 import { useFetchFormData } from "@/hook/FormHook";
 import { StaffBasicType } from "@/types/staff-type";
 import { phoneCodes } from "@/data/phoneCodeData";
 import { staffFormValidation } from "@/validation/staffValidation";
-import {createStaff} from "@/service/admin/staffService";
+import {createStaff, updateStatus} from "@/service/admin/staffService";
 import { toast } from "react-toastify";
 import { getStaffList } from "@/service/admin/staffService";
 import { StaffDataType } from "@/types/staff-type";
+import UpdateStaffModal from "@/components/admin/updateStaff";
 // Placeholder data for staff members/
 
 
@@ -68,6 +70,13 @@ export default function StaffManagementViewPage() {
   });
   const [staffStatus, setStaffStatus] = useState(1);
   const [loading,setLoading] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<StaffDataType | null>(null);
+
+  const DeleteUserBtn = () => {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  }
 const [paginationData, setPaginationData]= useState({
     currentPage: 1,
     totalPages: 1,
@@ -80,9 +89,9 @@ const [paginationData, setPaginationData]= useState({
     setLoading(true);
     const currentPage = pageOverride ?? paginationData.currentPage;
     const response = await getStaffList(staffStatus, currentPage, paginationData.limit);
-
     if (response.status) {
       const { users, totalRecords } = response.data;
+      console.log("user list", users)
       setStaffData(users);
       setPaginationData((prev) => ({
         ...prev,
@@ -100,7 +109,7 @@ const [paginationData, setPaginationData]= useState({
 
   useEffect(() => {
   getData();
-}, [paginationData.currentPage]);
+}, [paginationData.currentPage, paginationData.limit, staffStatus, isEditModalOpen]);
 
 
   useEffect(()=>{
@@ -117,6 +126,20 @@ const [paginationData, setPaginationData]= useState({
         code.code.includes(searchTerm)
     );
   }, [searchTerm]);
+
+  const updateStaffStatus = async (staffId: string, status: number) => {
+    try {
+      const response = await updateStatus(staffId, status );
+      if (response.status) {
+        toast.success("Staff status updated successfully!");
+        getData(); // Refresh the staff list
+      }
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to update staff status.");
+    }
+  };
+
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0]);
@@ -171,6 +194,7 @@ const changeLimit = (value: string) => {
 
 
   return (
+
     <ModernDashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -416,6 +440,15 @@ const changeLimit = (value: string) => {
               </form>
             </DialogContent>
           </Dialog>
+          {(isEditModalOpen && selectedUser) && (
+            <UpdateStaffModal
+              isOpen={isEditModalOpen}
+              setIsOpen={setIsEditModalOpen}
+              user={selectedUser}
+              selectedFile={selectedFile}
+              handleFileChange={handleFileChange}
+            />
+          )}
         </div>
 
         {/* Filters and Search */}
@@ -515,6 +548,10 @@ const changeLimit = (value: string) => {
                       variant="outline"
                       size="icon"
                       className="bg-orange-100 hover:bg-orange-200 text-orange-600"
+                      onClick={() => {
+                        setSelectedUser(staff);
+                        setIsEditModalOpen(true);
+                      }}
                     >
                       <SquarePen className="h-4 w-4" />
                     </Button>
@@ -522,6 +559,7 @@ const changeLimit = (value: string) => {
                       variant="outline"
                       size="icon"
                       className="bg-red-100 hover:bg-red-200 text-red-600"
+                      onClick={() => updateStaffStatus(staff.id, -1)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

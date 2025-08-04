@@ -1,4 +1,4 @@
-import { StaffBasicType } from "@/types/staff-type";
+import { StaffBasicType, StaffUpdateType } from "@/types/staff-type";
 import axiosInstance from "../axiosInstance"
 
 export const createStaff = async (data: StaffBasicType) => {
@@ -8,11 +8,11 @@ export const createStaff = async (data: StaffBasicType) => {
     (Object.keys(data) as Array<keyof StaffBasicType>).forEach((key) => {
       const value = data[key];
       if (value !== undefined && value !== null) {
-        formData.append(key, value as any); // handle strings/files
+        formData.append(key, value as any); 
       }
     });
 
-    const response = await axiosInstance.post("/admin/staff", formData); // ❌ no custom headers here
+    const response = await axiosInstance.post("/admin/staff", formData);
     console.log("response", response);
     return response.data;
   } catch (error:any) {
@@ -31,4 +31,30 @@ export const getStaffList = async (status: number,page: number, limit:number) =>
     throw {message:  error.response?.data?.error || "Failed to fetch staff list."};
   }
 }
+export const updateStaff = async (id: string, data: StaffUpdateType) => {
+  try {
+    const formData = new FormData();
+    (Object.keys(data) as Array<keyof StaffUpdateType>).forEach((key) => {
+      const value = data[key];
+      if (value !== undefined && value !== null) {
+        formData.append(key, value as any); // handle strings/files
+      }
+    });   
 
+    const response = await axiosInstance.patch(`/admin/staff/${id}`, formData);
+    return response.data;
+  } catch (error:any) {
+    console.log("Error updating staff:", error.response?.data?.error);
+    throw {message:  error.response?.data?.error || "Failed to update staff member."};
+  }
+}
+
+export const updateStatus = async (id: string, status: number) => {
+  try {
+    const response = await axiosInstance.patch(`/admin/staff/${id}/status`, { status });
+    return response.data;
+  } catch (error:any) {
+    console.log("Error updating staff status:", error.response?.data?.error);
+    throw {message:  error.response?.data?.error || "Failed to update staff status."};
+  }
+}
