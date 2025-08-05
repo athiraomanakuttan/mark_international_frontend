@@ -3,7 +3,7 @@ import axiosInstance from '../axiosInstance'
 
 export const createLead = async (leadData: LeadBasicType) => {
     try {
-        const response = await axiosInstance.post('/leads', leadData);
+        const response = await axiosInstance.post('/admin/leads', leadData);
         return response.data;
     } catch (error) {
         console.error('Error creating lead:', error);

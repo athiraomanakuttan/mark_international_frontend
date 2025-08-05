@@ -55,13 +55,13 @@ export default function AddLeadsModal({ open, setOpen }: AddLeadsModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Here you can handle the form submission, e.g., send data to an API
-    console.log("Form Data Submitted:", formData);
     const finalFormData = {
     ...formData,
     phoneNumber: selectedPhoneCode.code + formData.phoneNumber,
   } ;
     try{
         const response = await createLead(finalFormData)
+        console.log("response", response)
         if(response.status){
             toast.success("Lead created successfully")
             setOpen(false)
