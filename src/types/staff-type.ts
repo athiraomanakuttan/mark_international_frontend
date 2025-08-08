@@ -1,4 +1,5 @@
 export interface StaffBasicType {
+  id?: string,
   name: string;
   phoneCode: string;
   phoneNumber: string;

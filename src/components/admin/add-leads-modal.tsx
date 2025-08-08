@@ -15,13 +15,16 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Flag } from "lucide-react" 
-import { Dispatch, SetStateAction, useMemo, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
 import { phoneCodes } from "@/data/phoneCodeData";
 import {useFetchFormData} from '@/hook/FormHook'
 import { LeadBasicType } from "@/types/lead-type"
 import { LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS, LEAD_TYPES } from "@/constance/Lead-data"
 import {createLead} from '@/service/admin/leadService'
 import { toast } from "react-toastify"
+import { useDispatch, useSelector } from "react-redux"
+import { AppDispatch, RootState } from "@/lib/redux/store"
+import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
 
 
 interface AddLeadsModalProps {
@@ -31,6 +34,13 @@ interface AddLeadsModalProps {
 
 
 export default function AddLeadsModal({ open, setOpen }: AddLeadsModalProps) {
+    const dispatch = useDispatch<AppDispatch>();
+    
+      const { staffList } = useSelector((state: RootState) => state.staff);
+    
+      useEffect(() => {
+        dispatch(fetchAllStaffs());
+      }, []);
 
     const {formData,setForm } = useFetchFormData<LeadBasicType>()
 
@@ -40,8 +50,11 @@ export default function AddLeadsModal({ open, setOpen }: AddLeadsModalProps) {
     code: "+91",
   });
   
-    
-
+    useEffect(() => {
+    if (staffList.length === 0) {
+      dispatch(fetchAllStaffs());
+    }
+  }, [ staffList]);
     const filteredPhoneCodes = useMemo(() => {
     if (!searchTerm) {
       return phoneCodes;
@@ -169,9 +182,10 @@ export default function AddLeadsModal({ open, setOpen }: AddLeadsModalProps) {
                   <SelectValue placeholder="Assign Agent" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mark-educat">Mark International Educat</SelectItem>
-                  <SelectItem value="agent2">Agent 2</SelectItem>
-                  <SelectItem value="agent3">Agent 3</SelectItem>
+                  {staffList.map(staff=>(
+                  <SelectItem value={staff.id || ""} key={staff.id}>{staff.name}</SelectItem>
+                  ))}
+                  
                 </SelectContent>
               </Select>
             </div>
@@ -259,3 +273,7 @@ export default function AddLeadsModal({ open, setOpen }: AddLeadsModalProps) {
     </Dialog>
   )
 }
+function dispatch(arg0: any) {
+  throw new Error("Function not implemented.")
+}
+

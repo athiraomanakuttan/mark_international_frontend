@@ -2,7 +2,7 @@
 
 import { Label } from "@/components/ui/label"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -13,6 +13,9 @@ import { Plus, Download, Trash2, Pencil } from "lucide-react"
 import { LeadBasicType } from "@/types/lead-type"
 import { ModernDashboardLayout } from  '@/components/navbar/modern-dashboard-navbar';
 import AddLeadsModal from '@/components/admin/add-leads-modal'
+import { useDispatch, useSelector } from "react-redux"
+import { AppDispatch, RootState } from "@/lib/redux/store"
+import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
 export default function LeadsReportPage() {
   const [fromDate, setFromDate] = useState<Date | undefined>(new Date("2025-04-08"))
   const [toDate, setToDate] = useState<Date | undefined>(new Date("2025-04-08"))
@@ -28,7 +31,15 @@ export default function LeadsReportPage() {
 
   // Dummy data for demonstration
   const leadData: LeadBasicType[] = [] // Currently no data, matching the image
-
+  const dispatch = useDispatch<AppDispatch>();
+  
+    const { staffList } = useSelector((state: RootState) => state.staff);
+  
+  
+    useEffect(() => {
+      dispatch(fetchAllStaffs());
+    }, [dispatch]);
+    
   return (
     <ModernDashboardLayout>
       <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">

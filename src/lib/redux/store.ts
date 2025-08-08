@@ -1,12 +1,12 @@
-// src/lib/redux/store.ts
 import { configureStore } from '@reduxjs/toolkit'
 import userReducer from './features/userSlice'
+import staffReducer from './features/staffSlice' // ✅ fix here
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
       user: userReducer,
-      // Add other reducers here
+      staff: staffReducer, // ✅ now points to the correct reducer
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({

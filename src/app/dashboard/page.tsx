@@ -1,6 +1,19 @@
+'use client'
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
 
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk";
+import { AppDispatch, RootState } from "@/lib/redux/store";
+import { useEffect } from "react";
 export default function HomePage() {
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { staffList } = useSelector((state: RootState) => state.staff);
+
+
+  useEffect(() => {
+    dispatch(fetchAllStaffs());
+  }, [dispatch]);
   return (
     <ModernDashboardLayout>
       <div className="space-y-6">
