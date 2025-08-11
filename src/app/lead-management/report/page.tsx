@@ -73,7 +73,7 @@ yesterday.setDate(yesterday.getDate() - 1);
 
   useEffect(() => {
     getLeadList()
-  }, [leadStatus, paginationData.currentPage, paginationData.limit,fromDate,toDate,leadCategory,leadStatus,priority,leadSource,staff,createBy]) // Add other filter states here when they are used in getLeads
+  }, [leadStatus, paginationData.currentPage, paginationData.limit,fromDate,toDate,leadCategory,leadStatus,priority,leadSource,staff,createBy,searchQuery]) // Add other filter states here when they are used in getLeads
 
   // Prepare options for MultiSelect components
   const leadCategoryOptions = LEAD_TYPES.map((item) => ({ value: item.value, label: item.name }))
