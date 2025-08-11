@@ -1,5 +1,6 @@
 import { LeadBasicType, LeadFilterType } from '@/types/lead-type'
 import axiosInstance from '../axiosInstance'
+import { FinalProcessedLead } from '@/types/lead-import';
 
 export const createLead = async (leadData: LeadBasicType) => {
     try {
@@ -19,5 +20,14 @@ export const getLeads = async (status:string="1", page:number=1, limit:number=10
     } catch (error) {
         console.error('Error getting lead:', error);
         throw error;
+    }
+}
+
+export const bulkLeadUpload = async (leadData: FinalProcessedLead[])=>{
+    try {
+        const response = await axiosInstance.post('/admin/leads/upload', leadData)
+        return response.data
+    } catch (error) {
+        throw error
     }
 }
