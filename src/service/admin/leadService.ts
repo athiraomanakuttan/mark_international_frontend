@@ -10,3 +10,13 @@ export const createLead = async (leadData: LeadBasicType) => {
         throw error;
     }
 }
+
+export const getLeads = async (status:string="1", page:number=1, limit:number=10)=>{
+    try {
+        const response =  await axiosInstance.get(`/admin/leads?status=${status}&page=${page}&limit=${limit}`)
+        return response.data
+    } catch (error) {
+        console.error('Error getting lead:', error);
+        throw error;
+    }
+}

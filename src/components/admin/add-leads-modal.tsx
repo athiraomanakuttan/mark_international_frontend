@@ -19,7 +19,7 @@ import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
 import { phoneCodes } from "@/data/phoneCodeData";
 import {useFetchFormData} from '@/hook/FormHook'
 import { LeadBasicType } from "@/types/lead-type"
-import { LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS, LEAD_TYPES } from "@/constance/Lead-data"
+import { LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS, LEAD_TYPES } from "@/data/Lead-data"
 import {createLead} from '@/service/admin/leadService'
 import { toast } from "react-toastify"
 import { useDispatch, useSelector } from "react-redux"
