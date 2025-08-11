@@ -1,4 +1,4 @@
-import { LeadBasicType } from '@/types/lead-type'
+import { LeadBasicType, LeadFilterType } from '@/types/lead-type'
 import axiosInstance from '../axiosInstance'
 
 export const createLead = async (leadData: LeadBasicType) => {
@@ -11,9 +11,10 @@ export const createLead = async (leadData: LeadBasicType) => {
     }
 }
 
-export const getLeads = async (status:string="1", page:number=1, limit:number=10)=>{
+export const getLeads = async (status:string="1", page:number=1, limit:number=10,filterData?:LeadFilterType, search?:string)=>{
     try {
-        const response =  await axiosInstance.get(`/admin/leads?status=${status}&page=${page}&limit=${limit}`)
+        const filter = JSON.stringify(filterData)
+        const response =  await axiosInstance.get(`/admin/leads?status=${status}&page=${page}&limit=${limit}&filter=${filter}&search=${search}`)
         return response.data
     } catch (error) {
         console.error('Error getting lead:', error);

@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { DatePicker } from "@/components/ui/date-picker"
 import { Plus, Download, Trash2, Pencil } from "lucide-react"
-import type { LeadResponse } from "@/types/lead-type"
+import type { LeadFilterType, LeadResponse } from "@/types/lead-type"
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
 import AddLeadsModal from "@/components/admin/add-leads-modal"
 import { useDispatch, useSelector } from "react-redux"
@@ -20,8 +20,10 @@ import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS } from "@/data/L
 import { MultiSelect } from "@/components/ui/multi-select" // Import the new MultiSelect component
 
 export default function LeadsReportPage() {
-  const [fromDate, setFromDate] = useState<Date | undefined>(new Date("2025-04-08"))
-  const [toDate, setToDate] = useState<Date | undefined>(new Date("2025-04-08"))
+  const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
+  const [fromDate, setFromDate] = useState<Date | undefined>(yesterday)
+  const [toDate, setToDate] = useState<Date | undefined>(new Date())
   // Change state types to arrays for multi-selection
   const [leadCategory, setLeadCategory] = useState<(string | number)[]>([])
   const [leadStatus, setLeadStatus] = useState<(string | number)[]>([])
@@ -41,6 +43,10 @@ export default function LeadsReportPage() {
   })
   const dispatch = useDispatch<AppDispatch>()
   const { staffList } = useSelector((state: RootState) => state.staff)
+  
+  useEffect(()=>{
+    console.log(priority)
+  },[priority])
 
   useEffect(() => {
     dispatch(fetchAllStaffs())
@@ -51,7 +57,7 @@ export default function LeadsReportPage() {
       // Convert selected arrays to comma-separated strings for API if needed
       // For now, only leadStatus is used in getLeads, adjust as per your backend API
       const statusParam = leadStatus.length > 0 ? leadStatus.join(",") : "7" // '7' for All, or empty string if backend expects that
-      const response = await getLeads(statusParam, paginationData.currentPage, paginationData.limit)
+      const response = await getLeads(statusParam, paginationData.currentPage, paginationData.limit,{fromDate, createBy,leadCategory, leadSource, leadStatus, priority, staff, toDate} as LeadFilterType, searchQuery)
       if (response.status) {
         console.log("lead response", response.data)
         setLeadData(response?.data?.lead)
@@ -67,7 +73,7 @@ export default function LeadsReportPage() {
 
   useEffect(() => {
     getLeadList()
-  }, [leadStatus, paginationData.currentPage, paginationData.limit]) // Add other filter states here when they are used in getLeads
+  }, [leadStatus, paginationData.currentPage, paginationData.limit,fromDate,toDate,leadCategory,leadStatus,priority,leadSource,staff,createBy]) // Add other filter states here when they are used in getLeads
 
   // Prepare options for MultiSelect components
   const leadCategoryOptions = LEAD_TYPES.map((item) => ({ value: item.value, label: item.name }))
