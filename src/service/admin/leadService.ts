@@ -31,3 +31,13 @@ export const bulkLeadUpload = async (leadData: FinalProcessedLead[])=>{
         throw error
     }
 }
+
+export const updateLead = async (id: string, leadData: Partial<LeadBasicType>)=>{
+    try{
+        const response = await axiosInstance.patch(`/admin/leads/${id}`,leadData)
+        return response.data
+    }catch(err){
+        throw err
+    }
+return {status: true}
+}

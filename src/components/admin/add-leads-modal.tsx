@@ -70,7 +70,7 @@ export default function AddLeadsModal({ open, setOpen }: AddLeadsModalProps) {
     // Here you can handle the form submission, e.g., send data to an API
     const finalFormData = {
     ...formData,
-    phoneNumber: selectedPhoneCode.code + formData.phoneNumber,
+    phoneNumber: selectedPhoneCode.code +" "+ formData.phoneNumber,
   } ;
     try{
         const response = await createLead(finalFormData)

@@ -18,6 +18,7 @@ import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
 import { getLeads } from "@/service/admin/leadService"
 import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS } from "@/data/Lead-data"
 import { MultiSelect } from "@/components/ui/multi-select" // Import the new MultiSelect component
+import EditLeadsModal from '@/components/admin/edit-leads-modal'
 
 export default function LeadsReportPage() {
   const yesterday = new Date();
@@ -34,6 +35,8 @@ yesterday.setDate(yesterday.getDate() - 1);
   const [searchQuery, setSearchQuery] = useState("")
   const [entriesPerPage, setEntriesPerPage] = useState("10")
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isUpdateModelOpen, setIsUpdateModelOpen] = useState(false)
+  const [selectedLead, setSelectedLead]= useState<LeadResponse>()
   const [leadData, setLeadData] = useState<LeadResponse[]>([])
   const [paginationData, setPaginationData] = useState({
     currentPage: 1,
@@ -41,12 +44,21 @@ yesterday.setDate(yesterday.getDate() - 1);
     limit: 10,
     totalItems: 0,
   })
+  const handleLeadUpdate = (lead: LeadResponse)=>{
+    setSelectedLead(lead)
+  }
+
+  
   const dispatch = useDispatch<AppDispatch>()
   const { staffList } = useSelector((state: RootState) => state.staff)
   
   useEffect(()=>{
     console.log(priority)
   },[priority])
+  useEffect(()=>{
+    if(selectedLead)
+      setIsUpdateModelOpen(true)
+  },[selectedLead])
 
   useEffect(() => {
     dispatch(fetchAllStaffs())
@@ -73,7 +85,11 @@ yesterday.setDate(yesterday.getDate() - 1);
 
   useEffect(() => {
     getLeadList()
-  }, [leadStatus, paginationData.currentPage, paginationData.limit,fromDate,toDate,leadCategory,leadStatus,priority,leadSource,staff,createBy,searchQuery]) // Add other filter states here when they are used in getLeads
+  }, [leadStatus, paginationData.currentPage, paginationData.limit,fromDate,toDate,leadCategory,leadStatus,priority,leadSource,staff,createBy,searchQuery, isAddModalOpen,isUpdateModelOpen]) // Add other filter states here when they are used in getLeads
+
+  useEffect(()=>{
+    setPaginationData((prev)=>({...prev,currentPage:1}))
+  },[fromDate,toDate,leadCategory,leadStatus,priority,leadSource,staff,createBy,searchQuery])
 
   // Prepare options for MultiSelect components
   const leadCategoryOptions = LEAD_TYPES.map((item) => ({ value: item.value, label: item.name }))
@@ -267,7 +283,8 @@ yesterday.setDate(yesterday.getDate() - 1);
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900"
+                            className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900" 
+                            onClick={()=>handleLeadUpdate(lead)}
                           >
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
@@ -305,6 +322,7 @@ yesterday.setDate(yesterday.getDate() - 1);
         </main>
       </div>
       {isAddModalOpen && <AddLeadsModal open={isAddModalOpen} setOpen={setIsAddModalOpen} />}
+      {(isUpdateModelOpen && selectedLead) && <EditLeadsModal leadData={selectedLead} open={isUpdateModelOpen} setOpen={setIsUpdateModelOpen} />}
     </ModernDashboardLayout>
   )
 }
