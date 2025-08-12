@@ -64,9 +64,6 @@ export default function LeadsReportPage() {
     limit: 10,
     totalItems: 0,
   });
-  useEffect(() => {
-    console.log("selectedLeadList", selectedLeadList);
-  }, [selectedLeadList]); // come
 
   useEffect(()=>{
     if(isTransferModalOpen && selectedLeadList.length === 0){

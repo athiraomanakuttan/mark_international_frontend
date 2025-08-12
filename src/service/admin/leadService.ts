@@ -50,3 +50,12 @@ export const trannsferLead = async (staffId:string, leadList:string[])=>{
         throw error
     }
 } 
+
+export const deletelead = async (leadStatus:number= 0, leadList:string[])=>{
+    try{
+        const response = await axiosInstance.patch('/admin/leads/delete',{leadStatus, leadList})
+        return response.data
+    }catch(err){
+        throw err
+    }
+}

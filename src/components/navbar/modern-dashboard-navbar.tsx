@@ -18,6 +18,8 @@ import {
   Menu,
   X,
   Settings,
+  Trash,
+  Unlink 
 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
@@ -58,6 +60,16 @@ const menuItems = [
         title: "Transfer Leads",
         url: "/lead-management/transfer",
         icon: ArrowRightLeft,
+      },
+      {
+        title: "Deleted Leads",
+        url: "/lead-management/deleted",
+        icon: Trash,
+      },
+      {
+        title: "Unassigned Leads",
+        url: "/lead-management/unassigned",
+        icon: Unlink,
       },
     ],
   },
