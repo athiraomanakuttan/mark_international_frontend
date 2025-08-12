@@ -25,7 +25,7 @@ export default function LeadsReportPage() {
 yesterday.setDate(yesterday.getDate() - 1);
   const [fromDate, setFromDate] = useState<Date | undefined>(yesterday)
   const [toDate, setToDate] = useState<Date | undefined>(new Date())
-  // Change state types to arrays for multi-selection
+
   const [leadCategory, setLeadCategory] = useState<(string | number)[]>([])
   const [leadStatus, setLeadStatus] = useState<(string | number)[]>([])
   const [priority, setPriority] = useState<(string | number)[]>([])
@@ -37,6 +37,7 @@ yesterday.setDate(yesterday.getDate() - 1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isUpdateModelOpen, setIsUpdateModelOpen] = useState(false)
   const [selectedLead, setSelectedLead]= useState<LeadResponse>()
+  const [selectedLeadList, setSelectedLeadList] = useState<string[]>([])
   const [leadData, setLeadData] = useState<LeadResponse[]>([])
   const [paginationData, setPaginationData] = useState({
     currentPage: 1,
@@ -47,7 +48,26 @@ yesterday.setDate(yesterday.getDate() - 1);
   const handleLeadUpdate = (lead: LeadResponse)=>{
     setSelectedLead(lead)
   }
+  useEffect(()=>{console.log("selectedLeadList", selectedLeadList)},[selectedLeadList]) // come
+  
 
+  const handleSelectLead = (leadId: string)=>{
+    if(leadId === "all" && selectedLeadList.length>0){ 
+      setSelectedLeadList([])
+    }else if(leadId === "all"){
+      leadData.forEach((data)=>{
+        setSelectedLeadList((prev)=>([...prev,data.id]))
+      })
+      
+    }
+    else if(selectedLeadList.indexOf(leadId)=== -1){
+       setSelectedLeadList((prev)=>([...prev,leadId]))
+    }
+    else{
+      const filteredData = selectedLeadList.filter(id=>id!==leadId)
+      setSelectedLeadList(filteredData)
+    }
+  }
   
   const dispatch = useDispatch<AppDispatch>()
   const { staffList } = useSelector((state: RootState) => state.staff)
@@ -66,8 +86,6 @@ yesterday.setDate(yesterday.getDate() - 1);
 
   const getLeadList = async () => {
     try {
-      // Convert selected arrays to comma-separated strings for API if needed
-      // For now, only leadStatus is used in getLeads, adjust as per your backend API
       const statusParam = leadStatus.length > 0 ? leadStatus.join(",") : "7" // '7' for All, or empty string if backend expects that
       const response = await getLeads(statusParam, paginationData.currentPage, paginationData.limit,{fromDate, createBy,leadCategory, leadSource, leadStatus, priority, staff, toDate} as LeadFilterType, searchQuery)
       if (response.status) {
@@ -221,7 +239,7 @@ yesterday.setDate(yesterday.getDate() - 1);
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40px]">
-                      <Checkbox id="select-all" />
+                      <Checkbox id="select-all"  onCheckedChange={()=>handleSelectLead("all")}/>
                     </TableHead>
                     <TableHead className="w-[50px]">#</TableHead>
                     <TableHead>Name</TableHead>
@@ -248,7 +266,7 @@ yesterday.setDate(yesterday.getDate() - 1);
                     leadData.map((lead, index) => (
                       <TableRow key={index}>
                         <TableCell>
-                          <Checkbox id={`select-lead-${index}`} />
+                          <Checkbox id={`select-lead-${index}`}  onCheckedChange={()=>handleSelectLead(lead.id)}/>
                         </TableCell>
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>{lead.name}</TableCell>

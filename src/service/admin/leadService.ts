@@ -41,3 +41,12 @@ export const updateLead = async (id: string, leadData: Partial<LeadBasicType>)=>
     }
 return {status: true}
 }
+
+export const trannsferLead = async (staffId:string, leadList:string[])=>{
+    try {
+        const response = await axiosInstance.patch('/admin/leads/transfer',{staffId, leadList})
+            return response.data
+    } catch (error) {
+        throw error
+    }
+} 
