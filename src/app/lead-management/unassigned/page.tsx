@@ -8,34 +8,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DatePicker } from "@/components/ui/date-picker"
-import { Plus, Download, Trash2, Pencil } from "lucide-react"
-import type { LeadFilterType, LeadResponse } from "@/types/lead-type"
+import { Plus, Download } from "lucide-react"
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
-import AddLeadsModal from "@/components/admin/add-leads-modal"
 import { useDispatch, useSelector } from "react-redux"
 import type { AppDispatch, RootState } from "@/lib/redux/store"
+import type { LeadFilterType, LeadResponse } from "@/types/lead-type"
 import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
 import { deletelead, getUnassignedLeads } from "@/service/admin/leadService"
 import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS } from "@/data/Lead-data"
-import { MultiSelect } from "@/components/ui/multi-select" // Import the new MultiSelect component
-import EditLeadsModal from '@/components/admin/edit-leads-modal'
+import { MultiSelect } from "@/components/ui/multi-select" 
 import { toast } from "react-toastify"
+import AssignLeadModal from "@/components/admin/assign-staff-modal"
 
 export default function LeadsReportPage() {
-  const yesterday = new Date();
-yesterday.setDate(yesterday.getDate() - 1);
-  const [fromDate, setFromDate] = useState<Date | undefined>(yesterday)
+  const from = new Date();
+from.setDate(from.getDate() - 10);
+  const [fromDate, setFromDate] = useState<Date | undefined>(from)
   const [toDate, setToDate] = useState<Date | undefined>(new Date())
 
   const [leadCategory, setLeadCategory] = useState<(string | number)[]>([])
   const [leadStatus, setLeadStatus] = useState<(string | number)[]>([])
-  const [priority, setPriority] = useState<(string | number)[]>([])
-  const [leadSource, setLeadSource] = useState<(string | number)[]>([])
   const [staff, setStaff] = useState<(string | number)[]>([])
   const [createBy, setCreateBy] = useState<(string | number)[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [entriesPerPage, setEntriesPerPage] = useState("10")
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
   const [isUpdateModelOpen, setIsUpdateModelOpen] = useState(false)
   const [selectedLead, setSelectedLead]= useState<LeadResponse>()
   const [selectedLeadList, setSelectedLeadList] = useState<string[]>([])
@@ -86,9 +83,7 @@ yesterday.setDate(yesterday.getDate() - 1);
   const dispatch = useDispatch<AppDispatch>()
   const { staffList } = useSelector((state: RootState) => state.staff)
   
-  useEffect(()=>{
-    console.log(priority)
-  },[priority])
+ 
   useEffect(()=>{
     if(selectedLead)
       setIsUpdateModelOpen(true)
@@ -101,7 +96,7 @@ yesterday.setDate(yesterday.getDate() - 1);
   const getLeadList = async () => {
     try {
       const statusParam = leadStatus.length > 0 ? leadStatus.join(",") : "7" // '7' for All, or empty string if backend expects that
-      const response = await getUnassignedLeads(statusParam, paginationData.currentPage, paginationData.limit,{fromDate, createBy,leadCategory, leadSource, leadStatus, priority, staff, toDate} as LeadFilterType, searchQuery)
+      const response = await getUnassignedLeads(statusParam, paginationData.currentPage, paginationData.limit,{fromDate, createBy,leadCategory, leadStatus, staff, toDate} as LeadFilterType, searchQuery)
       if (response.status) {
         console.log("lead response", response.data)
         setLeadData(response?.data?.lead)
@@ -117,20 +112,27 @@ yesterday.setDate(yesterday.getDate() - 1);
 
   useEffect(() => {
     getLeadList()
-  }, [leadStatus, paginationData.currentPage, paginationData.limit,fromDate,toDate,leadCategory,leadStatus,priority,leadSource,staff,createBy,searchQuery, isAddModalOpen,isUpdateModelOpen]) // Add other filter states here when they are used in getLeads
+  }, [leadStatus, paginationData.currentPage, paginationData.limit,fromDate,toDate,leadCategory,leadStatus,staff,createBy,searchQuery, isAssignModalOpen,isUpdateModelOpen]) // Add other filter states here when they are used in getLeads
 
   useEffect(()=>{
     setPaginationData((prev)=>({...prev,currentPage:1}))
-  },[fromDate,toDate,leadCategory,leadStatus,priority,leadSource,staff,createBy,searchQuery])
+  },[fromDate,toDate,leadCategory,leadStatus,staff,createBy,searchQuery])
 
   // Prepare options for MultiSelect components
   const leadCategoryOptions = LEAD_TYPES.map((item) => ({ value: item.value, label: item.name }))
   const leadStatusOptions = LEAD_STATUS.map((item) => ({ value: item.value, label: item.name }))
-  const priorityOptions = LEAD_PRIORITIES.map((item) => ({ value: item.value, label: item.name }))
-  const leadSourceOptions = LEAD_SOURCES.map((item) => ({ value: item.value, label: item.name }))
-  const staffOptions = staffList.map((item) => ({ value: item.id!, label: item.name }))
-  const createByOptions = staffList.map((item) => ({ value: item.id!, label: item.name }))
 
+const leadAssinedSuccess = ()=>{
+    getLeadList()
+    setSelectedLeadList([])
+}
+const handleAssignBtn = ()=>{
+    if(selectedLeadList.length<=0){
+        toast.error("please select at least one lead")
+        return
+    }
+    setIsAssignModalOpen(true)
+}
   return (
     <ModernDashboardLayout>
       <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -145,7 +147,7 @@ yesterday.setDate(yesterday.getDate() - 1);
                 </Button>
                 <Button
                   className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white"
-                  onClick={() => setIsAddModalOpen(true)}
+                  onClick={handleAssignBtn}
                 >
                   <Plus className="h-4 w-4" />
                   Assign Staff
@@ -292,8 +294,7 @@ yesterday.setDate(yesterday.getDate() - 1);
           </div>
         </main>
       </div>
-      {isAddModalOpen && <AddLeadsModal open={isAddModalOpen} setOpen={setIsAddModalOpen} />}
-      {(isUpdateModelOpen && selectedLead) && <EditLeadsModal leadData={selectedLead} open={isUpdateModelOpen} setOpen={setIsUpdateModelOpen} />}
-    </ModernDashboardLayout>
+      {isAssignModalOpen && <AssignLeadModal leadList={selectedLeadList} open={isAssignModalOpen} setOpen={setIsAssignModalOpen} leadAssinedSuccess={leadAssinedSuccess}  />}
+      </ModernDashboardLayout>
   )
 }

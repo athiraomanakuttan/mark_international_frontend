@@ -39,7 +39,6 @@ export const updateLead = async (id: string, leadData: Partial<LeadBasicType>)=>
     }catch(err){
         throw err
     }
-return {status: true}
 }
 
 export const trannsferLead = async (staffId:string, leadList:string[])=>{
@@ -68,5 +67,14 @@ export const getUnassignedLeads = async (status:string="1", page:number=1, limit
     } catch (error) {
         console.error('Error getting lead:', error);
         throw error;
+    }
+}
+
+export const assignLeads = async (leadList:string[], staffId:string)=>{
+    try{
+        const response =  await axiosInstance.patch('/admin/leads/assign',{leadList, staffId})
+        return response.data
+    }catch(err){
+        throw err
     }
 }
