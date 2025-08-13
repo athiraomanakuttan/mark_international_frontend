@@ -59,3 +59,14 @@ export const deletelead = async (leadStatus:number= 0, leadList:string[])=>{
         throw err
     }
 }
+
+export const getUnassignedLeads = async (status:string="1", page:number=1, limit:number=10,filterData?:LeadFilterType, search?:string)=>{
+    try {
+        const filter = JSON.stringify(filterData)
+        const response =  await axiosInstance.get(`/admin/leads/unassigned?status=${status}&page=${page}&limit=${limit}&filter=${filter}&search=${search}`)
+        return response.data
+    } catch (error) {
+        console.error('Error getting lead:', error);
+        throw error;
+    }
+}
