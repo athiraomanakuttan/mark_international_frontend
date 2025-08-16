@@ -55,7 +55,7 @@ const LoginPage: React.FC = () => {
   dispatch(setLoading(true))
   try {
     const response = await loginUser(formData)
-    console.log("Response ==> ", response?.data?.accessToken )
+    console.log("Response ==><== ", response?.data?.user?.role)
     if (response.status) {
       // First update Redux state
       Cookies.set('accessToken', response?.data?.accessToken || "", { expires: 7 })
@@ -69,8 +69,12 @@ const LoginPage: React.FC = () => {
       
       // Small delay to ensure Redux state is updated and toast is shown
       setTimeout(() => {
-        console.log('Redirecting to dashboard...')
-        router.push("/dashboard")
+        // console.log('Redirecting to dashboard...')
+        if(response?.data?.user?.role === "admin")
+        router.push("/dashboard") 
+        else 
+        router.push("/staff/dashboard") 
+
       }, 100)
       
     } else {

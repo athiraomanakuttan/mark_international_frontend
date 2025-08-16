@@ -8,25 +8,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DatePicker } from "@/components/ui/date-picker"
-import {  Download, Trash, Redo } from "lucide-react"
+import { Plus, Download, Trash2, Pencil } from "lucide-react"
 import type { LeadFilterType, LeadResponse } from "@/types/lead-type"
-import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
-import { useDispatch, useSelector } from "react-redux"
-import type { AppDispatch, RootState } from "@/lib/redux/store"
-import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
-import { deletelead, getLeads } from "@/service/admin/leadService"
 import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS } from "@/data/Lead-data"
-import { MultiSelect } from "@/components/ui/multi-select" // Import the new MultiSelect component
+import { MultiSelect } from "@/components/ui/multi-select" 
 import { toast } from "react-toastify"
+import { ModernDashboardLayout } from "@/components/staff/modern-dashboard-navbar"
+import { deletelead, getLeads } from "@/service/staff/leadService"
+import AddLeadsModal from "@/components/staff/add-leads-modal"
+import EditLeadsModal from "@/components/staff/edit-leads-modal"
 
 export default function LeadsReportPage() {
-  const yesterday = new Date();
-yesterday.setDate(yesterday.getDate() - 1);
   const [fromDate, setFromDate] = useState<Date | undefined>()
   const [toDate, setToDate] = useState<Date | undefined>()
 
   const [leadCategory, setLeadCategory] = useState<(string | number)[]>([])
-  const [leadStatus, setLeadStatus] = useState<(string | number)[]>([0])
+  const [leadStatus, setLeadStatus] = useState<(string | number)[]>([])
   const [priority, setPriority] = useState<(string | number)[]>([])
   const [leadSource, setLeadSource] = useState<(string | number)[]>([])
   const [staff, setStaff] = useState<(string | number)[]>([])
@@ -36,7 +33,7 @@ yesterday.setDate(yesterday.getDate() - 1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isUpdateModelOpen, setIsUpdateModelOpen] = useState(false)
   const [selectedLead, setSelectedLead]= useState<LeadResponse>()
-   const [selectedLeadList, setSelectedLeadList] = useState<string[]>([]);
+  const [selectedLeadList, setSelectedLeadList] = useState<string[]>([])
   const [leadData, setLeadData] = useState<LeadResponse[]>([])
   const [paginationData, setPaginationData] = useState({
     currentPage: 1,
@@ -47,38 +44,39 @@ yesterday.setDate(yesterday.getDate() - 1);
   const handleLeadUpdate = (lead: LeadResponse)=>{
     setSelectedLead(lead)
   }
-  useEffect(()=>{console.log("selectedLeadList", selectedLeadList)},[selectedLeadList]) // come
   
 
-  
-  const handleSelectLead = (leadId: string) => {
-    if (leadId === "all") {
-      if (selectedLeadList.length === leadData.length && leadData.length > 0) {
-        setSelectedLeadList([]);
-      } else {
-        const allLeadIds = leadData.map((data) => data.id);
-        setSelectedLeadList(allLeadIds);
-      }
-    } else {
-      if (selectedLeadList.indexOf(leadId) === -1) {
-        setSelectedLeadList((prev) => [...prev, leadId]);
-      } else {
-        const filteredData = selectedLeadList.filter((id) => id !== leadId);
-        setSelectedLeadList(filteredData);
-      }
+  const handleSelectLead = (leadId: string)=>{
+    if(leadId === "all" && selectedLeadList.length>0){ 
+      setSelectedLeadList([])
+    }else if(leadId === "all"){
+      leadData.forEach((data)=>{
+        setSelectedLeadList((prev)=>([...prev,data.id]))
+      })
+      
     }
-  };
+    else if(selectedLeadList.indexOf(leadId)=== -1){
+       setSelectedLeadList((prev)=>([...prev,leadId]))
+    }
+    else{
+      const filteredData = selectedLeadList.filter(id=>id!==leadId)
+      setSelectedLeadList(filteredData)
+    }
+  }
 
-  const handleSelectAllSimple = () => {
-    if (selectedLeadList.length === leadData.length) {
-      setSelectedLeadList([]);
-    } else {
-      const allLeadIds = leadData.map((data) => data.id);
-      setSelectedLeadList(allLeadIds);
+  const  handleDelete = async (leadId: string)=>{
+    
+    try{
+      const response = await deletelead(0,[leadId])
+      if(response.status){
+        toast.success("lead deleted successfull")
+        getLeadList()
+      }
+    }catch(err){
+      toast.error("Lead deleted successfull")
     }
-  };
-  const dispatch = useDispatch<AppDispatch>()
-  const { staffList } = useSelector((state: RootState) => state.staff)
+  }
+  
   
   useEffect(()=>{
     console.log(priority)
@@ -88,25 +86,6 @@ yesterday.setDate(yesterday.getDate() - 1);
       setIsUpdateModelOpen(true)
   },[selectedLead])
 
-  useEffect(() => {
-    dispatch(fetchAllStaffs())
-  }, [dispatch])
-
-  const handleDelete = async ()=>{
-    if(selectedLeadList.length === 0){
-        toast.error("select atleast one lead")
-        return
-    }
-    try {
-        const response = await deletelead(-1,selectedLeadList)
-        if(response.status){
-            toast.success("Lead Deleted successfully")
-            getLeadList()
-        }
-    } catch (error) {
-        toast.error("unable to delete lead. try again !")
-    }
-  }
 
   const getLeadList = async () => {
     try {
@@ -138,8 +117,6 @@ yesterday.setDate(yesterday.getDate() - 1);
   const leadStatusOptions = LEAD_STATUS.map((item) => ({ value: item.value, label: item.name }))
   const priorityOptions = LEAD_PRIORITIES.map((item) => ({ value: item.value, label: item.name }))
   const leadSourceOptions = LEAD_SOURCES.map((item) => ({ value: item.value, label: item.name }))
-  const staffOptions = staffList.map((item) => ({ value: item.id!, label: item.name }))
-  const createByOptions = staffList.map((item) => ({ value: item.id!, label: item.name }))
 
   return (
     <ModernDashboardLayout>
@@ -147,17 +124,19 @@ yesterday.setDate(yesterday.getDate() - 1);
         <main className="flex-1 p-6 md:p-2">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-6xl">
             <div className="flex items-center justify-between mb-2">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Deleted Leads Report</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Leads Report</h1>
               <div className="flex gap-2">
                 <Button variant="outline" className="flex items-center gap-2 bg-transparent">
                   <Download className="h-4 w-4" />
                   Export
                 </Button>
-                <Button  className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white" onClick={handleDelete}>
-                  <Trash className="h-4 w-4" />
-                  Delete Lead
+                <Button
+                  className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white"
+                  onClick={() => setIsAddModalOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Lead
                 </Button>
-                
               </div>
             </div>
             {/* Filter Section */}
@@ -179,12 +158,34 @@ yesterday.setDate(yesterday.getDate() - 1);
                   placeholder="Select categories"
                 />
               </div>
-              
-              
               <div className="grid gap-2">
-                <Label htmlFor="staff">Staff</Label>
-                <MultiSelect options={staffOptions} selected={staff} onChange={setStaff} placeholder="Select staff" />
+                <Label htmlFor="lead-status">Lead Status</Label>
+                <MultiSelect
+                  options={leadStatusOptions}
+                  selected={leadStatus}
+                  onChange={setLeadStatus}
+                  placeholder="Select statuses"
+                />
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="priority">Priority</Label>
+                <MultiSelect
+                  options={priorityOptions}
+                  selected={priority}
+                  onChange={setPriority}
+                  placeholder="Select priorities"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="lead-source">Lead Source</Label>
+                <MultiSelect
+                  options={leadSourceOptions}
+                  selected={leadSource}
+                  onChange={setLeadSource}
+                  placeholder="Select sources"
+                />
+              </div>
+              
               
             </div>
             <Button className="bg-emerald-500 hover:bg-emerald-600 text-white mb-6" onClick={getLeadList}>
@@ -228,26 +229,19 @@ yesterday.setDate(yesterday.getDate() - 1);
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40px]">
-                      <Checkbox
-                                              id="select-all"
-                                              checked={
-                                                selectedLeadList.length === leadData.length &&
-                                                leadData.length > 0
-                                              }
-                                              onCheckedChange={handleSelectAllSimple}
-                                            />
+                      <Checkbox id="select-all"  onCheckedChange={()=>handleSelectLead("all")}/>
                     </TableHead>
                     <TableHead className="w-[50px]">#</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Phone No</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Last Updated</TableHead>
-                    <TableHead>Staff</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created Date</TableHead>
                     <TableHead>Created By</TableHead>
                     <TableHead>Cost</TableHead>
                     <TableHead>Lead Source</TableHead>
+                    <TableHead className="text-center">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -261,11 +255,7 @@ yesterday.setDate(yesterday.getDate() - 1);
                     leadData.map((lead, index) => (
                       <TableRow key={index}>
                         <TableCell>
-                            <Checkbox
-                                                        id={`select-lead-${index}`}
-                                                        checked={selectedLeadList.includes(lead.id)}
-                                                        onCheckedChange={() => handleSelectLead(lead.id)}
-                                                      />
+                          <Checkbox id={`select-lead-${index}`}  onCheckedChange={()=>handleSelectLead(lead.id)}/>
                         </TableCell>
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>{lead.name}</TableCell>
@@ -276,9 +266,8 @@ yesterday.setDate(yesterday.getDate() - 1);
                           )}
                         </TableCell>
                         <TableCell>{lead.updatedAt}</TableCell>
-                        <TableCell>{lead.assignedAgent_name || <span className="text-gray-500">N/A</span>}</TableCell>
                         <TableCell>
-                          <label className="text-red-500">{LEAD_STATUS.find((data) => data.value === Number(lead.status))?.name || "N/A"}</label>
+                          {LEAD_STATUS.find((data) => data.value === Number(lead.status))?.name || "N/A"}
                         </TableCell>
                         <TableCell>{lead.createdAt || <span className="text-gray-500">N/A</span>}</TableCell>
                         <TableCell>{lead.createdByName || <span className="text-gray-500">N/A</span>}</TableCell>
@@ -288,7 +277,26 @@ yesterday.setDate(yesterday.getDate() - 1);
                             <span className="text-gray-500">N/A</span>
                           )}
                         </TableCell>
-                        
+                        <TableCell className="flex justify-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900"
+                            onClick={()=>{handleDelete(lead.id)}}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900" 
+                            onClick={()=>handleLeadUpdate(lead)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -320,6 +328,8 @@ yesterday.setDate(yesterday.getDate() - 1);
           </div>
         </main>
       </div>
+      {isAddModalOpen && <AddLeadsModal open={isAddModalOpen} setOpen={setIsAddModalOpen} />}
+      {(isUpdateModelOpen && selectedLead) && <EditLeadsModal leadData={selectedLead} open={isUpdateModelOpen} setOpen={setIsUpdateModelOpen} />}
     </ModernDashboardLayout>
   )
 }
