@@ -58,3 +58,12 @@ export const updateStatus = async (id: string, status: number) => {
     throw {message:  error.response?.data?.error || "Failed to update staff status."};
   }
 }
+
+export const getStaffById = async (id: string)=>{
+  try {
+    const response =  await axiosInstance.get(`/admin/staff/${id}`)
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}

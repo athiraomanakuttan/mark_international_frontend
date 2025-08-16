@@ -57,6 +57,7 @@ import { toast } from "react-toastify";
 import { getStaffList } from "@/service/admin/staffService";
 import { StaffDataType } from "@/types/staff-type";
 import UpdateStaffModal from "@/components/admin/updateStaff";
+import Link from "next/link";
 
 // Placeholder data for staff members/
 
@@ -581,6 +582,7 @@ const changeLimit = (value: string) => {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
+                    <Link href={`/staff-management/view/${staff.id}`}>
                     <Button
                       variant="outline"
                       size="icon"
@@ -588,6 +590,7 @@ const changeLimit = (value: string) => {
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
+                    </Link>
                   </TableCell>
                   ):(
                     <TableCell className="flex justify-center space-x-2">

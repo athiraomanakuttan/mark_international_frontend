@@ -43,4 +43,18 @@ export interface EditStaffModalProps {
   onSubmit: (updatedData: StaffDataType) => void;
 }
 
+export interface StaffDataResponse {
+  _id: string,
+name :  string,
+phoneNumber : string,
+designation : string,
+email ?: string,
+accessibleUsers ?: string[],
+openingBalance : number,
+role : string,
+profilePic?: string,
+isActive : number,
+createdAt : string,
+updatedAt : string,
+}
 
