@@ -12,9 +12,10 @@ export const leadDashboardData = async ()=>{
 
 export const getStaffWiseReport = async (fromDate:Date , toDate:Date)=>{
 try{
-    const response = await axiosInstance.get(`/admin/dashboard/staff-lead?from=${fromDate}&to=${toDate}`)
+    const response = await axiosInstance.get(`/staff/dashboard/staff-lead?from=${fromDate}&to=${toDate}`)
     return response.data
 }catch(err){
     throw err
 }
 }
+
