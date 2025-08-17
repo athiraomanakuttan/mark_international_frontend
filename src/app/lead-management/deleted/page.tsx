@@ -8,13 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DatePicker } from "@/components/ui/date-picker"
-import {  Download, Trash, Redo } from "lucide-react"
+import {  Download, Trash, Redo, RefreshCcw } from "lucide-react"
 import type { LeadFilterType, LeadResponse } from "@/types/lead-type"
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
 import { useDispatch, useSelector } from "react-redux"
 import type { AppDispatch, RootState } from "@/lib/redux/store"
 import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
-import { deletelead, getLeads } from "@/service/admin/leadService"
+import { deletelead, getLeads, updateLead } from "@/service/admin/leadService"
 import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS } from "@/data/Lead-data"
 import { MultiSelect } from "@/components/ui/multi-select" // Import the new MultiSelect component
 import { toast } from "react-toastify"
@@ -44,8 +44,16 @@ yesterday.setDate(yesterday.getDate() - 1);
     limit: 10,
     totalItems: 0,
   })
-  const handleLeadUpdate = (lead: LeadResponse)=>{
-    setSelectedLead(lead)
+  const handleLeadUpdate =async  (lead: string)=>{
+    try {
+      const response = await updateLead(lead,{status: 1})
+      if(response.status){
+        toast.success("Lead Re stored");
+        getLeadList()
+      }
+    } catch (error) {
+      toast.error("Some error occured Try again")
+    }
   }
   useEffect(()=>{console.log("selectedLeadList", selectedLeadList)},[selectedLeadList]) // come
   
@@ -248,6 +256,7 @@ yesterday.setDate(yesterday.getDate() - 1);
                     <TableHead>Created By</TableHead>
                     <TableHead>Cost</TableHead>
                     <TableHead>Lead Source</TableHead>
+                    <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -288,6 +297,7 @@ yesterday.setDate(yesterday.getDate() - 1);
                             <span className="text-gray-500">N/A</span>
                           )}
                         </TableCell>
+                        <TableCell><Button onClick={()=>handleLeadUpdate(lead.id)}><RefreshCcw/></Button></TableCell>
                         
                       </TableRow>
                     ))

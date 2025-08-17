@@ -255,7 +255,6 @@ export default function LeadImportForm() {
                   <Select
                     value={commonFormData.leadCategory}
                     onValueChange={(value) => handleCommonFormChange("leadCategory", value)}
-                    required
                   >
                     <SelectTrigger id="lead-category"  className="w-full">
                       <SelectValue placeholder="Select Lead Type" />
@@ -274,7 +273,6 @@ export default function LeadImportForm() {
                   <Select
                     value={commonFormData.staff}
                     onValueChange={(value) => handleCommonFormChange("staff", value)}
-                    required
                   >
                     <SelectTrigger id="staff"  className="w-full">
                       <SelectValue placeholder="Select Staff" />
@@ -296,7 +294,6 @@ export default function LeadImportForm() {
                   <Select
                     value={commonFormData.leadSource}
                     onValueChange={(value) => handleCommonFormChange("leadSource", value)}
-                    required
                   >
                     <SelectTrigger id="lead-source"  className="w-full">
                       <SelectValue placeholder="Select Lead Source" />
@@ -315,7 +312,6 @@ export default function LeadImportForm() {
                   <Select
                     value={commonFormData.priority}
                     onValueChange={(value) => handleCommonFormChange("priority", value)}
-                    required
                   >
                     <SelectTrigger id="priority"  className="w-full">
                       <SelectValue placeholder="Select Priority" />

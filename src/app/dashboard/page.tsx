@@ -24,6 +24,7 @@ import { bottomStatsStyles, categoryColors, staffColors, statsStyles } from "@/d
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
 import { getStaffWiseReport, leadDashboardData } from "@/service/admin/dashboardService"
 import { DashboardLeadType, StaffLeadData } from "@/types/dashboard-type"
+import AddLeadsModal from "@/components/admin/add-leads-modal"
 
 export default function HomePage() {
   const [leadData, setLeadData] = useState<DashboardLeadType>({
@@ -119,6 +120,8 @@ export default function HomePage() {
     { name: "Study abroad", value: 30 },
   ]
 
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+
   return (
     <ModernDashboardLayout>
       <div className="min-h-screen bg-gray-50 p-6">
@@ -136,7 +139,7 @@ export default function HomePage() {
             <Button className="bg-blue-600 hover:bg-blue-700 text-white">
               <Calendar className="w-4 h-4 mr-2" />
             </Button>
-            <Button className="bg-teal-500 hover:bg-teal-600 text-white">
+            <Button className="bg-teal-500 hover:bg-teal-600 text-white" onClick={()=>setIsAddModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Add Leads
             </Button>
@@ -432,6 +435,7 @@ export default function HomePage() {
           </Card>
         </div>
       </div>
+      {isAddModalOpen && <AddLeadsModal open={isAddModalOpen} setOpen={setIsAddModalOpen} />}
     </ModernDashboardLayout>
   )
 }

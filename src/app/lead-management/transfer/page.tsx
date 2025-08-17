@@ -447,7 +447,7 @@ export default function LeadsReportPage() {
             </div>
             {/* Bottom Pagination */}
             <div className="flex items-center justify-between mt-4 text-sm text-gray-700 dark:text-gray-300">
-              <span>Showing 0 to 0 of 0 entries</span>
+              <span>Showing page {paginationData.currentPage}  of {paginationData.totalPages} pages</span>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
