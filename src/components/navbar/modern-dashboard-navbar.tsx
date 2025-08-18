@@ -78,11 +78,11 @@ const menuItems = [
         url: "/staff-management/view",
         icon: Eye,
       },
-      {
-        title: "Designation",
-        url: "/staff-management/designation",
-        icon: Award,
-      },
+      // {
+      //   title: "Designation",
+      //   url: "/staff-management/designation",
+      //   icon: Award,
+      // },
     ],
   },
   {
@@ -92,7 +92,7 @@ const menuItems = [
     items: [
       {
         title: "Staff Report",
-        url: "/reports/staff",
+        url: "/staff-management/view",
         icon: Users,
       },
       {
@@ -102,7 +102,7 @@ const menuItems = [
       },
       {
         title: "Total Lead Report",
-        url: "/reports/total-lead",
+        url: "/lead-management/report",
         icon: FileText,
       },
     ],
@@ -302,111 +302,111 @@ export function ModernDashboardLayout({ children }: { children: React.ReactNode 
   )
 }
 
-export default function Component() {
-  return (
-    <ModernDashboardLayout>
-      <div className="space-y-6">
-        {/* Page Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
-          <h1 className="text-3xl font-bold mb-2">Welcome back! 👋</h1>
-          <p className="text-blue-100">Here's what's happening with your education platform today.</p>
-        </div>
+// export default function Component() {
+//   return (
+//     <ModernDashboardLayout>
+//       <div className="space-y-6">
+//         {/* Page Header */}
+//         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
+//           <h1 className="text-3xl font-bold mb-2">Welcome back! 👋</h1>
+//           <p className="text-blue-100">Here's what's happening with your education platform today.</p>
+//         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm font-medium">Total Leads</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">1,234</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <Users className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-            <div className="flex items-center mt-4">
-              <span className="text-green-600 text-sm font-medium">+20.1%</span>
-              <span className="text-slate-500 text-sm ml-2">from last month</span>
-            </div>
-          </div>
+//         {/* Stats Cards */}
+//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+//           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+//             <div className="flex items-center justify-between">
+//               <div>
+//                 <p className="text-slate-600 text-sm font-medium">Total Leads</p>
+//                 <p className="text-2xl font-bold text-slate-900 mt-1">1,234</p>
+//               </div>
+//               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+//                 <Users className="h-6 w-6 text-green-600" />
+//               </div>
+//             </div>
+//             <div className="flex items-center mt-4">
+//               <span className="text-green-600 text-sm font-medium">+20.1%</span>
+//               <span className="text-slate-500 text-sm ml-2">from last month</span>
+//             </div>
+//           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm font-medium">Active Staff</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">45</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                <UserPlus className="h-6 w-6 text-purple-600" />
-              </div>
-            </div>
-            <div className="flex items-center mt-4">
-              <span className="text-green-600 text-sm font-medium">+2</span>
-              <span className="text-slate-500 text-sm ml-2">new this week</span>
-            </div>
-          </div>
+//           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+//             <div className="flex items-center justify-between">
+//               <div>
+//                 <p className="text-slate-600 text-sm font-medium">Active Staff</p>
+//                 <p className="text-2xl font-bold text-slate-900 mt-1">45</p>
+//               </div>
+//               <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+//                 <UserPlus className="h-6 w-6 text-purple-600" />
+//               </div>
+//             </div>
+//             <div className="flex items-center mt-4">
+//               <span className="text-green-600 text-sm font-medium">+2</span>
+//               <span className="text-slate-500 text-sm ml-2">new this week</span>
+//             </div>
+//           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm font-medium">Conversion Rate</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">89%</p>
-              </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-orange-600" />
-              </div>
-            </div>
-            <div className="flex items-center mt-4">
-              <span className="text-green-600 text-sm font-medium">+5%</span>
-              <span className="text-slate-500 text-sm ml-2">from last month</span>
-            </div>
-          </div>
+//           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+//             <div className="flex items-center justify-between">
+//               <div>
+//                 <p className="text-slate-600 text-sm font-medium">Conversion Rate</p>
+//                 <p className="text-2xl font-bold text-slate-900 mt-1">89%</p>
+//               </div>
+//               <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+//                 <BarChart3 className="h-6 w-6 text-orange-600" />
+//               </div>
+//             </div>
+//             <div className="flex items-center mt-4">
+//               <span className="text-green-600 text-sm font-medium">+5%</span>
+//               <span className="text-slate-500 text-sm ml-2">from last month</span>
+//             </div>
+//           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm font-medium">Reports Generated</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">156</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <FileText className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-            <div className="flex items-center mt-4">
-              <span className="text-green-600 text-sm font-medium">+12</span>
-              <span className="text-slate-500 text-sm ml-2">this week</span>
-            </div>
-          </div>
-        </div>
+//           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+//             <div className="flex items-center justify-between">
+//               <div>
+//                 <p className="text-slate-600 text-sm font-medium">Reports Generated</p>
+//                 <p className="text-2xl font-bold text-slate-900 mt-1">156</p>
+//               </div>
+//               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+//                 <FileText className="h-6 w-6 text-blue-600" />
+//               </div>
+//             </div>
+//             <div className="flex items-center mt-4">
+//               <span className="text-green-600 text-sm font-medium">+12</span>
+//               <span className="text-slate-500 text-sm ml-2">this week</span>
+//             </div>
+//           </div>
+//         </div>
 
-        {/* Content Area */}
-        <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-200">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <UserPlus className="h-5 w-5 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-slate-900 font-medium">New lead imported</p>
-                <p className="text-slate-500 text-sm">John Doe added to lead management</p>
-              </div>
-              <span className="text-slate-400 text-sm">2 min ago</span>
-            </div>
+//         {/* Content Area */}
+//         <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-200">
+//           <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
+//           <div className="space-y-4">
+//             <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg">
+//               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+//                 <UserPlus className="h-5 w-5 text-green-600" />
+//               </div>
+//               <div className="flex-1">
+//                 <p className="text-slate-900 font-medium">New lead imported</p>
+//                 <p className="text-slate-500 text-sm">John Doe added to lead management</p>
+//               </div>
+//               <span className="text-slate-400 text-sm">2 min ago</span>
+//             </div>
 
-            <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <FileText className="h-5 w-5 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-slate-900 font-medium">Report generated</p>
-                <p className="text-slate-500 text-sm">Monthly staff performance report</p>
-              </div>
-              <span className="text-slate-400 text-sm">1 hour ago</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </ModernDashboardLayout>
-  )
-}
+//             <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg">
+//               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+//                 <FileText className="h-5 w-5 text-blue-600" />
+//               </div>
+//               <div className="flex-1">
+//                 <p className="text-slate-900 font-medium">Report generated</p>
+//                 <p className="text-slate-500 text-sm">Monthly staff performance report</p>
+//               </div>
+//               <span className="text-slate-400 text-sm">1 hour ago</span>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </ModernDashboardLayout>
+//   )
+// }

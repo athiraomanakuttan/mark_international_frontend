@@ -43,9 +43,7 @@ from.setDate(from.getDate() - 10);
     limit: 10,
     totalItems: 0,
   })
-  const handleLeadUpdate = (lead: LeadResponse)=>{
-    setSelectedLead(lead)
-  }
+  
   useEffect(()=>{console.log("selectedLeadList", selectedLeadList)},[selectedLeadList]) // come
   
 
@@ -271,7 +269,7 @@ const handleAssignBtn = ()=>{
             </div>
             {/* Bottom Pagination */}
             <div className="flex items-center justify-between mt-4 text-sm text-gray-700 dark:text-gray-300">
-              <span>Showing {paginationData.currentPage} to {paginationData.totalPages} of {paginationData.totalItems} entries</span>
+              <span>Showing page {paginationData.currentPage}  of {paginationData.totalPages} pages</span>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
