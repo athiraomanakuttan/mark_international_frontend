@@ -22,92 +22,18 @@ import {
   Unlink 
 } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { menuItems } from "@/data/adminMenuItems"
+import { useSelector, useDispatch } from "react-redux"
+import { AppDispatch, RootState } from "@/lib/redux/store"
+import { toast } from "react-toastify"
+import { useRouter } from "next/navigation"
 
-const menuItems = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: Home,
-    color: "bg-blue-500",
-  },
-  {
-    title: "Lead Management",
-    icon: Users,
-    color: "bg-green-500",
-    items: [
-      {
-        title: "Import Lead",
-        url: "/lead-management/import",
-        icon: Download,
-      },
-      {
-        title: "Lead Report",
-        url: "/lead-management/report",
-        icon: FileText,
-      },
-      {
-        title: "Transfer Leads",
-        url: "/lead-management/transfer",
-        icon: ArrowRightLeft,
-      },
-      {
-        title: "Deleted Leads",
-        url: "/lead-management/deleted",
-        icon: Trash,
-      },
-      {
-        title: "Unassigned Leads",
-        url: "/lead-management/unassigned",
-        icon: Unlink,
-      },
-    ],
-  },
-  {
-    title: "Staff Management",
-    icon: UserPlus,
-    color: "bg-purple-500",
-    items: [
-      {
-        title: "View Staff",
-        url: "/staff-management/view",
-        icon: Eye,
-      },
-      // {
-      //   title: "Designation",
-      //   url: "/staff-management/designation",
-      //   icon: Award,
-      // },
-    ],
-  },
-  {
-    title: "Reports",
-    icon: BarChart3,
-    color: "bg-orange-500",
-    items: [
-      {
-        title: "Staff Report",
-        url: "/staff-management/view",
-        icon: Users,
-      },
-      {
-        title: "Transfer Lead Report",
-        url: "/reports/transfer-lead",
-        icon: ArrowRightLeft,
-      },
-      {
-        title: "Total Lead Report",
-        url: "/lead-management/report",
-        icon: FileText,
-      },
-    ],
-  },
-]
 
 function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [expandedItems, setExpandedItems] = useState<string[]>([])
@@ -230,6 +156,22 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 }
 
 function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
+    const { user } = useSelector((state: RootState) => state.user)
+  const dispatch = useDispatch<AppDispatch>()   
+  const router = useRouter()
+
+  useEffect(()=>{
+    console.log("user data", user)
+  },[user])
+
+  const logoutUser = () => {
+    dispatch({ type: 'user/clearUser' })
+    localStorage.clear()
+    document.cookie = ""
+    toast.success("Logged out")
+    router.push('/login')
+  }
+
   return (
     <header className="bg-white border-b border-slate-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -278,7 +220,7 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600" >Logout</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600" onClick={logoutUser} >Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

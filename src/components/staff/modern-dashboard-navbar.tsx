@@ -22,12 +22,16 @@ import {
   Unlink 
 } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useDispatch, useSelector } from "react-redux"
+import { AppDispatch, RootState } from "@/lib/redux/store"
+import { useRouter } from "next/navigation"
+import { toast } from "react-toastify"
 
 const menuItems = [
   {
@@ -59,7 +63,7 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
   const toggleExpanded = (title: string) => {
     setExpandedItems((prev) => (prev.includes(title) ? prev.filter((item) => item !== title) : [...prev, title]))
   }
-
+  const { user } = useSelector((state: RootState) => state.user)
   return (
     <>
       {/* Mobile Overlay */}
@@ -82,8 +86,8 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                 <span className="text-white font-bold text-lg">M</span>
               </div>
               <div>
-                <h1 className="text-white font-semibold text-lg">Mark International</h1>
-                <p className="text-slate-400 text-sm">Education Company</p>
+                <h1 className="text-white font-semibold text-lg">{user?.name || "Mark International"}</h1>
+                <p className="text-slate-400 text-sm">{user?.designation|| "Education Company" }</p>
               </div>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden text-slate-400 hover:text-white">
@@ -171,6 +175,22 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 }
 
 function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
+   const { user } = useSelector((state: RootState) => state.user)
+    const dispatch = useDispatch<AppDispatch>()   
+    const router = useRouter()
+  
+    useEffect(()=>{
+      console.log("user data", user)
+    },[user])
+  
+    const logoutUser = () => {
+      dispatch({ type: 'user/clearUser' })
+      localStorage.clear()
+      document.cookie = ""
+      toast.success("Logged out")
+      router.push('/login')
+    }
+    
   return (
     <header className="bg-white border-b border-slate-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -204,8 +224,8 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
                   <User className="h-4 w-4 text-white" />
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-slate-900">Mark International</p>
-                  <p className="text-xs text-slate-500">Company Admin</p>
+                  <p className="text-sm font-medium text-slate-900"> {user?.name || "Mark International" } </p>
+                  <p className="text-xs text-slate-500">{ user?.designation||"Staff"}</p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-slate-400" />
               </Button>
@@ -219,7 +239,7 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600" >Logout</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600" onClick={logoutUser}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
