@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DatePicker } from "@/components/ui/date-picker"
 import { Plus, Download, Trash2, Pencil } from "lucide-react"
 import type { LeadFilterType, LeadResponse } from "@/types/lead-type"
-import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS } from "@/data/Lead-data"
+import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS, statusColors, priorityColors } from "@/data/Lead-data"
 import { MultiSelect } from "@/components/ui/multi-select" 
 import { toast } from "react-toastify"
 import { ModernDashboardLayout } from "@/components/staff/modern-dashboard-navbar"
@@ -258,7 +258,20 @@ export default function LeadsReportPage() {
                           <Checkbox id={`select-lead-${index}`}  onCheckedChange={()=>handleSelectLead(lead.id)}/>
                         </TableCell>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell>{lead.name}</TableCell>
+                        <TableCell>
+  <div className="flex items-center gap-2">
+    {(() => {
+      const priority = LEAD_PRIORITIES.find((data) => data.value === Number(lead.priority));
+      
+      return (
+        <span
+          className={`w-3 h-3 rounded-full ${priorityColors[priority?.value ?? -1] || "bg-gray-300"}`}
+        ></span>
+      );
+    })()}
+    <span>{lead.name}</span>
+  </div>
+</TableCell>
                         <TableCell>{lead.phoneNumber || <span className="text-gray-500">N/A</span>}</TableCell>
                         <TableCell>
                           {LEAD_TYPES.find((data) => data.value === Number(lead.category))?.name || (
@@ -267,8 +280,17 @@ export default function LeadsReportPage() {
                         </TableCell>
                         <TableCell>{lead.updatedAt}</TableCell>
                         <TableCell>
-                          {LEAD_STATUS.find((data) => data.value === Number(lead.status))?.name || "N/A"}
-                        </TableCell>
+  {(() => {
+    const status = LEAD_STATUS.find((data) => data.value === Number(lead.status));
+    
+    return (
+      <span className={statusColors[status?.value ?? -1] || "text-black"}>
+        {status?.name || "N/A"}
+      </span>
+    );
+  })()}
+</TableCell>
+
                         <TableCell>{lead.createdAt || <span className="text-gray-500">N/A</span>}</TableCell>
                         <TableCell>{lead.createdByName || <span className="text-gray-500">N/A</span>}</TableCell>
                         <TableCell>{lead.cost || <span className="text-gray-500">0</span>}</TableCell>
@@ -277,6 +299,7 @@ export default function LeadsReportPage() {
                             <span className="text-gray-500">N/A</span>
                           )}
                         </TableCell>
+                        {(lead?.status !==0 && lead.status!== -1) && 
                         <TableCell className="flex justify-center gap-2">
                           <Button
                             variant="ghost"
@@ -296,16 +319,16 @@ export default function LeadsReportPage() {
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
                           </Button>
-                        </TableCell>
+                        </TableCell> }
                       </TableRow>
                     ))
                   )}
                 </TableBody>
-              </Table>
+              </Table>8
             </div>
             {/* Bottom Pagination */}
             <div className="flex items-center justify-between mt-4 text-sm text-gray-700 dark:text-gray-300">
-              <span>Showing 0 to 0 of 0 entries</span>
+              <span>Showing page {paginationData.currentPage} of {paginationData.totalPages}</span>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -315,7 +338,7 @@ export default function LeadsReportPage() {
                 >
                   Previous
                 </Button>
-                <Button
+                <Button 
                   variant="outline"
                   size="sm"
                   disabled={paginationData.currentPage >= paginationData.totalPages}

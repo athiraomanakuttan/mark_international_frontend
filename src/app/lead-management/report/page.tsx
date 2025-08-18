@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from "react-redux"
 import type { AppDispatch, RootState } from "@/lib/redux/store"
 import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
 import { deletelead, getLeads } from "@/service/admin/leadService"
-import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS } from "@/data/Lead-data"
+import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS, statusColors, priorityColors } from "@/data/Lead-data"
 import { MultiSelect } from "@/components/ui/multi-select" // Import the new MultiSelect component
 import EditLeadsModal from '@/components/admin/edit-leads-modal'
 import { toast } from "react-toastify"
@@ -283,7 +283,20 @@ yesterday.setDate(yesterday.getDate() - 10);
                           <Checkbox id={`select-lead-${index}`}  onCheckedChange={()=>handleSelectLead(lead.id)}/>
                         </TableCell>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell>{lead.name}</TableCell>
+                         <TableCell>
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const priority = LEAD_PRIORITIES.find((data) => data.value === Number(lead.priority));
+                              
+                              return (
+                                <span
+                                  className={`w-3 h-3 rounded-full ${priorityColors[priority?.value ?? -1] || "bg-gray-300"}`}
+                                ></span>
+                              );
+                            })()}
+                            <span>{lead.name}</span>
+                          </div>
+                        </TableCell>
                         <TableCell>{lead.phoneNumber || <span className="text-gray-500">N/A</span>}</TableCell>
                         <TableCell>
                           {LEAD_TYPES.find((data) => data.value === Number(lead.category))?.name || (
@@ -293,7 +306,15 @@ yesterday.setDate(yesterday.getDate() - 10);
                         <TableCell>{lead.updatedAt}</TableCell>
                         <TableCell>{lead.assignedAgent_name || <span className="text-gray-500">N/A</span>}</TableCell>
                         <TableCell>
-                          {LEAD_STATUS.find((data) => data.value === Number(lead.status))?.name || "N/A"}
+                          {(() => {
+                            const status = LEAD_STATUS.find((data) => data.value === Number(lead.status));
+                            
+                            return (
+                              <span className={statusColors[status?.value ?? -1] || "text-black"}>
+                                {status?.name || "N/A"}
+                              </span>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell>{lead.createdAt || <span className="text-gray-500">N/A</span>}</TableCell>
                         <TableCell>{lead.createdByName || <span className="text-gray-500">N/A</span>}</TableCell>
@@ -303,6 +324,7 @@ yesterday.setDate(yesterday.getDate() - 10);
                             <span className="text-gray-500">N/A</span>
                           )}
                         </TableCell>
+                        {(lead?.status !==0 && lead.status !== -1) && 
                         <TableCell className="flex justify-center gap-2">
                           <Button
                             variant="ghost"
@@ -322,7 +344,7 @@ yesterday.setDate(yesterday.getDate() - 10);
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
                           </Button>
-                        </TableCell>
+                        </TableCell> }
                       </TableRow>
                     ))
                   )}
