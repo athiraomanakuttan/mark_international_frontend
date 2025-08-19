@@ -14,7 +14,7 @@ import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS, statusColors, p
 import { MultiSelect } from "@/components/ui/multi-select" 
 import { toast } from "react-toastify"
 import { ModernDashboardLayout } from "@/components/staff/modern-dashboard-navbar"
-import { deletelead, getLeads } from "@/service/staff/leadService"
+import { deletelead, getExportLeads, getLeads } from "@/service/staff/leadService"
 import AddLeadsModal from "@/components/staff/add-leads-modal"
 import EditLeadsModal from "@/components/staff/edit-leads-modal"
 
@@ -86,7 +86,26 @@ export default function LeadsReportPage() {
       setIsUpdateModelOpen(true)
   },[selectedLead])
 
+const handleExport = async () => {
+  try {
+    const response = await getExportLeads(
+      { fromDate, createBy, leadCategory, leadSource, leadStatus, priority, staff, toDate } as LeadFilterType,
+      searchQuery
+    );
 
+    const blob = new Blob([response.data], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "leads.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (err) {
+    toast.error("Unable to export data. Try again");
+  }
+};
   const getLeadList = async () => {
     try {
       const statusParam = leadStatus.length > 0 ? leadStatus.join(",") : "7" // '7' for All, or empty string if backend expects that
@@ -126,7 +145,7 @@ export default function LeadsReportPage() {
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Leads Report</h1>
               <div className="flex gap-2">
-                <Button variant="outline" className="flex items-center gap-2 bg-transparent">
+                <Button variant="outline" className="flex items-center gap-2 bg-transparent" onClick={handleExport}>
                   <Download className="h-4 w-4" />
                   Export
                 </Button>

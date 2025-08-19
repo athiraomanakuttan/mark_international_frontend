@@ -12,6 +12,7 @@ export const createLead = async (leadData: LeadBasicType) => {
     }
 }
 
+
 export const getLeads = async (status:string="1", page:number=1, limit:number=10,filterData?:LeadFilterType, search?:string)=>{
     try {
         const filter = JSON.stringify(filterData)
@@ -77,4 +78,21 @@ export const assignLeads = async (leadList:string[], staffId:string)=>{
     }catch(err){
         throw err
     }
+}
+
+export const getExportLeads = async (
+  filterData?: LeadFilterType,
+  search?: string
+) => {
+  try {
+    const filter = JSON.stringify(filterData);
+    const response = await axiosInstance.get(
+      `/admin/leads/export-lead?filter=${filter}&search=${search}`,
+      { responseType: "blob" } // 👈 IMPORTANT
+    );
+    return response;
+  } catch (error) {
+    console.error("Error getting lead:", error);
+    throw error;
+  }
 }

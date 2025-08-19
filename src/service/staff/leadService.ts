@@ -39,3 +39,20 @@ export const updateLead = async (id: string, leadData: Partial<LeadBasicType>)=>
         throw err
     }
 }
+
+export const getExportLeads = async (
+  filterData?: LeadFilterType,
+  search?: string
+) => {
+  try {
+    const filter = JSON.stringify(filterData);
+    const response = await axiosInstance.get(
+      `/staff/leads/export-lead?filter=${filter}&search=${search}`,
+      { responseType: "blob" } // 👈 IMPORTANT
+    );
+    return response;
+  } catch (error) {
+    console.error("Error getting lead:", error);
+    throw error;
+  }
+}

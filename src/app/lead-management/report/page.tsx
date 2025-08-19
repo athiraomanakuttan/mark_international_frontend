@@ -15,7 +15,7 @@ import AddLeadsModal from "@/components/admin/add-leads-modal"
 import { useDispatch, useSelector } from "react-redux"
 import type { AppDispatch, RootState } from "@/lib/redux/store"
 import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
-import { deletelead, getLeads } from "@/service/admin/leadService"
+import { deletelead, getExportLeads, getLeads } from "@/service/admin/leadService"
 import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS, statusColors, priorityColors } from "@/data/Lead-data"
 import { MultiSelect } from "@/components/ui/multi-select" // Import the new MultiSelect component
 import EditLeadsModal from '@/components/admin/edit-leads-modal'
@@ -83,6 +83,27 @@ yesterday.setDate(yesterday.getDate() - 10);
     }
   }
   
+const handleExport = async () => {
+  try {
+    const response = await getExportLeads(
+      { fromDate, createBy, leadCategory, leadSource, leadStatus, priority, staff, toDate } as LeadFilterType,
+      searchQuery
+    );
+
+    const blob = new Blob([response.data], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "leads.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (err) {
+    toast.error("Unable to export data. Try again");
+  }
+};
+
   const dispatch = useDispatch<AppDispatch>()
   const { staffList } = useSelector((state: RootState) => state.staff)
   
@@ -115,6 +136,8 @@ yesterday.setDate(yesterday.getDate() - 10);
     }
   }
 
+  
+
   useEffect(() => {
     getLeadList()
   }, [leadStatus, paginationData.currentPage, paginationData.limit,fromDate,toDate,leadCategory,leadStatus,priority,leadSource,staff,createBy,searchQuery, isAddModalOpen,isUpdateModelOpen]) // Add other filter states here when they are used in getLeads
@@ -139,7 +162,7 @@ yesterday.setDate(yesterday.getDate() - 10);
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Leads Report</h1>
               <div className="flex gap-2">
-                <Button variant="outline" className="flex items-center gap-2 bg-transparent">
+                <Button variant="outline" className="flex items-center gap-2 bg-transparent" onClick={handleExport}>
                   <Download className="h-4 w-4" />
                   Export
                 </Button>
