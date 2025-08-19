@@ -4,8 +4,20 @@ import type { NextFetchEvent } from 'next/server'
 import jwt from 'jsonwebtoken'
 
 const PUBLIC_ROUTES = ['/login', '/signup'];
-const ADMIN_ROUTES = ['/dashboard','/staff-management','/staff-management/view', '/lead-management', '/settings'];
-const STAFF_ROUTES = ['/staff'];
+const ADMIN_ROUTES = [
+  '/dashboard',
+  '/staff-management',
+  '/staff-management/view',
+  '/lead-management',
+  '/settings',
+  '/reports/transfer-lead',
+  '/lead-management/unassigned',
+  '/lead-management/deleted',
+  '/lead-management/transfer',
+  '/lead-management/report',
+  '/lead-management/import'
+];
+const STAFF_ROUTES = ['/staff/dashboard','/staff/report'];
 
 interface DecodedToken {
   role: string;

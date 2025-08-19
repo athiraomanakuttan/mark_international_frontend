@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DatePicker } from "@/components/ui/date-picker"
-import { Plus, Download, Trash2, Pencil } from "lucide-react"
+import { Plus, Download, Trash2, Pencil, Eye } from "lucide-react"
 import type { LeadFilterType, LeadResponse } from "@/types/lead-type"
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
 import AddLeadsModal from "@/components/admin/add-leads-modal"
@@ -20,6 +20,7 @@ import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS, statusColors, p
 import { MultiSelect } from "@/components/ui/multi-select" // Import the new MultiSelect component
 import EditLeadsModal from '@/components/admin/edit-leads-modal'
 import { toast } from "react-toastify"
+import Link from "next/link"
 
 export default function LeadsReportPage() {
   const yesterday = new Date();
@@ -367,6 +368,17 @@ const handleExport = async () => {
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
                           </Button>
+                          <Link href={`/lead-management/lead/${lead.id}`}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-green-500 hover:bg-green-50 dark:hover:bg-green-900"
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">View</span>
+                          </Button>
+                          </Link>
+                          
                         </TableCell> }
                       </TableRow>
                     ))

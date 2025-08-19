@@ -22,7 +22,7 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { bottomStatsStyles, categoryColors, staffColors, statsStyles } from "@/data/dashboard-style-data"
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
-import { getStaffWiseReport, leadDashboardData } from "@/service/admin/dashboardService"
+import { getStaffWiseReport, leadDashboardData, monthlyWiseCount } from "@/service/admin/dashboardService"
 import { DashboardLeadType, StaffLeadData } from "@/types/dashboard-type"
 import AddLeadsModal from "@/components/admin/add-leads-modal"
 
@@ -40,7 +40,7 @@ export default function HomePage() {
 
   const getLeadData = async () => {
     try {
-      const response = await leadDashboardData()
+      const response = await leadDashboardData(leadDateRange?.from || new Date(), leadDateRange?.to || new Date())
       if (response.status) setLeadData(response.data) 
     } catch (error) {
       console.log("error fetching data", error)
@@ -65,6 +65,10 @@ export default function HomePage() {
     from: startOfMonth,
     to: today,
   })
+  const [leadDateRange, setLeadDateRange] = useState<DateRange | undefined>({
+    from: startOfMonth,
+    to: today,
+  })
 
   const getStaffReport = async () => {
     try {
@@ -81,7 +85,7 @@ export default function HomePage() {
 
   useEffect(() => {
     getLeadData()
-  }, [categoryDateRange])
+  }, [categoryDateRange, leadDateRange])
 
   // compute totals for staff report
   const totals = staffData.reduce(
@@ -120,8 +124,20 @@ export default function HomePage() {
     { name: "Study abroad", value: 30 },
   ]
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [monthlyLeadCount, setMonthlyLeadCount] = useState({
+    currentMonthLeads:0,
+    prevMonthLeads:0
+  })
+  const getMonthlyLead = async ()=>{
+    try{
+      const response = await monthlyWiseCount()
+      console.log("--------------", response.data)
+      if(response.status) setMonthlyLeadCount(response.data)
+    }catch(err){ console.log(err)}
+  }
+  useEffect(()=>{ getMonthlyLead()},[])
   return (
     <ModernDashboardLayout>
       <div className="min-h-screen bg-gray-50 p-6">
@@ -132,10 +148,38 @@ export default function HomePage() {
             <p className="text-gray-600 mt-1">Calling features that give you wings that fast.</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-gray-600">
-              <Calendar className="w-4 h-4" />
-              <span className="text-sm">{currentDate}</span>
-            </div>
+            {/* come */}
+            <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn("justify-start text-left font-normal", !leadDateRange && "text-muted-foreground")}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {leadDateRange?.from ? (
+                        leadDateRange.to ? (
+                          <>
+                            {format(leadDateRange.from, "dd-MM-yyyy")} to {format(leadDateRange.to, "dd-MM-yyyy")}
+                          </>
+                        ) : (
+                          format(leadDateRange.from, "dd-MM-yyyy")
+                        )
+                      ) : (
+                        <span>Pick a date range</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <CalendarComponent
+                      initialFocus
+                      mode="range"
+                      defaultMonth={leadDateRange?.from}
+                      selected={leadDateRange}
+                      onSelect={setLeadDateRange}
+                      numberOfMonths={1}
+                    />
+                  </PopoverContent>
+                </Popover>
             <Button className="bg-blue-600 hover:bg-blue-700 text-white">
               <Calendar className="w-4 h-4 mr-2" />
             </Button>
@@ -380,9 +424,9 @@ export default function HomePage() {
               </div>
               <div className="mt-4">
                 <div className="text-sm text-gray-600 mb-1">TOTAL LEADS</div>
-                <div className="text-2xl font-bold text-gray-900 mb-1">{leadData.totalLeads || 0}</div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">{monthlyLeadCount.currentMonthLeads || 0}</div>
                 <div className="text-sm text-gray-500">PREVIOUS MONTH LEADS</div>
-                <div className="text-xl font-semibold text-gray-700">0</div>
+                <div className="text-xl font-semibold text-gray-700">{monthlyLeadCount.prevMonthLeads || 0}</div>
               </div>
             </CardHeader>
             <CardContent>
