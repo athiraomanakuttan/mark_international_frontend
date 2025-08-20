@@ -51,3 +51,12 @@ export interface LeadFilterType {
   staff ?: (string | number)[];
   createBy ?: (string | number)[];
 }
+
+export interface FollowupData{
+  id: string;
+    date?: string;
+    time?: string;
+    user?: string;
+    createdDate?: string;
+    remarks?: string;
+}

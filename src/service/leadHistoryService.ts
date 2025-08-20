@@ -9,3 +9,12 @@ export const getLeadHistory = async (leadId: string) => {
     throw error;
   }
 }
+
+export const getLeadDataById = async (leadId: string)=>{
+  try{
+    const response = await axiosInstance.get(`/lead-history/lead/${leadId}`);
+    return response.data
+  }catch(err){
+    throw err
+  }
+}
