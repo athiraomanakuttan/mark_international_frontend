@@ -60,7 +60,7 @@ export function LeadHeader({ leadData }: LeadHeaderProps) {
                 <div className="flex items-center gap-1">
                   <DollarSign className="h-4 w-4 text-green-500" />
                   <span>
-                    Cost: <span className="text-slate-700">{leadData?.cost} || 0 </span>
+                    Cost: <span className="text-slate-700">{leadData?.cost || 0 }  </span>
                   </span>
                 </div>
               </div>

@@ -1,10 +1,23 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus } from "lucide-react"
 
@@ -12,8 +25,34 @@ interface AddFollowupModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
+interface FormDataType {
+  called_date: string
+  call_result: string
+  leadType: string
+  priority: string
+  status: string
+  remarks: string
+}
 
-export function AddFollowupModal({ isOpen, onOpenChange }: AddFollowupModalProps) {
+export function AddFollowupModal({
+  isOpen,
+  onOpenChange,
+}: AddFollowupModalProps) {
+  const [formData, setFormData] = useState<FormDataType>({
+    called_date: new Date().toISOString().slice(0, 16), // works with datetime-local
+    call_result: "",
+    leadType: "",
+    priority: "",
+    status: "",
+    remarks: "",
+  })
+
+  const handleSubmit = () => {
+    console.log("Submitting formData:", formData)
+    
+    onOpenChange(false)
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
@@ -38,7 +77,10 @@ export function AddFollowupModal({ isOpen, onOpenChange }: AddFollowupModalProps
               <Input
                 id="calledDate"
                 type="datetime-local"
-                defaultValue="2025-08-19T17:55"
+                value={formData.called_date}
+                onChange={(e) =>
+                  setFormData({ ...formData, called_date: e.target.value })
+                }
                 className="border-slate-300 focus:border-blue-500"
               />
             </div>
@@ -46,8 +88,13 @@ export function AddFollowupModal({ isOpen, onOpenChange }: AddFollowupModalProps
               <Label htmlFor="callResult" className="text-slate-700">
                 Call Result *
               </Label>
-              <Select>
-                <SelectTrigger className="border-slate-300 focus:border-blue-500">
+              <Select
+                value={formData.call_result}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, call_result: value })
+                }
+              >
+                <SelectTrigger className="border-slate-300 focus:border-blue-500 w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -61,9 +108,14 @@ export function AddFollowupModal({ isOpen, onOpenChange }: AddFollowupModalProps
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="leadCategory">Lead Category</Label>
-              <Select defaultValue="study abroad">
-                <SelectTrigger className="border-slate-300 focus:border-blue-500">
-                  <SelectValue />
+              <Select
+                value={formData.leadType}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, leadType: value })
+                }
+              >
+                <SelectTrigger className="border-slate-300 focus:border-blue-500 w-full">
+                  <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="study abroad">Study abroad</SelectItem>
@@ -73,9 +125,14 @@ export function AddFollowupModal({ isOpen, onOpenChange }: AddFollowupModalProps
             </div>
             <div>
               <Label htmlFor="priority">Priority</Label>
-              <Select defaultValue="normal">
-                <SelectTrigger className="border-slate-300 focus:border-blue-500">
-                  <SelectValue />
+              <Select
+                value={formData.priority}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, priority: value })
+                }
+              >
+                <SelectTrigger className="border-slate-300 focus:border-blue-500 w-full">
+                  <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="normal">Normal</SelectItem>
@@ -88,8 +145,13 @@ export function AddFollowupModal({ isOpen, onOpenChange }: AddFollowupModalProps
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="leadStatus">Lead Status *</Label>
-              <Select>
-                <SelectTrigger className="border-slate-300 focus:border-blue-500">
+              <Select
+                value={formData.status}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, status: value })
+                }
+              >
+                <SelectTrigger className="border-slate-300 focus:border-blue-500 w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -104,7 +166,15 @@ export function AddFollowupModal({ isOpen, onOpenChange }: AddFollowupModalProps
             <Label htmlFor="remarks" className="text-slate-700">
               Remarks
             </Label>
-            <Textarea id="remarks" placeholder="Remarks" className="min-h-20 border-slate-300 focus:border-blue-500" />
+            <Textarea
+              id="remarks"
+              value={formData.remarks}
+              onChange={(e) =>
+                setFormData({ ...formData, remarks: e.target.value })
+              }
+              placeholder="Remarks"
+              className="min-h-20 border-slate-300 focus:border-blue-500"
+            />
           </div>
         </div>
         <div className="flex justify-end gap-2">
@@ -115,7 +185,10 @@ export function AddFollowupModal({ isOpen, onOpenChange }: AddFollowupModalProps
           >
             Close
           </Button>
-          <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
+          <Button
+            onClick={handleSubmit}
+            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+          >
             Submit
           </Button>
         </div>
