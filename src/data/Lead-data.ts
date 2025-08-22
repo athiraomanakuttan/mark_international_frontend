@@ -15,9 +15,9 @@ export const CALL_RESULT:{name:string, value:number}[] =[
 ]
 
 export const FOLLOWUP_STATUS:{name:string, value:number}[] = [
-  {name: "Confirmed", value: 1},
-  {name: "Follow up", value: 2},
-  {name: "Rejected", value: 3},
+  {name: "Confirmed", value: 2},
+  {name: "Follow up", value: 3},
+  {name: "Rejected", value: 4},
 ]
 
 export const statusColors: Record<number, string> = {

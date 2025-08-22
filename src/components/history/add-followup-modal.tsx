@@ -24,16 +24,19 @@ import { updateLead } from "@/service/staff/leadService"
 import { FollowUpType, LeadBasicType } from "@/types/lead-type"
 import { CALL_RESULT, FOLLOWUP_STATUS, LEAD_PRIORITIES, LEAD_TYPES } from '@/data/Lead-data'
 import { updatedFollowupType } from "@/service/followupService"
+import { toast } from "react-toastify"
 
 interface AddFollowupModalProps {
   isOpen: boolean,
   userId: string,
+  assignedAgentId: string,
   onOpenChange: (open: boolean) => void
 }
 
 export function AddFollowupModal({
   isOpen,
   userId,
+  assignedAgentId,
   onOpenChange,
 }: AddFollowupModalProps) {
   const [formData, setFormData] = useState<LeadBasicType & FollowUpType>({
@@ -49,12 +52,23 @@ export function AddFollowupModal({
   const handleSubmit = async () => {
     console.log("Submitting formData:", formData)
     try {
-      const response = await updatedFollowupType(userId, formData)
+      const response = await updatedFollowupType(userId, formData,assignedAgentId )
+      toast.success("Followup added")
+      setFormData({
+        called_date: new Date().toISOString().slice(0, 10), // only date part
+    call_result: 2,
+    leadType: 1,
+    priority: 1,
+    status: 0,
+    remarks: "",
+    followup_date: ""
+      })
+      onOpenChange(false)
       console.log("response", response)
     } catch (err) {
       console.log("err", err)
     }
-    onOpenChange(false)
+    
   }
 
   return (
@@ -180,7 +194,7 @@ export function AddFollowupModal({
                 </SelectContent>
               </Select>
             </div>
-                  {formData.status === 2 && (
+                  {formData.status === 3 && (
               <div>
                 <Label htmlFor="followupDate" className="text-slate-700">
                   Followup Date *

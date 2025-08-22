@@ -32,6 +32,7 @@ export const createLead = async (leadData: LeadBasicType) => {
 }
 
 export const updateLead = async (id: string, leadData: Partial<LeadBasicType>)=>{
+    console.log("leadData", leadData)
     try{
         const response = await axiosInstance.patch(`/staff/leads/${id}`,leadData)
         return response.data

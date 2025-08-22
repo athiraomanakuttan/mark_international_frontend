@@ -64,7 +64,7 @@ export default function LeadHistoryPage() {
       console.log(error)
     }
   }
-  useEffect(() => { getLeadData() },[])
+  useEffect(() => { getLeadData() },[isAddFollowupOpen])
   return (
     <ModernDashboardLayout>
     <div className="min-h-screen bg-slate-50 p-4">

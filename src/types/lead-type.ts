@@ -73,6 +73,8 @@ export interface FollowupData{
 export interface FollowUpType{
   leadId ?: string;
   followup_date: string
-  isDeleted ?: boolean
+  assignedAgentId?: string;
+  isDeleted ?: boolean;
+  remarks?: string;
 }
  
