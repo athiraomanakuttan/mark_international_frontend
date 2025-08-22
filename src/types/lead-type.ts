@@ -8,11 +8,14 @@ export interface LeadBasicType {
   cost?: number;
   priority?: number;
   address?: string;
+
+  called_date?: Date | string;
+  call_result?: number;
   remarks?: string;
   leadSource?: number;
   category?: string;
-  status: number;
-  referredBy: string;
+  status ?: number;
+  referredBy?: string;
   createdAt?: string;
   updatedAt?: string;
   createdBy?: string;
@@ -39,6 +42,8 @@ export interface LeadResponse {
   createdBy?: string;
   createdById: string;
   createdByName: string;
+  called_date?: Date | string;
+  call_result?: number;
 }
 
 export interface LeadFilterType {
@@ -50,6 +55,9 @@ export interface LeadFilterType {
   leadSource ?: (string | number)[];
   staff ?: (string | number)[];
   createBy ?: (string | number)[];
+  called_date ?: (string | number)[];
+  call_result ?: (string | number)[];
+
 }
 
 export interface FollowupData{
@@ -59,4 +67,12 @@ export interface FollowupData{
     user?: string;
     createdDate?: string;
     remarks?: string;
+    assignedAgentId?:string;
 }
+
+export interface FollowUpType{
+  leadId ?: string;
+  followup_date: string
+  isDeleted ?: boolean
+}
+ 

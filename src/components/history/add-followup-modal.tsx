@@ -20,36 +20,40 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus } from "lucide-react"
+import { updateLead } from "@/service/staff/leadService"
+import { FollowUpType, LeadBasicType } from "@/types/lead-type"
+import { CALL_RESULT, FOLLOWUP_STATUS, LEAD_PRIORITIES, LEAD_TYPES } from '@/data/Lead-data'
+import { updatedFollowupType } from "@/service/followupService"
 
 interface AddFollowupModalProps {
-  isOpen: boolean
+  isOpen: boolean,
+  userId: string,
   onOpenChange: (open: boolean) => void
-}
-interface FormDataType {
-  called_date: string
-  call_result: string
-  leadType: string
-  priority: string
-  status: string
-  remarks: string
 }
 
 export function AddFollowupModal({
   isOpen,
+  userId,
   onOpenChange,
 }: AddFollowupModalProps) {
-  const [formData, setFormData] = useState<FormDataType>({
-    called_date: new Date().toISOString().slice(0, 16), // works with datetime-local
-    call_result: "",
-    leadType: "",
-    priority: "",
-    status: "",
+  const [formData, setFormData] = useState<LeadBasicType & FollowUpType>({
+    called_date: new Date().toISOString().slice(0, 10), // only date part
+    call_result: 2,
+    leadType: 1,
+    priority: 1,
+    status: 1,
     remarks: "",
+    followup_date: ""
   })
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log("Submitting formData:", formData)
-    
+    try {
+      const response = await updatedFollowupType(userId, formData)
+      console.log("response", response)
+    } catch (err) {
+      console.log("err", err)
+    }
     onOpenChange(false)
   }
 
@@ -70,98 +74,131 @@ export function AddFollowupModal({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-2 gap-4">
+            {/* Called Date */}
             <div>
               <Label htmlFor="calledDate" className="text-slate-700">
                 Called Date *
               </Label>
               <Input
                 id="calledDate"
-                type="datetime-local"
-                value={formData.called_date}
+                type="date"
+                value={String(formData.called_date)}
                 onChange={(e) =>
                   setFormData({ ...formData, called_date: e.target.value })
                 }
                 className="border-slate-300 focus:border-blue-500"
               />
             </div>
+            {/* Call Result */}
             <div>
               <Label htmlFor="callResult" className="text-slate-700">
                 Call Result *
               </Label>
               <Select
-                value={formData.call_result}
+                value={String(formData.call_result)}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, call_result: value })
+                  setFormData({ ...formData, call_result: Number(value) })
                 }
               >
                 <SelectTrigger className="border-slate-300 focus:border-blue-500 w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="answered">Answered</SelectItem>
-                  <SelectItem value="not-answered">Not Answered</SelectItem>
-                  <SelectItem value="busy">Busy</SelectItem>
+                  {CALL_RESULT.map((item) => (
+                    <SelectItem key={item.value} value={String(item.value)}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
+
+          {/* Lead Type & Priority */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="leadCategory">Lead Category</Label>
               <Select
-                value={formData.leadType}
+                value={String(formData.leadType)}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, leadType: value })
+                  setFormData({ ...formData, leadType: Number(value) })
                 }
               >
                 <SelectTrigger className="border-slate-300 focus:border-blue-500 w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="study abroad">Study abroad</SelectItem>
-                  <SelectItem value="immigration">Immigration</SelectItem>
+                  {LEAD_TYPES.map((item) => (
+                    <SelectItem key={item.value} value={String(item.value)}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label htmlFor="priority">Priority</Label>
               <Select
-                value={formData.priority}
+                value={String(formData.priority)}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, priority: value })
+                  setFormData({ ...formData, priority: Number(value) })
                 }
               >
                 <SelectTrigger className="border-slate-300 focus:border-blue-500 w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
+                  {LEAD_PRIORITIES.map((priority) => (
+                    <SelectItem key={priority.value} value={String(priority.value)}>
+                      {priority.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
+
+          {/* Lead Status */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="leadStatus">Lead Status *</Label>
               <Select
-                value={formData.status}
+                value={String(formData.status)}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, status: value })
+                  setFormData({ ...formData, status: Number(value) })
                 }
               >
                 <SelectTrigger className="border-slate-300 focus:border-blue-500 w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="contacted">Contacted</SelectItem>
-                  <SelectItem value="qualified">Qualified</SelectItem>
+                  {FOLLOWUP_STATUS.map((status) => (
+                    <SelectItem key={status.value} value={String(status.value)}>
+                      {status.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+                  {formData.status === 2 && (
+              <div>
+                <Label htmlFor="followupDate" className="text-slate-700">
+                  Followup Date *
+                </Label>
+                <Input
+                  id="followupDate"
+                  type="date"
+                  value={formData.followup_date}
+                  onChange={(e) =>
+                    setFormData({ ...formData, followup_date: e.target.value })
+                  }
+                  className="border-slate-300 focus:border-blue-500"
+                />
+              </div>
+          )}   
+            
           </div>
+
           <div>
             <Label htmlFor="remarks" className="text-slate-700">
               Remarks
@@ -177,6 +214,8 @@ export function AddFollowupModal({
             />
           </div>
         </div>
+
+        {/* Footer Buttons */}
         <div className="flex justify-end gap-2">
           <Button
             variant="outline"

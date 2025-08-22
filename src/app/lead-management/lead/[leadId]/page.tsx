@@ -59,7 +59,7 @@ export default function LeadHistoryPage() {
       const data = response.data
       console.log("response", data)
       setLeadData(data)
-      setFollowupData({id: data.id, date: data?.updatedAt, time: "", user: data?.assignedAgent_name , createdDate: data?.createdAt, remarks:data?.remarks})
+      setFollowupData({id: data.id, date: data?.updatedAt, time: "", user: data?.assignedAgent_name , createdDate: data?.createdAt, remarks:data?.remarks, assignedAgentId: data?.assignedAgent_id})
     } catch (error) {
       console.log(error)
     }

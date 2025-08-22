@@ -3,6 +3,23 @@ export const LEAD_PRIORITIES:{name:string, value:number}[] = [{name:"High", valu
 export const LEAD_SOURCES :{name: string, value:number}[]= [{name:"Direct Entry", value:1}, {name:"Lead from CSV", value:2}]
 export const LEAD_STATUS:{name:string, value:number}[] = [{name:"Deleted", value:0},{name:"New", value:1}, {name:"Confirmed", value:2},  {name:"Follow Up", value:3},{name:"Rejected", value:4}, {name:"Lost", value:5}, {name:"Converted", value:6}]
 
+export const CALL_RESULT:{name:string, value:number}[] =[
+        {name: "Busy", value: 1},
+        {name: "Connected", value: 2},
+        {name: "Not Attended", value: 3},
+        {name: "Out of Coverage Area", value: 4},
+        {name: "Rejected", value: 5},
+        {name: "Switched Off", value: 6},
+
+
+]
+
+export const FOLLOWUP_STATUS:{name:string, value:number}[] = [
+  {name: "Confirmed", value: 1},
+  {name: "Follow up", value: 2},
+  {name: "Rejected", value: 3},
+]
+
 export const statusColors: Record<number, string> = {
       0: "text-red-400",   // Deleted
       1: "text-blue-500",   // New

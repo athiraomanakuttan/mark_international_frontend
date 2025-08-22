@@ -29,7 +29,7 @@ export function FollowupSection({ followup, isAddFollowupOpen, setIsAddFollowupO
           <Button variant="outline" size="sm" className="border-blue-300 text-blue-600 hover:bg-blue-50 bg-transparent">
             <MessageSquare className="h-4 w-4" />
           </Button>
-          <AddFollowupModal isOpen={isAddFollowupOpen} onOpenChange={setIsAddFollowupOpen} />
+          <AddFollowupModal isOpen={isAddFollowupOpen} onOpenChange={setIsAddFollowupOpen} userId={followup?.id || ""} />
         </div>
       </CardHeader>
       <CardContent className="p-6">
