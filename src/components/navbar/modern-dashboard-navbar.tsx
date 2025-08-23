@@ -1,26 +1,7 @@
 "use client"
 
 import type * as React from "react"
-import {
-  BarChart3,
-  ChevronDown,
-  FileText,
-  Home,
-  Search,
-  Users,
-  UserPlus,
-  Download,
-  ArrowRightLeft,
-  Eye,
-  Award,
-  Bell,
-  User,
-  Menu,
-  X,
-  Settings,
-  Trash,
-  Unlink 
-} from "lucide-react"
+import { ChevronDown, Search, Bell, User, Menu, X, Settings, Phone, MessageSquare, Calendar } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
@@ -28,12 +9,112 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Checkbox } from "@/components/ui/checkbox"
 import { menuItems } from "@/data/adminMenuItems"
 import { useSelector, useDispatch } from "react-redux"
-import { AppDispatch, RootState } from "@/lib/redux/store"
+import type { AppDispatch, RootState } from "@/lib/redux/store"
 import { toast } from "react-toastify"
 import { useRouter } from "next/navigation"
+import { getFollowupData } from "@/service/followupService"
 
+interface LeadData {
+  id:string
+  name: string
+  phoneNumber: string
+  createdDate: string
+  status: number
+  assignedAgentName: string
+  leadId: string
+}
+
+interface LeadReminderNotification {
+  id: string
+  leadData: LeadData
+  reminderType: "followup" | "callback" | "meeting"
+  reminderDate: string
+  message: string
+}
+
+interface LeadStatusNotification {
+  id: string
+  leadData: LeadData
+  statusChange: string
+  previousStatus: number
+  newStatus: number
+}
+
+interface MessageNotification {
+  id: string
+  title: string
+  message: string
+  time: string
+  sender: string
+  avatar: string
+}
+
+interface CalendarNotification {
+  id: string
+  title: string
+  eventDate: string
+  eventType: string
+  description: string
+}
+
+
+
+const sampleLeadStatus: LeadStatusNotification[] = [
+  {
+    id: "ls1",
+    leadData: {
+      id:"",
+      name: "Nivya",
+      phoneNumber: "889473152",
+      createdDate: "12/01/2025, 04:37:36 PM",
+      status: 1,
+      assignedAgentName: "Agent Name",
+      leadId: "lead123",
+    },
+    statusChange: "New lead created",
+    previousStatus: 0,
+    newStatus: 1,
+  },
+  {
+    id: "ls2",
+    leadData: {
+      id:"",
+      name: "Alfi Reji",
+      phoneNumber: "9745186148",
+      createdDate: "05/11/2024, 04:34:32 PM",
+      status: 2,
+      assignedAgentName: "Study Abroad Team",
+      leadId: "lead456",
+    },
+    statusChange: "Status updated to Confirmed",
+    previousStatus: 1,
+    newStatus: 2,
+  },
+]
+
+const sampleMessages: MessageNotification[] = [
+  {
+    id: "m1",
+    title: "New Message",
+    message: "You have a new message from client",
+    time: "2025-01-12 15:30:00",
+    sender: "Client Portal",
+    avatar: "C",
+  },
+]
+
+const sampleCalendar: CalendarNotification[] = [
+  {
+    id: "c1",
+    title: "Meeting Scheduled",
+    eventDate: "2025-01-13 10:00:00",
+    eventType: "Client Meeting",
+    description: "Meeting with potential client",
+  },
+]
 
 function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [expandedItems, setExpandedItems] = useState<string[]>([])
@@ -42,14 +123,16 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
     setExpandedItems((prev) => (prev.includes(title) ? prev.filter((item) => item !== title) : [...prev, title]))
   }
 
+  const [followupNotifications, setFollowupNotifications] = useState<LeadReminderNotification[]>([])
+
+  
+
   
 
   return (
     <>
-      {/* Mobile Overlay */}
       {isOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />}
 
-      {/* Sidebar */}
       <div
         className={`
   fixed left-0 top-0 h-screen w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 
@@ -58,7 +141,6 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
   lg:translate-x-0 lg:relative lg:z-auto
 `}
       >
-        {/* Header */}
         <div className="p-6 border-b border-slate-700 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -76,7 +158,6 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
           </div>
         </div>
 
-        {/* Navigation - Takes available space */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {menuItems.map((item) => (
             <div key={item.title}>
@@ -133,7 +214,6 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
           ))}
         </nav>
 
-        {/* Bottom Section - Fixed at bottom */}
         <div className="p-4 border-t border-slate-700 flex-shrink-0">
           <Link
             href="/settings"
@@ -156,21 +236,181 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 }
 
 function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
-    const { user } = useSelector((state: RootState) => state.user)
-  const dispatch = useDispatch<AppDispatch>()   
+  const { user } = useSelector((state: RootState) => state.user)
+  const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
 
-  useEffect(()=>{
+  const [selectedLeadReminders, setSelectedLeadReminders] = useState<string[]>([])
+  const [selectedLeadStatus, setSelectedLeadStatus] = useState<string[]>([])
+  const [selectedMessages, setSelectedMessages] = useState<string[]>([])
+  const [selectedCalendar, setSelectedCalendar] = useState<string[]>([])
+
+  const [leadReminders, setLeadReminders] = useState<LeadReminderNotification[]>([])
+  const [leadStatusNotifications, setLeadStatusNotifications] = useState<LeadStatusNotification[]>([])
+  const [messageNotifications, setMessageNotifications] = useState<MessageNotification[]>([])
+  const [calendarNotifications, setCalendarNotifications] = useState<CalendarNotification[]>([])
+
+  const [activeTab, setActiveTab] = useState<"lead-reminder" | "lead-status" | "message" | "calendar">("lead-reminder")
+
+  const getNotification = async () => {
+    try {
+      const response = await getFollowupData()
+      console.log("getNotification", response)
+      const transformedData = response.data.map((lead: LeadData, index: number) => ({
+        id: lead.leadId,
+        leadData: lead,
+        reminderType: "followup" as const,
+        reminderDate: lead.createdDate,
+        message: `Follow up with ${lead.assignedAgentName}`,
+      }))
+      setLeadReminders(transformedData)
+    } catch (error) {
+      console.error("Error fetching follow-up notifications:", error)
+    }
+  }
+
+  useEffect(() => {
+    getNotification()
+  }, [])
+
+  useEffect(() => {
     console.log("user data", user)
-  },[user])
+  }, [user])
 
   const logoutUser = () => {
-    dispatch({ type: 'user/clearUser' })
+    dispatch({ type: "user/clearUser" })
     localStorage.clear()
     document.cookie = ""
     toast.success("Logged out")
-    router.push('/login')
+    router.push("/login")
   }
+
+  const handleLeadReminderSelect = (notificationId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedLeadReminders((prev) => [...prev, notificationId])
+    } else {
+      setSelectedLeadReminders((prev) => prev.filter((id) => id !== notificationId))
+    }
+  }
+
+  const handleLeadStatusSelect = (notificationId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedLeadStatus((prev) => [...prev, notificationId])
+    } else {
+      setSelectedLeadStatus((prev) => prev.filter((id) => id !== notificationId))
+    }
+  }
+
+  const handleMessageSelect = (notificationId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedMessages((prev) => [...prev, notificationId])
+    } else {
+      setSelectedMessages((prev) => prev.filter((id) => id !== notificationId))
+    }
+  }
+
+  const handleCalendarSelect = (notificationId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedCalendar((prev) => [...prev, notificationId])
+    } else {
+      setSelectedCalendar((prev) => prev.filter((id) => id !== notificationId))
+    }
+  }
+
+  const handleRemoveSelectedLeadReminders = () => {
+    setLeadReminders((prev) => prev.filter((notification) => !selectedLeadReminders.includes(notification.id)))
+    setSelectedLeadReminders([])
+    toast.success(`Removed ${selectedLeadReminders.length} lead reminder(s)`)
+  }
+
+  const handleRemoveSelectedLeadStatus = () => {
+    setLeadStatusNotifications((prev) => prev.filter((notification) => !selectedLeadStatus.includes(notification.id)))
+    setSelectedLeadStatus([])
+    toast.success(`Removed ${selectedLeadStatus.length} lead status notification(s)`)
+  }
+
+  const handleRemoveSelectedMessages = () => {
+    setMessageNotifications((prev) => prev.filter((notification) => !selectedMessages.includes(notification.id)))
+    setSelectedMessages([])
+    toast.success(`Removed ${selectedMessages.length} message(s)`)
+  }
+
+  const handleRemoveSelectedCalendar = () => {
+    setCalendarNotifications((prev) => prev.filter((notification) => !selectedCalendar.includes(notification.id)))
+    setSelectedCalendar([])
+    toast.success(`Removed ${selectedCalendar.length} calendar notification(s)`)
+  }
+
+  const getCurrentNotifications = () => {
+    switch (activeTab) {
+      case "lead-reminder":
+        return leadReminders
+      case "lead-status":
+        return leadStatusNotifications
+      case "message":
+        return messageNotifications
+      case "calendar":
+        return calendarNotifications
+      default:
+        return []
+    }
+  }
+
+  const getCurrentSelected = () => {
+    switch (activeTab) {
+      case "lead-reminder":
+        return selectedLeadReminders
+      case "lead-status":
+        return selectedLeadStatus
+      case "message":
+        return selectedMessages
+      case "calendar":
+        return selectedCalendar
+      default:
+        return []
+    }
+  }
+
+  const getCurrentHandler = () => {
+    switch (activeTab) {
+      case "lead-reminder":
+        return handleLeadReminderSelect
+      case "lead-status":
+        return handleLeadStatusSelect
+      case "message":
+        return handleMessageSelect
+      case "calendar":
+        return handleCalendarSelect
+      default:
+        return () => {}
+    }
+  }
+
+  const getCurrentRemoveHandler = () => {
+    switch (activeTab) {
+      case "lead-reminder":
+        return handleRemoveSelectedLeadReminders
+      case "lead-status":
+        return handleRemoveSelectedLeadStatus
+      case "message":
+        return handleRemoveSelectedMessages
+      case "calendar":
+        return handleRemoveSelectedCalendar
+      default:
+        return () => {}
+    }
+  }
+
+  const getTotalNotificationCount = () => {
+    return (
+      leadReminders.length + leadStatusNotifications.length + messageNotifications.length + calendarNotifications.length
+    )
+  }
+
+  const currentNotifications = getCurrentNotifications()
+  const currentSelected = getCurrentSelected()
+  const currentHandler = getCurrentHandler()
+  const currentRemoveHandler = getCurrentRemoveHandler()
 
   return (
     <header className="bg-white border-b border-slate-200 px-6 py-4">
@@ -191,12 +431,172 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
         </div>
 
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
-              3
-            </Badge>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
+                  {getTotalNotificationCount()}
+                </Badge>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80 p-0">
+              <div className="bg-slate-700 text-white p-4 rounded-t-lg">
+                <h3 className="font-semibold text-lg">Notifications</h3>
+                <div className="flex space-x-2 mt-3">
+                  <button
+                    onClick={() => setActiveTab("lead-reminder")}
+                    className={`flex items-center px-3 py-1 rounded text-sm transition-colors ${
+                      activeTab === "lead-reminder" ? "bg-slate-600" : "hover:bg-slate-600"
+                    }`}
+                  >
+                    <Phone className="h-4 w-4 mr-1" />({leadReminders.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("message")}
+                    className={`flex items-center px-3 py-1 rounded text-sm transition-colors ${
+                      activeTab === "message" ? "bg-slate-600" : "hover:bg-slate-600"
+                    }`}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-1" />({messageNotifications.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("lead-status")}
+                    className={`flex items-center px-3 py-1 rounded text-sm transition-colors ${
+                      activeTab === "lead-status" ? "bg-slate-600" : "hover:bg-slate-600"
+                    }`}
+                  >
+                    <User className="h-4 w-4 mr-1" />({leadStatusNotifications.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("calendar")}
+                    className={`flex items-center px-3 py-1 rounded text-sm transition-colors ${
+                      activeTab === "calendar" ? "bg-slate-600" : "hover:bg-slate-600"
+                    }`}
+                  >
+                    <Calendar className="h-4 w-4 mr-1" />({calendarNotifications.length})
+                  </button>
+                </div>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto">
+                {currentNotifications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                      <Bell className="h-8 w-8 text-slate-400" />
+                    </div>
+                    <h4 className="font-medium text-slate-900 mb-2">
+                      {activeTab === "lead-reminder" ? "Your Reminder List is Up-to-Date" : "No Notifications"}
+                    </h4>
+                    <p className="text-slate-500 text-sm">
+                      {activeTab === "lead-reminder"
+                        ? "All your reminders have been completed or cleared. Add new ones to stay on track!"
+                        : "No notifications in this category"}
+                    </p>
+                  </div>
+                ) : (
+                  currentNotifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className="flex items-start p-4 border-b border-slate-100 hover:bg-slate-50"
+                    >
+                      <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span className="text-slate-600 font-medium text-sm">
+                          {activeTab === "lead-reminder" || activeTab === "lead-status"
+                            ? (notification as LeadReminderNotification | LeadStatusNotification).leadData.name.charAt(
+                                0,
+                              )
+                            : activeTab === "message"
+                              ? (notification as MessageNotification).avatar
+                              : "C"}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            {activeTab === "lead-reminder" && (
+                              <>
+                              {/* come here */}
+                              <Link href={`/lead-management/lead/${(notification as LeadReminderNotification).id}`}>
+                                <p className="font-medium text-slate-900 text-sm">
+                                  {(notification as LeadReminderNotification).leadData.name}
+                                </p>
+                                <p className="text-slate-600 text-sm mt-1">
+                                  {(notification as LeadReminderNotification).leadData.phoneNumber}
+                                </p>
+                                <p className="text-slate-600 text-sm">
+                                  {(notification as LeadReminderNotification).message}
+                                </p>
+                                <p className="text-slate-400 text-xs mt-1">
+                                  Reminder: {(notification as LeadReminderNotification).reminderDate}
+                                </p>
+                                </Link>
+                              </>
+                            )}
+                            {activeTab === "lead-status" && (
+                              <>
+                                <p className="font-medium text-slate-900 text-sm">
+                                  {(notification as LeadStatusNotification).leadData.name}
+                                </p>
+                                <p className="text-slate-600 text-sm mt-1">
+                                  {(notification as LeadStatusNotification).leadData.phoneNumber}
+                                </p>
+                                <p className="text-slate-600 text-sm">
+                                  Status: {(notification as LeadStatusNotification).leadData.status}
+                                </p>
+                                <p className="text-slate-400 text-xs mt-1">
+                                  {(notification as LeadStatusNotification).leadData.createdDate}
+                                </p>
+                              </>
+                            )}
+                            {activeTab === "message" && (
+                              <>
+                                <p className="font-medium text-slate-900 text-sm">
+                                  {(notification as MessageNotification).title}
+                                </p>
+                                <p className="text-slate-600 text-sm mt-1">
+                                  {(notification as MessageNotification).message}
+                                </p>
+                                <p className="text-slate-400 text-xs mt-1">
+                                  {(notification as MessageNotification).time}
+                                </p>
+                              </>
+                            )}
+                            {activeTab === "calendar" && (
+                              <>
+                                <p className="font-medium text-slate-900 text-sm">
+                                  {(notification as CalendarNotification).title}
+                                </p>
+                                <p className="text-slate-600 text-sm mt-1">
+                                  {(notification as CalendarNotification).eventType}
+                                </p>
+                                <p className="text-slate-400 text-xs mt-1">
+                                  {(notification as CalendarNotification).eventDate}
+                                </p>
+                              </>
+                            )}
+                          </div>
+                          <Checkbox
+                            checked={currentSelected.includes(notification.id)}
+                            onCheckedChange={(checked) => currentHandler(notification.id, checked as boolean)}
+                            className="ml-2"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {currentSelected.length > 0 && (
+                <div className="p-4 border-t border-slate-200 bg-slate-50">
+                  <Button onClick={currentRemoveHandler} variant="destructive" size="sm" className="w-full">
+                    Remove ({currentSelected.length})
+                  </Button>
+                </div>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -220,7 +620,9 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600" onClick={logoutUser} >Logout</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600" onClick={logoutUser}>
+                Logout
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -243,112 +645,3 @@ export function ModernDashboardLayout({ children }: { children: React.ReactNode 
     </div>
   )
 }
-
-// export default function Component() {
-//   return (
-//     <ModernDashboardLayout>
-//       <div className="space-y-6">
-//         {/* Page Header */}
-//         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
-//           <h1 className="text-3xl font-bold mb-2">Welcome back! 👋</h1>
-//           <p className="text-blue-100">Here's what's happening with your education platform today.</p>
-//         </div>
-
-//         {/* Stats Cards */}
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-//           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-//             <div className="flex items-center justify-between">
-//               <div>
-//                 <p className="text-slate-600 text-sm font-medium">Total Leads</p>
-//                 <p className="text-2xl font-bold text-slate-900 mt-1">1,234</p>
-//               </div>
-//               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-//                 <Users className="h-6 w-6 text-green-600" />
-//               </div>
-//             </div>
-//             <div className="flex items-center mt-4">
-//               <span className="text-green-600 text-sm font-medium">+20.1%</span>
-//               <span className="text-slate-500 text-sm ml-2">from last month</span>
-//             </div>
-//           </div>
-
-//           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-//             <div className="flex items-center justify-between">
-//               <div>
-//                 <p className="text-slate-600 text-sm font-medium">Active Staff</p>
-//                 <p className="text-2xl font-bold text-slate-900 mt-1">45</p>
-//               </div>
-//               <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-//                 <UserPlus className="h-6 w-6 text-purple-600" />
-//               </div>
-//             </div>
-//             <div className="flex items-center mt-4">
-//               <span className="text-green-600 text-sm font-medium">+2</span>
-//               <span className="text-slate-500 text-sm ml-2">new this week</span>
-//             </div>
-//           </div>
-
-//           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-//             <div className="flex items-center justify-between">
-//               <div>
-//                 <p className="text-slate-600 text-sm font-medium">Conversion Rate</p>
-//                 <p className="text-2xl font-bold text-slate-900 mt-1">89%</p>
-//               </div>
-//               <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-//                 <BarChart3 className="h-6 w-6 text-orange-600" />
-//               </div>
-//             </div>
-//             <div className="flex items-center mt-4">
-//               <span className="text-green-600 text-sm font-medium">+5%</span>
-//               <span className="text-slate-500 text-sm ml-2">from last month</span>
-//             </div>
-//           </div>
-
-//           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-//             <div className="flex items-center justify-between">
-//               <div>
-//                 <p className="text-slate-600 text-sm font-medium">Reports Generated</p>
-//                 <p className="text-2xl font-bold text-slate-900 mt-1">156</p>
-//               </div>
-//               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-//                 <FileText className="h-6 w-6 text-blue-600" />
-//               </div>
-//             </div>
-//             <div className="flex items-center mt-4">
-//               <span className="text-green-600 text-sm font-medium">+12</span>
-//               <span className="text-slate-500 text-sm ml-2">this week</span>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Content Area */}
-//         <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-200">
-//           <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
-//           <div className="space-y-4">
-//             <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg">
-//               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-//                 <UserPlus className="h-5 w-5 text-green-600" />
-//               </div>
-//               <div className="flex-1">
-//                 <p className="text-slate-900 font-medium">New lead imported</p>
-//                 <p className="text-slate-500 text-sm">John Doe added to lead management</p>
-//               </div>
-//               <span className="text-slate-400 text-sm">2 min ago</span>
-//             </div>
-
-//             <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg">
-//               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-//                 <FileText className="h-5 w-5 text-blue-600" />
-//               </div>
-//               <div className="flex-1">
-//                 <p className="text-slate-900 font-medium">Report generated</p>
-//                 <p className="text-slate-500 text-sm">Monthly staff performance report</p>
-//               </div>
-//               <span className="text-slate-400 text-sm">1 hour ago</span>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </ModernDashboardLayout>
-//   )
-// }

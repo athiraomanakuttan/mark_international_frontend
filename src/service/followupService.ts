@@ -33,3 +33,12 @@ export const createFollowup = async ( data: FollowUpType) => {
         throw error;
     }
 }
+
+export const getFollowupData = async ()=>{
+    try {
+        const response = await axiosInstance.get('/followup')
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
