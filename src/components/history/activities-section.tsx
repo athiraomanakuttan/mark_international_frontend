@@ -2,53 +2,38 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { getHistoryTypeIcon, getHistoryTypeColor } from "@/data/history-page-data"
+import { LEAD_SOURCES, LEAD_STATUS } from "@/data/Lead-data"
+import { getLeadHistory } from "@/service/leadHistoryService"
+import { HistoryData  } from "@/types/history-type"
+import { useEffect, useState } from "react"
 
-interface HistoryData {
-  _id: string
-  leadId: string
-  historyType: number
-  updatedStatus?: number
-  createdAt: string
-  description: string
-  updatedBy?: string
-  createdBy?: string
-  to?: string
-}
 
 interface ActivitiesSectionProps {
-  historyData: HistoryData[]
+  leadId: string,
   showAllActivities: boolean
   setShowAllActivities: (show: boolean) => void
 }
 
-const getHistoryTypeColor = (historyType: number) => {
-  switch (historyType) {
-    case 1:
-      return "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-300"
-    case 2:
-      return "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-300"
-    case 4:
-      return "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-orange-300"
-    default:
-      return "bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 border-slate-300"
-  }
-}
 
-const getHistoryTypeIcon = (historyType: number) => {
-  switch (historyType) {
-    case 1:
-      return "👤"
-    case 2:
-      return "📊"
-    case 4:
-      return "🔄"
-    default:
-      return "📝"
-  }
-}
 
-export function ActivitiesSection({ historyData, showAllActivities, setShowAllActivities }: ActivitiesSectionProps) {
+
+
+export function ActivitiesSection({ leadId, showAllActivities, setShowAllActivities }: ActivitiesSectionProps) {
+
+  const [ historyData, setHistoryData] = useState<HistoryData[]>([])
   const displayedActivities = showAllActivities ? historyData : historyData.slice(0, 10)
+  const getLeadData = async () => {
+    try {
+      const response = await getLeadHistory(leadId)
+      if(response.status)
+      setHistoryData(response.data)
+    } catch (error) {
+      console.error("Error fetching lead history:", error)
+    }
+  }
+
+  useEffect(() => { getLeadData() },[])
 
   return (
     <Card className="shadow-lg border-slate-200">
@@ -71,7 +56,7 @@ export function ActivitiesSection({ historyData, showAllActivities, setShowAllAc
                 <div className="text-sm font-medium mb-1 text-slate-800">
                   {activity.updatedBy || activity.createdBy}
                 </div>
-                <div className="text-sm text-slate-600 mb-1">{activity.description}</div>
+                <div className="text-sm text-slate-600 mb-1">{activity.historyType!==2 ? activity.description : `Lead Status updated to ${LEAD_STATUS.find((data)=> data.value === activity.updatedStatus)?.name} by ${activity.updatedBy}` }</div>
                 <div className="text-xs text-slate-500">{new Date(activity.createdAt).toLocaleString()}</div>
               </div>
             </div>

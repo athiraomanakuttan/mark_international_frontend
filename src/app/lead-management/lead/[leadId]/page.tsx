@@ -7,42 +7,9 @@ import { FollowupSection } from "@/components/history/followup-section"
 import { ActivitiesSection } from "@/components/history/activities-section"
 import { DetailsSection } from "@/components/history/details-section"
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
-import { RawLeadData } from "@/types/lead-import"
 import { FollowupData, LeadResponse } from "@/types/lead-type"
 import { getLeadDataById } from "@/service/leadHistoryService"
 import { useParams } from "next/navigation"
-
-
-
-const historyData = [
-  {
-    _id: "68a46c2b70a3411f4ac9310e",
-    leadId: "68a46a093c44ff4f1f308a8e",
-    historyType: 2,
-    updatedStatus: 3,
-    createdAt: "2025-08-19T12:20:59.365Z",
-    description: "Status updated to 3 by MARK International",
-    updatedBy: "MARK International",
-  },
-  {
-    _id: "68a46c0570a3411f4ac930fe",
-    leadId: "68a46a093c44ff4f1f308a8e",
-    historyType: 4,
-    createdAt: "2025-08-19T12:20:21.916Z",
-    description: "Transferred from N/A to ATHIRA OMANAKUTTAN by MARK International",
-    to: "ATHIRA OMANAKUTTAN",
-    updatedBy: "MARK International",
-  },
-  {
-    _id: "68a46a093c44ff4f1f308a90",
-    leadId: "68a46a093c44ff4f1f308a8e",
-    historyType: 1,
-    createdAt: "2025-08-19T12:11:53.120Z",
-    description: "Created by MARK International",
-    createdBy: "MARK International",
-  },
-]
-
 
 
 export default function LeadHistoryPage() {
@@ -113,7 +80,7 @@ export default function LeadHistoryPage() {
 
           <TabsContent value="activities" className="mt-6">
             <ActivitiesSection
-              historyData={historyData}
+              leadId={String(leadId)}
               showAllActivities={showAllActivities}
               setShowAllActivities={setShowAllActivities}
             />
