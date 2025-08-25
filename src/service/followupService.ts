@@ -42,3 +42,13 @@ export const getFollowupData = async ()=>{
         throw error
     }
 }
+
+export const deleteFollowup = async (followupIds: string[]) => {
+    try {
+        const response = await axiosInstance.patch(`/followup`, { followupIds })
+        return response.data
+    } catch (error) {
+        console.error("Error deleting follow-up:", error);
+        throw error;
+    }
+}

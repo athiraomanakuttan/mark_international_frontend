@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DatePicker } from "@/components/ui/date-picker"
-import {  Download, Trash, Redo, RefreshCcw } from "lucide-react"
+import {  Download, Trash, Redo, RefreshCcw, Eye } from "lucide-react"
 import type { LeadFilterType, LeadResponse } from "@/types/lead-type"
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
 import { useDispatch, useSelector } from "react-redux"
@@ -18,6 +18,7 @@ import { deletelead, getExportLeads, getLeads, updateLead } from "@/service/admi
 import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS } from "@/data/Lead-data"
 import { MultiSelect } from "@/components/ui/multi-select" // Import the new MultiSelect component
 import { toast } from "react-toastify"
+import Link from "next/link"
 
 export default function LeadsReportPage() {
   const yesterday = new Date();
@@ -212,7 +213,7 @@ yesterday.setDate(yesterday.getDate() - 1);
                 <MultiSelect options={staffOptions} selected={staff} onChange={setStaff} placeholder="Select staff" />
               </div>
               
-            </div>
+            </div> 
             <Button className="bg-emerald-500 hover:bg-emerald-600 text-white mb-6" onClick={getLeadList}>
               View
             </Button>
@@ -315,7 +316,19 @@ yesterday.setDate(yesterday.getDate() - 1);
                             <span className="text-gray-500">N/A</span>
                           )}
                         </TableCell>
-                        <TableCell><Button onClick={()=>handleLeadUpdate(lead.id)}><RefreshCcw/></Button></TableCell>
+                        <TableCell>
+                          <Button onClick={()=>handleLeadUpdate(lead.id)}><RefreshCcw/></Button>
+                          <Link href={`/lead-management/lead/${lead.id}`}>
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="icon"
+                                                      className="text-green-500 hover:bg-green-50 dark:hover:bg-green-900"
+                                                    >
+                                                      <Eye className="h-4 w-4" />
+                                                      <span className="sr-only">View</span>
+                                                    </Button>
+                                                    </Link>
+                        </TableCell>
                         
                       </TableRow>
                     ))

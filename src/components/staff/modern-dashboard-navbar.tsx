@@ -9,17 +9,12 @@ import {
   Search,
   Users,
   UserPlus,
-  Download,
-  ArrowRightLeft,
-  Eye,
-  Award,
   Bell,
   User,
   Menu,
   X,
   Settings,
-  Trash,
-  Unlink 
+  Phone,
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -28,10 +23,31 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Checkbox } from "@/components/ui/checkbox" // Added Checkbox import
 import { useDispatch, useSelector } from "react-redux"
-import { AppDispatch, RootState } from "@/lib/redux/store"
+import type { AppDispatch, RootState } from "@/lib/redux/store"
 import { useRouter } from "next/navigation"
 import { toast } from "react-toastify"
+import { deleteFollowup, getFollowupData } from "@/service/followupService" // Added service imports
+
+interface LeadData {
+  id: string
+  name: string
+  phoneNumber: string
+  createdDate: string
+  status: number
+  assignedAgentName: string
+  leadId: string
+}
+
+interface LeadReminderNotification {
+  followupId: string
+  id: string
+  leadData: LeadData
+  reminderType: "followup" | "callback" | "meeting"
+  reminderDate: string
+  message: string
+}
 
 const menuItems = [
   {
@@ -49,12 +65,9 @@ const menuItems = [
         title: "Lead Report",
         url: "/staff/report",
         icon: FileText,
-      }
-      
-      
+      },
     ],
   },
-  
 ]
 
 function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -87,7 +100,7 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
               </div>
               <div>
                 <h1 className="text-white font-semibold text-lg">{user?.name || "Mark International"}</h1>
-                <p className="text-slate-400 text-sm">{user?.designation|| "Education Company" }</p>
+                <p className="text-slate-400 text-sm">{user?.designation || "Education Company"}</p>
               </div>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden text-slate-400 hover:text-white">
@@ -175,22 +188,68 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 }
 
 function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
-   const { user } = useSelector((state: RootState) => state.user)
-    const dispatch = useDispatch<AppDispatch>()   
-    const router = useRouter()
-  
-    useEffect(()=>{
-      console.log("user data", user)
-    },[user])
-  
-    const logoutUser = () => {
-      dispatch({ type: 'user/clearUser' })
-      localStorage.clear()
-      document.cookie = ""
-      toast.success("Logged out")
-      router.push('/login')
+  const { user } = useSelector((state: RootState) => state.user)
+  const dispatch = useDispatch<AppDispatch>()
+  const router = useRouter()
+
+  const [selectedLeadReminders, setSelectedLeadReminders] = useState<string[]>([])
+  const [leadReminders, setLeadReminders] = useState<LeadReminderNotification[]>([])
+
+  const getNotification = async () => {
+    try {
+      const response = await getFollowupData()
+      console.log("getNotification", response)
+      const transformedData = response.data.map((lead: LeadData, index: number) => ({
+        followupId: lead.id,
+        id: lead.leadId,
+        leadData: lead,
+        reminderType: "followup" as const,
+        reminderDate: lead.createdDate,
+        message: `Follow up with ${lead.assignedAgentName}`,
+      }))
+      setLeadReminders(transformedData)
+    } catch (error) {
+      console.error("Error fetching follow-up notifications:", error)
     }
-    
+  }
+
+  const handleLeadReminderSelect = (notificationId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedLeadReminders((prev) => [...prev, notificationId])
+    } else {
+      setSelectedLeadReminders((prev) => prev.filter((id) => id !== notificationId))
+    }
+  }
+
+  const handleRemoveSelectedLeadReminders = async () => {
+    console.log("selectedLeadReminders", selectedLeadReminders)
+    try {
+      const response = await deleteFollowup(selectedLeadReminders)
+      getNotification()
+    } catch (err) {
+      console.error("Error deleting follow-up notifications")
+    }
+    setLeadReminders((prev) => prev.filter((notification) => !selectedLeadReminders.includes(notification.id)))
+    setSelectedLeadReminders([])
+    toast.success(`Removed ${selectedLeadReminders.length} lead reminder(s)`)
+  }
+
+  useEffect(() => {
+    console.log("user data", user)
+  }, [user])
+
+  useEffect(() => {
+    getNotification()
+  }, [])
+
+  const logoutUser = () => {
+    dispatch({ type: "user/clearUser" })
+    localStorage.clear()
+    document.cookie = ""
+    toast.success("Logged out")
+    router.push("/login")
+  }
+
   return (
     <header className="bg-white border-b border-slate-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -210,12 +269,84 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
         </div>
 
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
-              3
-            </Badge>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
+                  {leadReminders.length}
+                </Badge>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80 p-0">
+              <div className="bg-slate-700 text-white p-4 rounded-t-lg">
+                <h3 className="font-semibold text-lg">Lead Reminders</h3>
+                <div className="flex items-center mt-2">
+                  <Phone className="h-4 w-4 mr-2" />
+                  <span className="text-sm">({leadReminders.length}) pending</span>
+                </div>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto">
+                {leadReminders.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                      <Bell className="h-8 w-8 text-slate-400" />
+                    </div>
+                    <h4 className="font-medium text-slate-900 mb-2">Your Reminder List is Up-to-Date</h4>
+                    <p className="text-slate-500 text-sm">
+                      All your reminders have been completed or cleared. Add new ones to stay on track!
+                    </p>
+                  </div>
+                ) : (
+                  leadReminders.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className="flex items-start p-4 border-b border-slate-100 hover:bg-slate-50"
+                    >
+                      <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span className="text-slate-600 font-medium text-sm">
+                          {notification.leadData.name.charAt(0)}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <Link href={`/lead-management/lead/${notification.id}`}>
+                              <p className="font-medium text-slate-900 text-sm">{notification.leadData.name}</p>
+                              <p className="text-slate-600 text-sm mt-1">{notification.leadData.phoneNumber}</p>
+                              <p className="text-slate-600 text-sm">{notification.message}</p>
+                              <p className="text-slate-400 text-xs mt-1">Reminder: {notification.reminderDate}</p>
+                            </Link>
+                          </div>
+                          <Checkbox
+                            checked={selectedLeadReminders.includes(notification.followupId)}
+                            onCheckedChange={(checked) =>
+                              handleLeadReminderSelect(notification.followupId, checked as boolean)
+                            }
+                            className="ml-2"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {selectedLeadReminders.length > 0 && (
+                <div className="p-4 border-t border-slate-200 bg-slate-50">
+                  <Button
+                    onClick={handleRemoveSelectedLeadReminders}
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
+                  >
+                    Remove ({selectedLeadReminders.length})
+                  </Button>
+                </div>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -224,8 +355,8 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
                   <User className="h-4 w-4 text-white" />
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-slate-900"> {user?.name || "Mark International" } </p>
-                  <p className="text-xs text-slate-500">{ user?.designation||"Staff"}</p>
+                  <p className="text-sm font-medium text-slate-900"> {user?.name || "Mark International"} </p>
+                  <p className="text-xs text-slate-500">{user?.designation || "Staff"}</p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-slate-400" />
               </Button>
@@ -239,7 +370,9 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600" onClick={logoutUser}>Logout</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600" onClick={logoutUser}>
+                Logout
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

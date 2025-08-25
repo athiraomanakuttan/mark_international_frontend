@@ -6,10 +6,10 @@ import { LeadHeader } from "@/components/history/lead-header"
 import { FollowupSection } from "@/components/history/followup-section"
 import { ActivitiesSection } from "@/components/history/activities-section"
 import { DetailsSection } from "@/components/history/details-section"
-import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
 import { FollowupData, LeadResponse } from "@/types/lead-type"
 import { getLeadDataById } from "@/service/leadHistoryService"
 import { useParams } from "next/navigation"
+import { ModernDashboardLayout } from "@/components/staff/modern-dashboard-navbar"
 
 
 export default function LeadHistoryPage() {
@@ -24,7 +24,6 @@ export default function LeadHistoryPage() {
     try {
       const response = await getLeadDataById(String(leadId))
       const data = response.data
-      console.log("response=======================", data)
       setLeadData(data)
       setFollowupData({id: data.id, date: data?.updatedAt, time: "", user: data?.assignedAgent_name , createdDate: data?.createdAt, remarks:data?.remarks, assignedAgentId: data?.assignedAgent_id, call_result: data?.call_result})
     } catch (error) {

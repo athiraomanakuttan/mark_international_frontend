@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Phone, MessageSquare, Clock } from "lucide-react"
 import { AddFollowupModal } from "./add-followup-modal"
 import { FollowupData } from "@/types/lead-type"
+import { CALL_RESULT } from "@/data/Lead-data"
 
 
 
@@ -56,6 +57,7 @@ export function FollowupSection({ followup, isAddFollowupOpen, setIsAddFollowupO
                     <div className="text-sm text-slate-600 mb-2">
                       <strong>Created Date:</strong> <span className="text-slate-700">{followup?.createdDate}</span>
                     </div>
+                    {followup?.call_result && <div className="text-sm text-slate-600 mb-2"><strong>Call Result:</strong> <span className="text-slate-700">{CALL_RESULT.find((data)=> data.value === followup?.call_result)?.name}</span></div>}
                     <div className="text-sm text-slate-600">
                       <strong>Remarks:</strong> <span className="text-slate-700">{followup?.remarks}</span>
                     </div>

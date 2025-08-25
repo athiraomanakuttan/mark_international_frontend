@@ -61,13 +61,14 @@ export interface LeadFilterType {
 }
 
 export interface FollowupData{
-  id: string;
+    id: string;
     date?: string;
     time?: string;
     user?: string;
     createdDate?: string;
     remarks?: string;
     assignedAgentId?:string;
+    call_result?: string | number
 }
 
 export interface FollowUpType{

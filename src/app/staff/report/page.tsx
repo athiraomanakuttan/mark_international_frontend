@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DatePicker } from "@/components/ui/date-picker"
-import { Plus, Download, Trash2, Pencil } from "lucide-react"
+import { Plus, Download, Trash2, Pencil, Eye } from "lucide-react"
 import type { LeadFilterType, LeadResponse } from "@/types/lead-type"
 import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS, statusColors, priorityColors } from "@/data/Lead-data"
 import { MultiSelect } from "@/components/ui/multi-select" 
@@ -17,6 +17,7 @@ import { ModernDashboardLayout } from "@/components/staff/modern-dashboard-navba
 import { deletelead, getExportLeads, getLeads } from "@/service/staff/leadService"
 import AddLeadsModal from "@/components/staff/add-leads-modal"
 import EditLeadsModal from "@/components/staff/edit-leads-modal"
+import Link from "next/link"
 
 export default function LeadsReportPage() {
   const [fromDate, setFromDate] = useState<Date | undefined>()
@@ -338,6 +339,17 @@ const handleExport = async () => {
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
                           </Button>
+                          <Link href={`/staff/lead/${lead.id}`}>
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="icon"
+                                                      className="text-green-500 hover:bg-green-50 dark:hover:bg-green-900"
+                                                    >
+                                                      <Eye className="h-4 w-4" />
+                                                      <span className="sr-only">View</span>
+                                                    </Button>
+                                                    </Link>
+                                                    
                         </TableCell> }
                       </TableRow>
                     ))
