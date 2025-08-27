@@ -16,7 +16,9 @@ import {
   X,
   Settings,
   Trash,
-  Unlink 
+  Unlink,
+  FileBox,
+  ListMinus
 } from "lucide-react"
 
 export const menuItems = [
@@ -61,7 +63,7 @@ export const menuItems = [
   {
     title: "Staff Management",
     icon: UserPlus,
-    color: "bg-purple-500",
+    color: "bg-yellow-500",
     items: [
       {
         title: "View Staff",
@@ -74,7 +76,24 @@ export const menuItems = [
       //   icon: Award,
       // },
     ],
+  }, {
+    title: "Event Management",
+    icon: FileBox,
+    color: "bg-purple-500",
+    items: [
+      {
+        title: "Event List",
+        url: "/event-management/list",
+        icon: Eye,
+      },
+      {
+        title: "Event Data",
+        url: "/event-management/data",
+        icon: ListMinus,
+      },
+    ],
   },
+  ,
   {
     title: "Reports",
     icon: BarChart3,

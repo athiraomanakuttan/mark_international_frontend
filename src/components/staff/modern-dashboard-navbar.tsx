@@ -68,6 +68,18 @@ const menuItems = [
       },
     ],
   },
+  {
+    title: "Events",
+    icon: Users,
+    color: "bg-orange-500",
+    items: [
+      {
+        title: "Assigned Events",
+        url: "/staff/event-management",
+        icon: FileText,
+      },
+    ],
+  },
 ]
 
 function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
