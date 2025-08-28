@@ -16,6 +16,7 @@ export interface IEventWithStaff {
     name: string;
   }[];
   isFinished: boolean;
+  
 }
 
 export interface IStudentData{
