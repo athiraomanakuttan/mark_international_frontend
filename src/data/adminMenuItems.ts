@@ -33,15 +33,16 @@ export const menuItems = [
     icon: Users,
     color: "bg-green-500",
     items: [
-      {
-        title: "Import Lead",
-        url: "/lead-management/import",
-        icon: Download,
-      },
+      
       {
         title: "Lead Report",
         url: "/lead-management/report",
         icon: FileText,
+      },
+      {
+        title: "Import Lead",
+        url: "/lead-management/import",
+        icon: Download,
       },
       {
         title: "Transfer Leads",

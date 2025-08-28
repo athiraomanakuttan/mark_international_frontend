@@ -222,7 +222,7 @@ yesterday.setDate(yesterday.getDate() - 1);
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-700 dark:text-gray-300">Show</span>
                 <Select
-                  value={entriesPerPage}
+                  value={paginationData.limit.toString()}
                   onValueChange={(value) => setPaginationData((prev) => ({ ...prev, limit: Number(value) }))}
                 >
                   <SelectTrigger className="w-[70px]">

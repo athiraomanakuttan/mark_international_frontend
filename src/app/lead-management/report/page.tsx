@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Checkbox } from "@/components/ui/checkbox"
 import { DatePicker } from "@/components/ui/date-picker"
 import { Plus, Download, Trash2, Pencil, Eye } from "lucide-react"
 import type { LeadFilterType, LeadResponse } from "@/types/lead-type"
@@ -53,23 +52,6 @@ yesterday.setDate(yesterday.getDate() - 10);
   useEffect(()=>{console.log("selectedLeadList", selectedLeadList)},[selectedLeadList]) // come
   
 
-  const handleSelectLead = (leadId: string)=>{
-    if(leadId === "all" && selectedLeadList.length>0){ 
-      setSelectedLeadList([])
-    }else if(leadId === "all"){
-      leadData.forEach((data)=>{
-        setSelectedLeadList((prev)=>([...prev,data.id]))
-      })
-      
-    }
-    else if(selectedLeadList.indexOf(leadId)=== -1){
-       setSelectedLeadList((prev)=>([...prev,leadId]))
-    }
-    else{
-      const filteredData = selectedLeadList.filter(id=>id!==leadId)
-      setSelectedLeadList(filteredData)
-    }
-  }
 
   const  handleDelete = async (leadId: string)=>{
     
@@ -244,7 +226,7 @@ const handleExport = async () => {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-700 dark:text-gray-300">Show</span>
                 <Select
-                  value={entriesPerPage}
+                  value={paginationData.limit.toString()}
                   onValueChange={(value) => setPaginationData((prev) => ({ ...prev, limit: Number(value) }))}
                 >
                   <SelectTrigger className="w-[70px]">
@@ -276,9 +258,6 @@ const handleExport = async () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[40px]">
-                      <Checkbox id="select-all"  onCheckedChange={()=>handleSelectLead("all")}/>
-                    </TableHead>
                     <TableHead className="w-[50px]">#</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Phone No</TableHead>
@@ -303,9 +282,7 @@ const handleExport = async () => {
                   ) : (
                     leadData.map((lead, index) => (
                       <TableRow key={index}>
-                        <TableCell>
-                          <Checkbox id={`select-lead-${index}`}  onCheckedChange={()=>handleSelectLead(lead.id)}/>
-                        </TableCell>
+                        
                         <TableCell>{index + 1}</TableCell>
                          <TableCell>
                           <div className="flex items-center gap-2">

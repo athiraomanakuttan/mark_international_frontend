@@ -217,7 +217,7 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
         leadData: lead,
         reminderType: "followup" as const,
         reminderDate: lead.createdDate,
-        message: `Follow up with ${lead.assignedAgentName}`,
+        message: `Follow up By ${lead.assignedAgentName}`,
       }))
       setLeadReminders(transformedData)
     } catch (error) {

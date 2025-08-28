@@ -305,7 +305,7 @@ export default function LeadsReportPage() {
                   Show
                 </span>
                 <Select
-                  value={entriesPerPage}
+                  value={paginationData.limit.toString()}
                   onValueChange={(value) =>
                     setPaginationData((prev) => ({
                       ...prev,

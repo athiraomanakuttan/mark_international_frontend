@@ -47,23 +47,27 @@ from.setDate(from.getDate() - 10);
   useEffect(()=>{console.log("selectedLeadList", selectedLeadList)},[selectedLeadList]) // come
   
 
-  const handleSelectLead = (leadId: string)=>{
-    if(leadId === "all" && selectedLeadList.length>0){ 
+  const handleSelectLead = (leadId: string) => {
+  if (leadId === "all") {
+    // If all leads are currently selected, deselect all
+    if (selectedLeadList.length === leadData.length && leadData.length > 0) {
       setSelectedLeadList([])
-    }else if(leadId === "all"){
-      leadData.forEach((data)=>{
-        setSelectedLeadList((prev)=>([...prev,data.id]))
-      })
-      
+    } else {
+      // Otherwise, select all leads
+      const allLeadIds = leadData.map(lead => lead.id)
+      setSelectedLeadList(allLeadIds)
     }
-    else if(selectedLeadList.indexOf(leadId)=== -1){
-       setSelectedLeadList((prev)=>([...prev,leadId]))
-    }
-    else{
-      const filteredData = selectedLeadList.filter(id=>id!==leadId)
-      setSelectedLeadList(filteredData)
+  } else {
+    // Handle individual lead selection
+    if (selectedLeadList.includes(leadId)) {
+      // If lead is already selected, remove it
+      setSelectedLeadList(prev => prev.filter(id => id !== leadId))
+    } else {
+      // If lead is not selected, add it
+      setSelectedLeadList(prev => [...prev, leadId])
     }
   }
+}
 
   const  handleDelete = async (leadId: string)=>{
     
@@ -245,7 +249,11 @@ const handleAssignBtn = ()=>{
                     leadData.map((lead, index) => (
                       <TableRow key={index}>
                         <TableCell>
-                          <Checkbox id={`select-lead-${index}`}  onCheckedChange={()=>handleSelectLead(lead.id)}/>
+                          <Checkbox 
+        id={`select-lead-${index}`} 
+        checked={selectedLeadList.includes(lead.id)}
+        onCheckedChange={() => handleSelectLead(lead.id)}
+      />
                         </TableCell>
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>{lead.name}</TableCell>
