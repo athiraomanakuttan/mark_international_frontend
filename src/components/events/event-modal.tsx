@@ -34,8 +34,8 @@ export function EventModal({ isOpen, onClose, onSave, event, staff }: EventModal
       setFormData({
         name: event.name,
         date: event.date,
-        location: event.location,
-        staffIds: event.staffIds,
+        location: event.location || "",
+        staffIds: event.staffIds || [],
       })
     } else {
       setFormData({

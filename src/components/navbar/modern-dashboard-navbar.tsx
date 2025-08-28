@@ -72,11 +72,11 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {menuItems.map((item) => (
-            <div key={item.title}>
-              {item.items ? (
+            <div key={item?.title}> 
+              {item?.items ? (
                 <div>
                   <button
-                    onClick={() => toggleExpanded(item.title)}
+                    onClick={() => toggleExpanded(item?.title)}
                     className="w-full flex items-center justify-between p-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all duration-200 group"
                   >
                     <div className="flex items-center space-x-3">
@@ -110,16 +110,16 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                 </div>
               ) : (
                 <Link
-                  href={item.url}
+                  href={item?.url || ""}
                   className="flex items-center space-x-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all duration-200 group"
                   onClick={onClose}
                 >
                   <div
-                    className={`w-8 h-8 ${item.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}
+                    className={`w-8 h-8 ${item?.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}
                   >
-                    <item.icon className="h-4 w-4 text-white" />
+                    {item?.icon && <item.icon className="h-4 w-4 text-white" />}
                   </div>
-                  <span className="font-medium">{item.title}</span>
+                  <span className="font-medium">{item?.title}</span>
                 </Link>
               )}
             </div>
