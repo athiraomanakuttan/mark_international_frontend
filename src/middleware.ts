@@ -76,5 +76,5 @@ if (STAFF_ROUTES.some(path => pathname === path || pathname.startsWith(`${path}/
 
 // ✅ Match all routes except static files and API
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api|.*\\..*).*)'],
 };

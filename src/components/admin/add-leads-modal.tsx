@@ -41,8 +41,25 @@ export default function AddLeadsModal({ open, setOpen }: AddLeadsModalProps) {
       useEffect(() => {
         dispatch(fetchAllStaffs());
       }, []);
+      // Example initial state
+const initialLead: LeadBasicType = {
+  name: "",
+  phoneCode: "+91",
+  phoneNumber: "",
+  leadType: 0,
+  assignedAgent: "",
+  cost: 0,
+  priority: 0,
+  address: "",
+  remarks: "",
+  leadSource: 0,
+  status: 0,
+  referredBy: "",
+};
 
-    const {formData,setForm } = useFetchFormData<LeadBasicType>()
+const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
+
+
 
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedPhoneCode, setSelectedPhoneCode] = useState({

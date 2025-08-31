@@ -1,15 +1,16 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, PhoneCall, Lock, Check, BookOpen, Globe, GraduationCap, Plane } from "lucide-react"
+import type React from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Eye, EyeOff, PhoneCall, Lock, Check, Users, Award, MapPin, Star } from "lucide-react"
 import { useFetchFormData } from "@/hook/FormHook"
 import type { LoginType } from "@/types/form-types"
 import { loginUser } from "@/service/loginService"
 import { toast } from "react-toastify"
-import {useAppDispatch} from '@/lib/redux/hook'
-import { setUser, setLoading } from '@/lib/redux/features/userSlice'
-import  Cookies from 'js-cookie'
+import { useAppDispatch } from "@/lib/redux/hook"
+import { setUser, setLoading } from "@/lib/redux/features/userSlice"
+import Cookies from "js-cookie"
 
 interface FloatingElement {
   id: number
@@ -18,7 +19,18 @@ interface FloatingElement {
   size: number
   delay: number
   duration: number
-  type: "book" | "globe" | "graduation" | "plane"
+  type: "book" | "globe" | "graduation" | "plane" | "map" | "users" | "award" | "star"
+}
+
+interface Particle {
+  id: number
+  x: number
+  y: number
+  size: number
+  opacity: number
+  speedX: number
+  speedY: number
+  color: string
 }
 
 const LoginPage: React.FC = () => {
@@ -27,91 +39,124 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [rememberMe, setRememberMe] = useState<boolean>(false)
   const [floatingElements, setFloatingElements] = useState<FloatingElement[]>([])
+  const [particles, setParticles] = useState<Particle[]>([])
 
   const dispatch = useAppDispatch()
   const router = useRouter()
 
   useEffect(() => {
-    // Generate education-themed floating elements
-    const types: Array<"book" | "globe" | "graduation" | "plane"> = ["book", "globe", "graduation", "plane"]
-    const elements: FloatingElement[] = Array.from({ length: 12 }, (_, i) => ({
+    const types: Array<"book" | "globe" | "graduation" | "plane" | "map" | "users" | "award" | "star"> = [
+      "book",
+      "globe",
+      "graduation",
+      "plane",
+      "map",
+      "users",
+      "award",
+      "star",
+    ]
+    const elements: FloatingElement[] = Array.from({ length: 15 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 20 + 15,
-      delay: Math.random() * 5,
-      duration: Math.random() * 8 + 12,
+      size: Math.random() * 18 + 12,
+      delay: Math.random() * 6,
+      duration: Math.random() * 10 + 15,
       type: types[Math.floor(Math.random() * types.length)],
     }))
     setFloatingElements(elements)
+
+    const particleColors = [
+      "rgba(59, 130, 246, 0.7)",
+      "rgba(99, 102, 241, 0.6)",
+      "rgba(139, 92, 246, 0.5)",
+      "rgba(59, 130, 246, 0.8)",
+      "rgba(147, 197, 253, 0.6)",
+    ]
+    const initialParticles: Particle[] = Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 8 + 4, // Increased from 4+2 to 8+4
+      opacity: Math.random() * 0.5 + 0.4, // Increased from 0.6+0.2 to 0.5+0.4
+      speedX: (Math.random() - 0.5) * 1.2, // Increased speed from 0.5 to 1.2
+      speedY: (Math.random() - 0.5) * 1.2,
+      color: particleColors[Math.floor(Math.random() * particleColors.length)],
+    }))
+    setParticles(initialParticles)
+
+    const animateParticles = () => {
+      setParticles((prevParticles) =>
+        prevParticles.map((particle) => ({
+          ...particle,
+          x: (particle.x + particle.speedX + 100) % 100,
+          y: (particle.y + particle.speedY + 100) % 100,
+          opacity: 0.3 + Math.sin(Date.now() * 0.002 + particle.id) * 0.4, // Enhanced opacity animation
+        })),
+      )
+    }
+
+    const interval = setInterval(animateParticles, 30) // Faster animation from 50ms to 30ms
+    return () => clearInterval(interval)
   }, [])
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-  e.preventDefault()
-  
-  if (isLoading) return
-  
-  setIsLoading(true)
-  dispatch(setLoading(true))
-  try {
-    const response = await loginUser(formData)
-    console.log("Response ==><== ", response?.data?.user?.role)
-    if (response.status) {
-      // First update Redux state
-      Cookies.set('accessToken', response?.data?.accessToken || "", { expires: 7 })
-      dispatch(setUser({ 
-        user: response?.data?.user, 
-        token: response?.data?.accessToken  || ""
-      }))
-      
-      // Show success message
-      toast.success(response.message || "Welcome to Mark International!")
-      
-      // Small delay to ensure Redux state is updated and toast is shown
-      setTimeout(() => {
-        // console.log('Redirecting to dashboard...')
-        if(response?.data?.user?.role === "admin")
-        router.push("/dashboard") 
-        else 
-        router.push("/staff/dashboard") 
+    e.preventDefault()
 
-      }, 100)
-      
-    } else {
+    if (isLoading) return
+
+    setIsLoading(true)
+    dispatch(setLoading(true))
+    try {
+      const response = await loginUser(formData)
+      console.log("Response ==><== ", response?.data?.user?.role)
+      if (response.status) {
+        Cookies.set("accessToken", response?.data?.accessToken || "", { expires: 7 })
+        dispatch(
+          setUser({
+            user: response?.data?.user,
+            token: response?.data?.accessToken || "",
+          }),
+        )
+
+        toast.success(response.message || "Welcome to Mark International!")
+
+        setTimeout(() => {
+          if (response?.data?.user?.role === "admin") router.push("/dashboard")
+          else router.push("/staff/dashboard")
+        }, 100)
+      } else {
+        dispatch(setLoading(false))
+        setIsLoading(false)
+        toast.error(response.message || "Login failed. Please try again.")
+      }
+    } catch (error) {
+      console.error("Login error:", error)
       dispatch(setLoading(false))
       setIsLoading(false)
-      toast.error(response.message || "Login failed. Please try again.")
+      toast.error("An unexpected error occurred. Please try again.")
     }
-
-  } catch (error) {
-    console.error('Login error:', error)
-    dispatch(setLoading(false))
-    setIsLoading(false)
-    toast.error("An unexpected error occurred. Please try again.")
   }
-}
 
   const getFloatingIcon = (type: string, size: number) => {
     const iconProps = { size, className: "text-blue-300 opacity-60" }
     switch (type) {
       case "book":
-        return <BookOpen {...iconProps} />
+        return <Users {...iconProps} />
       case "globe":
-        return <Globe {...iconProps} />
+        return <Award {...iconProps} />
       case "graduation":
-        return <GraduationCap {...iconProps} />
+        return <MapPin {...iconProps} />
       case "plane":
-        return <Plane {...iconProps} />
+        return <Star {...iconProps} />
       default:
-        return <BookOpen {...iconProps} />
+        return <Users {...iconProps} />
     }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Education-themed animated background */}
       <div className="absolute inset-0">
-        {/* Gradient orbs with education colors */}
         <div className="absolute top-20 left-20 w-72 h-72 rounded-full bg-gradient-to-br from-blue-200/40 to-indigo-200/40 blur-3xl animate-pulse"></div>
         <div
           className="absolute bottom-20 right-20 w-80 h-80 rounded-full bg-gradient-to-br from-purple-200/30 to-pink-200/30 blur-3xl animate-pulse"
@@ -121,8 +166,11 @@ const LoginPage: React.FC = () => {
           className="absolute top-1/2 left-1/4 w-64 h-64 rounded-full bg-gradient-to-br from-emerald-200/35 to-teal-200/35 blur-3xl animate-pulse"
           style={{ animationDelay: "4s" }}
         ></div>
+        <div
+          className="absolute top-10 right-1/3 w-48 h-48 rounded-full bg-gradient-to-br from-orange-200/25 to-yellow-200/25 blur-3xl animate-pulse"
+          style={{ animationDelay: "6s" }}
+        ></div>
 
-        {/* Floating education icons */}
         {floatingElements.map((element) => (
           <div
             key={element.id}
@@ -137,194 +185,61 @@ const LoginPage: React.FC = () => {
             {getFloatingIcon(element.type, element.size)}
           </div>
         ))}
+
+        {particles.map((particle) => (
+          <div
+            key={particle.id}
+            className="absolute rounded-full transition-all duration-75 ease-linear"
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+              backgroundColor: particle.color,
+              opacity: particle.opacity,
+              boxShadow: `0 0 ${particle.size * 3}px ${particle.color}, 0 0 ${particle.size * 6}px ${particle.color.replace("0.", "0.2")}`, // Enhanced glow effect
+              filter: "blur(0.5px)", // Subtle blur for softer appearance
+            }}
+          />
+        ))}
       </div>
 
-      {/* Animated world map pattern */}
       <div
-        className="absolute inset-0 opacity-5"
+        className="absolute inset-0 opacity-8"
         style={{
-          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(59,130,246,.2) 2px, transparent 2px), radial-gradient(circle at 75% 75%, rgba(139,69,19,.2) 2px, transparent 2px)`,
-          backgroundSize: "60px 60px",
-          animation: "worldMove 25s linear infinite",
+          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(59,130,246,.15) 2px, transparent 2px), radial-gradient(circle at 75% 75%, rgba(139,69,19,.15) 2px, transparent 2px), radial-gradient(circle at 50% 50%, rgba(34,197,94,.1) 1px, transparent 1px)`,
+          backgroundSize: "60px 60px, 80px 80px, 40px 40px",
+          animation: "worldMove 30s linear infinite",
         }}
       />
 
-      <style jsx>{`
-        @keyframes educationFloat {
-          0%, 100% { 
-            transform: translateY(0px) rotate(0deg) scale(1); 
-            opacity: 0.6;
-          }
-          25% { 
-            transform: translateY(-30px) rotate(90deg) scale(1.1); 
-            opacity: 0.8;
-          }
-          50% { 
-            transform: translateY(-20px) rotate(180deg) scale(0.9); 
-            opacity: 0.7;
-          }
-          75% { 
-            transform: translateY(-35px) rotate(270deg) scale(1.05); 
-            opacity: 0.9;
-          }
-        }
-        
-        @keyframes worldMove {
-          0% { transform: translate(0, 0) rotate(0deg); }
-          100% { transform: translate(60px, 60px) rotate(360deg); }
-        }
-        
-        @keyframes slideInLeft {
-          from { 
-            opacity: 0; 
-            transform: translateX(-50px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateX(0); 
-          }
-        }
-        
-        @keyframes slideInRight {
-          from { 
-            opacity: 0; 
-            transform: translateX(50px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateX(0); 
-          }
-        }
-        
-        @keyframes bookFlip {
-          0%, 100% { transform: rotateY(0deg); }
-          50% { transform: rotateY(180deg); }
-        }
-        
-        @keyframes globeSpin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        
-        .slide-in-left { 
-          animation: slideInLeft 0.8s ease-out; 
-        }
-        .slide-in-right { 
-          animation: slideInRight 0.8s ease-out; 
-        }
-      `}</style>
-
-      {/* Main container */}
       <div className="w-full max-w-6xl mx-auto relative z-10">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[600px] flex">
-          {/* Left side - Study Abroad Illustration */}
-          <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-50 p-12 flex items-center justify-center slide-in-left">
-            <div className="relative w-full max-w-md">
-              {/* Background circle */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-200/50 to-indigo-200/50 rounded-full transform scale-110 animate-pulse"></div>
-
-              {/* Study abroad illustration */}
-              <div className="relative z-10 flex items-center justify-center h-80">
-                {/* Desk */}
-                <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2">
-                  <div className="w-52 h-4 bg-gradient-to-r from-amber-300 to-orange-300 rounded-lg shadow-lg"></div>
-                  <div className="w-2 h-16 bg-gradient-to-b from-amber-400 to-amber-500 absolute left-4 -bottom-16"></div>
-                  <div className="w-2 h-16 bg-gradient-to-b from-amber-400 to-amber-500 absolute right-4 -bottom-16"></div>
-                </div>
-
-                {/* Student 1 - studying */}
-                <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 -translate-x-12">
-                  {/* Body */}
-                  <div className="w-8 h-14 bg-gradient-to-b from-blue-400 to-blue-500 rounded-full"></div>
-                  {/* Head */}
-                  <div className="w-7 h-7 bg-gradient-to-br from-amber-200 to-amber-300 rounded-full absolute -top-5 left-0.5"></div>
-                  {/* Hair */}
-                  <div className="w-8 h-4 bg-gradient-to-br from-gray-800 to-gray-900 rounded-full absolute -top-7 left-0"></div>
-                  {/* Book */}
-                  <div className="w-6 h-4 bg-gradient-to-br from-red-400 to-red-500 rounded absolute top-4 -right-1 transform -rotate-12 animate-pulse"></div>
-                </div>
-
-                {/* Student 2 - with laptop */}
-                <div className="absolute bottom-20 right-1/2 transform translate-x-1/2 translate-x-8">
-                  {/* Body */}
-                  <div className="w-7 h-12 bg-gradient-to-b from-purple-400 to-purple-500 rounded-full"></div>
-                  {/* Head */}
-                  <div className="w-6 h-6 bg-gradient-to-br from-amber-200 to-amber-300 rounded-full absolute -top-4 left-0.5"></div>
-                  {/* Hair */}
-                  <div className="w-7 h-3 bg-gradient-to-br from-brown-600 to-brown-700 rounded-full absolute -top-6 left-0"></div>
-                  {/* Laptop */}
-                  <div className="w-8 h-5 bg-gradient-to-br from-gray-300 to-gray-400 rounded absolute top-2 -right-1 transform rotate-6"></div>
-                  <div className="w-8 h-1 bg-gradient-to-r from-blue-400 to-blue-500 absolute top-2 -right-1 transform rotate-6"></div>
-                </div>
-
-                {/* World Map on wall */}
-                <div className="absolute top-8 left-8 w-16 h-12 bg-gradient-to-br from-green-200 to-green-300 rounded-lg border-2 border-brown-400">
-                  <div className="w-3 h-2 bg-brown-500 absolute top-1 left-2 rounded"></div>
-                  <div className="w-2 h-3 bg-brown-500 absolute top-2 right-3 rounded"></div>
-                  <div className="w-4 h-1 bg-brown-500 absolute bottom-2 left-1 rounded"></div>
-                </div>
-
-                {/* Globe */}
-                <div className="absolute top-12 right-8">
-                  <div
-                    className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full relative"
-                    style={{ animation: "globeSpin 8s linear infinite" }}
-                  >
-                    <div className="w-2 h-3 bg-green-400 absolute top-1 left-1 rounded"></div>
-                    <div className="w-1.5 h-2 bg-green-400 absolute bottom-1 right-1 rounded"></div>
-                  </div>
-                  <div className="w-1 h-6 bg-gray-600 absolute -bottom-6 left-1/2 transform -translate-x-1/2"></div>
-                </div>
-
-                {/* Books stack */}
-                <div className="absolute bottom-20 left-8">
-                  <div className="w-8 h-2 bg-red-400 rounded"></div>
-                  <div className="w-7 h-2 bg-blue-400 rounded absolute top-2"></div>
-                  <div className="w-9 h-2 bg-green-400 rounded absolute top-4"></div>
-                </div>
-
-                {/* Graduation cap */}
-                <div className="absolute top-16 left-1/2 transform -translate-x-1/2">
-                  <div className="w-8 h-1 bg-black rounded-full"></div>
-                  <div className="w-6 h-6 bg-black absolute -top-3 left-1 transform rotate-12"></div>
-                  <div className="w-1 h-3 bg-yellow-400 absolute -top-1 right-0"></div>
-                </div>
-
-                {/* Airplane */}
-                <div className="absolute top-6 right-16">
-                  <Plane
-                    className="w-6 h-6 text-blue-500 transform rotate-45 animate-bounce"
-                    style={{ animationDuration: "3s" }}
-                  />
-                </div>
-
-                {/* Floating educational elements */}
-                <div
-                  className="absolute bottom-8 right-16 w-3 h-3 bg-yellow-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.5s" }}
-                ></div>
-                <div
-                  className="absolute top-20 left-16 w-2 h-2 bg-pink-400 rounded-full animate-pulse"
-                  style={{ animationDelay: "1s" }}
-                ></div>
-                <div
-                  className="absolute top-32 right-4 w-2.5 h-2.5 bg-green-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "1.5s" }}
-                ></div>
-
-                {/* Study abroad text elements */}
-                <div className="absolute bottom-4 left-4 text-xs text-blue-600 font-semibold opacity-60">STUDY</div>
-                <div className="absolute bottom-4 right-4 text-xs text-purple-600 font-semibold opacity-60">ABROAD</div>
+          <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-50 p-12 flex items-center justify-center relative">
+            <div className="w-full max-w-md text-center">
+              <div className="mb-12">
+                <h2 className="text-4xl font-bold text-blue-800 mb-3">Study Abroad</h2>
+                <p className="text-lg text-blue-600">Your Gateway to Global Education</p>
               </div>
 
-              {/* Pagination dot */}
-              <div className="flex justify-center mt-8">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <div className="mb-8">
+                <div className="w-80 h-80 mx-auto rounded-full overflow-hidden shadow-2xl border-8 border-white/80 backdrop-blur-sm relative group">
+                  <img
+                    src="/diverse-group-of-international-students-studying-t.png"
+                    alt="International students studying abroad"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-blue-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                </div>
+              </div>
+
+              <div className="animate-fade-in">
+                <p className="text-xl font-semibold text-blue-700 mb-2">Join Thousands of Students</p>
+                <p className="text-blue-600">Pursuing Dreams Worldwide</p>
               </div>
             </div>
           </div>
 
-          {/* Right side - Login form */}
           <div className="flex-1 p-12 flex items-center justify-center slide-in-right">
             <div className="w-full max-w-sm">
               <div className="text-center mb-8">
@@ -333,7 +248,6 @@ const LoginPage: React.FC = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email field */}
                 <div>
                   <div className="relative">
                     <PhoneCall className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -348,7 +262,6 @@ const LoginPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Password field */}
                 <div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -370,7 +283,6 @@ const LoginPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Remember me and Forgot password */}
                 <div className="flex items-center justify-between">
                   <label className="flex items-center cursor-pointer">
                     <div className="relative">
@@ -395,7 +307,6 @@ const LoginPage: React.FC = () => {
                   </a>
                 </div>
 
-                {/* Sign in button */}
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -412,7 +323,6 @@ const LoginPage: React.FC = () => {
                 </button>
               </form>
 
-              {/* Sign up link */}
               <div className="text-center mt-8">
                 <p className="text-gray-600">
                   Don't have an account?{" "}
@@ -428,6 +338,74 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes educationFloat {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          25% { transform: translateY(-20px) rotate(90deg); }
+          50% { transform: translateY(-10px) rotate(180deg); }
+          75% { transform: translateY(-15px) rotate(270deg); }
+        }
+        
+        @keyframes worldMove {
+          0% { background-position: 0 0, 0 0, 0 0; }
+          100% { background-position: 60px 60px, -80px -80px, 40px 40px; }
+        }
+        
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        
+        @keyframes spin-reverse {
+          from { transform: rotate(360deg); }
+          to { transform: rotate(0deg); }
+        }
+        
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-spin-slow {
+          animation: spin-slow 20s linear infinite;
+        }
+        
+        .animate-spin-reverse {
+          animation: spin-reverse 15s linear infinite;
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 1s ease-out forwards;
+        }
+        
+        .animate-slide-up {
+          animation: slide-up 0.8s ease-out forwards;
+        }
+        
+        .slide-in-left {
+          animation: slideInLeft 1s ease-out;
+        }
+        
+        .slide-in-right {
+          animation: slideInRight 1s ease-out;
+        }
+        
+        @keyframes slideInLeft {
+          from { transform: translateX(-100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
     </div>
   )
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-export function useFetchFormData<T extends Record<string, any>>() {
+export function useFetchFormData<T extends Record<string, any>>(initialData?:T) {
   const [formData, setFormData] = useState<T>({} as T)
 
   const setForm = <K extends keyof T>(key: K, value: T[K]) => {
@@ -13,7 +13,7 @@ export function useFetchFormData<T extends Record<string, any>>() {
   }
 
   const resetForm = () => {
-    setFormData({} as T)
+    setFormData(initialData || ({} as T))
   }
 
   const updateForm = (data: Partial<T>) => {

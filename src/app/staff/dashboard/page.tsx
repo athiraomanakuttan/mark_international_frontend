@@ -20,7 +20,7 @@ import { useEffect, useState } from "react"
 import type { DateRange } from "react-day-picker"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import { bottomStatsStyles, categoryColors, staffColors, statsStyles } from "@/data/dashboard-style-data"
+import {  categoryColors, staffColors, statsStyles } from "@/data/dashboard-style-data"
 import { ModernDashboardLayout } from "@/components/staff/modern-dashboard-navbar"
 import { getStaffWiseReport, leadDashboardData } from "@/service/staff/dashboardService"
 import { DashboardLeadType, StaffLeadData } from "@/types/dashboard-type"
@@ -106,12 +106,8 @@ export default function HomePage() {
     { title: "NEW LEADS", value: leadData.new?.toString() || "0", icon: Users },
     { title: "FOLLOWUP LEADS", value: leadData.followUp?.toString() || "0", icon: TrendingUp },
     { title: "CLOSED LEADS", value: leadData.closed?.toString() || "0", icon: TrendingUp },
-    { title: "TOTAL CALLED", value: "0", icon: Phone },
-  ]
+        { title: "MISSED LEADS", value: leadData.missed?.toString() || "0", icon: UserX },
 
-  const bottomStatsData = [
-    { title: "MISSED LEADS", value: leadData.missed?.toString() || "0", icon: UserX },
-    { title: "TRANSFERRED LEADS", value: leadData.transferred?.toString() || "0", icon: ArrowRightLeft },
   ]
 
   const categoryData = [
@@ -196,51 +192,7 @@ export default function HomePage() {
           })}
         </div>
 
-        {/* Bottom Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {bottomStatsData.map((stat, index) => {
-            const style = bottomStatsStyles[index]
-            return (
-              <Card key={index} className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600 uppercase tracking-wide">
-                      {stat.title}
-                    </CardTitle>
-                    <div className="w-4 h-4 text-teal-500">
-                      <svg viewBox="0 0 16 16" fill="currentColor">
-                        <circle cx="8" cy="8" r="2" />
-                      </svg>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
-                      <Button variant="link" className="p-0 h-auto text-blue-600 hover:text-blue-700 text-sm">
-                        View Details
-                      </Button>
-                    </div>
-                    <div className={`w-16 h-12 ${style.iconBg} rounded-lg flex items-center justify-center`}>
-                      <div className="w-8 h-6 bg-gradient-to-r from-gray-300 to-gray-400 rounded-sm opacity-60">
-                        <svg viewBox="0 0 32 24" className="w-full h-full">
-                          <path
-                            d="M2 20 L8 12 L14 16 L22 8 L30 12"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            fill="none"
-                            className={style.color}
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
+        
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Category Wise Report */}
