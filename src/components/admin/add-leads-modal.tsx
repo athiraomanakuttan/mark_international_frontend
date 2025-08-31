@@ -30,10 +30,11 @@ import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
 interface AddLeadsModalProps {
   open: boolean
   setOpen: Dispatch<SetStateAction<boolean>>
+  getLeadList?: () => void
 }
 
 
-export default function AddLeadsModal({ open, setOpen }: AddLeadsModalProps) {
+export default function AddLeadsModal({ open, setOpen, getLeadList }: AddLeadsModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     
       const { staffList } = useSelector((state: RootState) => state.staff);
@@ -95,6 +96,9 @@ const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
         if(response.status){
             toast.success("Lead created successfully")
             setOpen(false)
+            if(getLeadList){
+              getLeadList()
+            }
         }
     }
     catch(err:any){

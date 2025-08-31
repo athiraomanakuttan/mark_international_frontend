@@ -388,7 +388,7 @@ const handleExport = async () => {
           </div>
         </main>
       </div>
-      {isAddModalOpen && <AddLeadsModal open={isAddModalOpen} setOpen={setIsAddModalOpen} />}
+      {isAddModalOpen && <AddLeadsModal open={isAddModalOpen} setOpen={setIsAddModalOpen} getLeadList={getLeadList} />}
       {(isUpdateModelOpen && selectedLead) && <EditLeadsModal leadData={selectedLead} open={isUpdateModelOpen} setOpen={setIsUpdateModelOpen} />}
     </ModernDashboardLayout>
   )
