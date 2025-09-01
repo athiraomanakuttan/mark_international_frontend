@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Eye, EyeOff, PhoneCall, Lock, Check, Users, Award, MapPin, Star } from "lucide-react"
+import { Eye, EyeOff, PhoneCall, Lock, Check, Users, Award, MapPin, Star } from 'lucide-react'
 import { useFetchFormData } from "@/hook/FormHook"
 import type { LoginType } from "@/types/form-types"
 import { loginUser } from "@/service/loginService"
@@ -77,9 +77,9 @@ const LoginPage: React.FC = () => {
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 8 + 4, // Increased from 4+2 to 8+4
-      opacity: Math.random() * 0.5 + 0.4, // Increased from 0.6+0.2 to 0.5+0.4
-      speedX: (Math.random() - 0.5) * 1.2, // Increased speed from 0.5 to 1.2
+      size: Math.random() * 8 + 4,
+      opacity: Math.random() * 0.5 + 0.4,
+      speedX: (Math.random() - 0.5) * 1.2,
       speedY: (Math.random() - 0.5) * 1.2,
       color: particleColors[Math.floor(Math.random() * particleColors.length)],
     }))
@@ -91,12 +91,12 @@ const LoginPage: React.FC = () => {
           ...particle,
           x: (particle.x + particle.speedX + 100) % 100,
           y: (particle.y + particle.speedY + 100) % 100,
-          opacity: 0.3 + Math.sin(Date.now() * 0.002 + particle.id) * 0.4, // Enhanced opacity animation
+          opacity: 0.3 + Math.sin(Date.now() * 0.002 + particle.id) * 0.4,
         })),
       )
     }
 
-    const interval = setInterval(animateParticles, 30) // Faster animation from 50ms to 30ms
+    const interval = setInterval(animateParticles, 30)
     return () => clearInterval(interval)
   }, [])
 
@@ -107,9 +107,11 @@ const LoginPage: React.FC = () => {
 
     setIsLoading(true)
     dispatch(setLoading(true))
+
     try {
       const response = await loginUser(formData)
       console.log("Response ==><== ", response?.data?.user?.role)
+
       if (response.status) {
         Cookies.set("accessToken", response?.data?.accessToken || "", { expires: 7 })
         dispatch(
@@ -120,7 +122,6 @@ const LoginPage: React.FC = () => {
         )
 
         toast.success(response.message || "Welcome to Mark International!")
-
         setTimeout(() => {
           if (response?.data?.user?.role === "admin") router.push("/dashboard")
           else router.push("/staff/dashboard")
@@ -155,7 +156,8 @@ const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 md:p-6 lg:p-8 relative overflow-hidden">
+      {/* Decorative background */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-20 w-72 h-72 rounded-full bg-gradient-to-br from-blue-200/40 to-indigo-200/40 blur-3xl animate-pulse"></div>
         <div
@@ -197,13 +199,16 @@ const LoginPage: React.FC = () => {
               height: `${particle.size}px`,
               backgroundColor: particle.color,
               opacity: particle.opacity,
-              boxShadow: `0 0 ${particle.size * 3}px ${particle.color}, 0 0 ${particle.size * 6}px ${particle.color.replace("0.", "0.2")}`, // Enhanced glow effect
-              filter: "blur(0.5px)", // Subtle blur for softer appearance
+              boxShadow: `0 0 ${particle.size * 3}px ${particle.color}, 0 0 ${
+                particle.size * 6
+              }px ${particle.color.replace("0.", "0.2")}`,
+              filter: "blur(0.5px)",
             }}
           />
         ))}
       </div>
 
+      {/* Subtle dot grid overlay */}
       <div
         className="absolute inset-0 opacity-8"
         style={{
@@ -214,16 +219,19 @@ const LoginPage: React.FC = () => {
       />
 
       <div className="w-full max-w-6xl mx-auto relative z-10">
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[600px] flex">
-          <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-50 p-12 flex items-center justify-center relative">
+        {/* <CHANGE> make container responsive: stack on small, two columns on md+ */}
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row md:min-h-[600px]">
+          {/* Left visual panel */}
+          <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 md:p-12 flex items-center justify-center relative hidden md:flex">
             <div className="w-full max-w-md text-center">
-              <div className="mb-12">
-                <h2 className="text-4xl font-bold text-blue-800 mb-3">Study Abroad</h2>
-                <p className="text-lg text-blue-600">Your Gateway to Global Education</p>
+              <div className="mb-10 md:mb-12">
+                <h2 className="text-3xl sm:text-4xl font-bold text-blue-800 mb-2 md:mb-3">Study Abroad</h2>
+                <p className="text-base sm:text-lg text-blue-600">Your Gateway to Global Education</p>
               </div>
 
               <div className="mb-8">
-                <div className="w-80 h-80 mx-auto rounded-full overflow-hidden shadow-2xl border-8 border-white/80 backdrop-blur-sm relative group">
+                {/* <CHANGE> responsive hero image sizes only */}
+                <div className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 mx-auto rounded-full overflow-hidden shadow-2xl border-8 border-white/80 backdrop-blur-sm relative group">
                   <img
                     src="/diverse-group-of-international-students-studying-t.png"
                     alt="International students studying abroad"
@@ -234,20 +242,21 @@ const LoginPage: React.FC = () => {
               </div>
 
               <div className="animate-fade-in">
-                <p className="text-xl font-semibold text-blue-700 mb-2">Join Thousands of Students</p>
+                <p className="text-lg sm:text-xl font-semibold text-blue-700 mb-1 md:mb-2">Join Thousands of Students</p>
                 <p className="text-blue-600">Pursuing Dreams Worldwide</p>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 p-12 flex items-center justify-center slide-in-right">
+          {/* Right form panel */}
+          <div className="flex-1 p-6 md:p-12 flex items-center justify-center slide-in-right">
             <div className="w-full max-w-sm">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome!</h1>
-                <p className="text-gray-600 text-sm">Start your study abroad journey</p>
+              <div className="text-center mb-6 md:mb-8">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 md:mb-2">Welcome!</h1>
+                <p className="text-xs sm:text-sm text-gray-600">Start your study abroad journey</p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
                 <div>
                   <div className="relative">
                     <PhoneCall className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -255,7 +264,7 @@ const LoginPage: React.FC = () => {
                       type="text"
                       value={formData.phoneNumber || ""}
                       onChange={(e) => setForm("phoneNumber", e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 hover:bg-white"
+                      className="w-full pl-12 pr-4 py-3 md:py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 hover:bg-white"
                       placeholder="phone number"
                       required
                     />
@@ -269,7 +278,7 @@ const LoginPage: React.FC = () => {
                       type={showPassword ? "text" : "password"}
                       value={formData.password || ""}
                       onChange={(e) => setForm("password", e.target.value)}
-                      className="w-full pl-12 pr-12 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 hover:bg-white"
+                      className="w-full pl-12 pr-12 py-3 md:py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 hover:bg-white"
                       placeholder="Password"
                       required
                     />
@@ -325,7 +334,7 @@ const LoginPage: React.FC = () => {
 
               <div className="text-center mt-8">
                 <p className="text-gray-600">
-                  Don't have an account?{" "}
+                  {"Don't have an account? "}
                   <a
                     href="#"
                     className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-300"
@@ -341,69 +350,114 @@ const LoginPage: React.FC = () => {
 
       <style jsx>{`
         @keyframes educationFloat {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          25% { transform: translateY(-20px) rotate(90deg); }
-          50% { transform: translateY(-10px) rotate(180deg); }
-          75% { transform: translateY(-15px) rotate(270deg); }
+          0%,
+          100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          25% {
+            transform: translateY(-20px) rotate(90deg);
+          }
+          50% {
+            transform: translateY(-10px) rotate(180deg);
+          }
+          75% {
+            transform: translateY(-15px) rotate(270deg);
+          }
         }
-        
+
         @keyframes worldMove {
-          0% { background-position: 0 0, 0 0, 0 0; }
-          100% { background-position: 60px 60px, -80px -80px, 40px 40px; }
+          0% {
+            background-position: 0 0, 0 0, 0 0;
+          }
+          100% {
+            background-position: 60px 60px, -80px -80px, 40px 40px;
+          }
         }
-        
+
         @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
         }
-        
+
         @keyframes spin-reverse {
-          from { transform: rotate(360deg); }
-          to { transform: rotate(0deg); }
+          from {
+            transform: rotate(360deg);
+          }
+          to {
+            transform: rotate(0deg);
+          }
         }
-        
+
         @keyframes fade-in {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        
+
         @keyframes slide-up {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        
+
         .animate-spin-slow {
           animation: spin-slow 20s linear infinite;
         }
-        
+
         .animate-spin-reverse {
           animation: spin-reverse 15s linear infinite;
         }
-        
+
         .animate-fade-in {
           animation: fade-in 1s ease-out forwards;
         }
-        
+
         .animate-slide-up {
           animation: slide-up 0.8s ease-out forwards;
         }
-        
+
         .slide-in-left {
           animation: slideInLeft 1s ease-out;
         }
-        
+
         .slide-in-right {
           animation: slideInRight 1s ease-out;
         }
-        
+
         @keyframes slideInLeft {
-          from { transform: translateX(-100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
+          from {
+            transform: translateX(-100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
         }
-        
+
         @keyframes slideInRight {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
         }
       `}</style>
     </div>

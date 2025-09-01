@@ -20,6 +20,7 @@ import { MultiSelect } from "@/components/ui/multi-select" // Import the new Mul
 import EditLeadsModal from '@/components/admin/edit-leads-modal'
 import { toast } from "react-toastify"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export default function LeadsReportPage() {
   const yesterday = new Date();
@@ -102,7 +103,12 @@ const handleExport = async () => {
     dispatch(fetchAllStaffs())
   }, [dispatch])
 
+  const router = useRouter()
+    const pageRefresh = ()=>{
+      router.refresh()
+    }
   const getLeadList = async () => {
+    console.log("ffffffffffffffffffff")
     try {
       const statusParam = leadStatus.length > 0 ? leadStatus.join(",") : "7" // '7' for All, or empty string if backend expects that
       const response = await getLeads(statusParam, paginationData.currentPage, paginationData.limit,{fromDate, createBy,leadCategory, leadSource, leadStatus, priority, staff, toDate} as LeadFilterType, searchQuery)
@@ -388,7 +394,7 @@ const handleExport = async () => {
           </div>
         </main>
       </div>
-      {isAddModalOpen && <AddLeadsModal open={isAddModalOpen} setOpen={setIsAddModalOpen} getLeadList={getLeadList} />}
+      {isAddModalOpen && <AddLeadsModal open={isAddModalOpen} setOpen={setIsAddModalOpen} pageRefresh={pageRefresh} />}
       {(isUpdateModelOpen && selectedLead) && <EditLeadsModal leadData={selectedLead} open={isUpdateModelOpen} setOpen={setIsUpdateModelOpen} />}
     </ModernDashboardLayout>
   )

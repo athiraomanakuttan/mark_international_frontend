@@ -25,16 +25,18 @@ import { toast } from "react-toastify"
 import { useDispatch, useSelector } from "react-redux"
 import { AppDispatch, RootState } from "@/lib/redux/store"
 import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
+import { useRouter } from "next/navigation"
+
 
 
 interface AddLeadsModalProps {
   open: boolean
   setOpen: Dispatch<SetStateAction<boolean>>
-  getLeadList?: () => void
+  pageRefresh?: () => void
 }
 
 
-export default function AddLeadsModal({ open, setOpen, getLeadList }: AddLeadsModalProps) {
+export default function AddLeadsModal({ open, setOpen, pageRefresh }: AddLeadsModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     
       const { staffList } = useSelector((state: RootState) => state.staff);
@@ -61,7 +63,7 @@ const initialLead: LeadBasicType = {
 const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
 
 
-
+    const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedPhoneCode, setSelectedPhoneCode] = useState({
     name: "India",
@@ -96,9 +98,7 @@ const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
         if(response.status){
             toast.success("Lead created successfully")
             setOpen(false)
-            if(getLeadList){
-              getLeadList()
-            }
+            if(pageRefresh) pageRefresh()
         }
     }
     catch(err:any){
@@ -123,7 +123,7 @@ const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
               <Label htmlFor="client-name">
                 Client Name<span className="text-red-500">*</span>
               </Label>
-              <Input id="client-name" placeholder="Client Name" onChange={(e) => setForm("name", e.target.value)} value={formData.name} />
+              <Input id="client-name" placeholder="Client Name" onChange={(e) => setForm("name", e.target.value)} value={formData.name || ""} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="contact-number">
@@ -174,7 +174,7 @@ const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
                                           ))}
                                         </SelectContent>
                 </Select>
-                <Input id="contact-number" placeholder="Enter number" className="flex-1 rounded-l-none" value={formData.phoneNumber} onChange={(e) => setForm("phoneNumber", e.target.value)} />
+                <Input id="contact-number" placeholder="Enter number" className="flex-1 rounded-l-none" value={formData.phoneNumber || ""} onChange={(e) => setForm("phoneNumber", e.target.value)} />
               </div>
             </div>
           </div>
@@ -215,7 +215,7 @@ const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="cost">Cost</Label>
-              <Input id="cost" placeholder="Cost" type="number"  value={formData.cost} onChange={(e)=>setForm("cost",parseInt(e.target.value))}/>
+              <Input id="cost" placeholder="Cost" type="number"  value={formData.cost || 0} onChange={(e)=>setForm("cost",parseInt(e.target.value))}/>
             </div>
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
@@ -237,11 +237,11 @@ const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
-              <Textarea id="address" placeholder="Address" className="min-h-[80px]" value={formData.address} onChange={(e) => setForm("address", e.target.value)} />
+              <Textarea id="address" placeholder="Address" className="min-h-[80px]" value={formData.address || ""} onChange={(e) => setForm("address", e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="remarks">Remarks</Label>
-              <Textarea id="remarks" placeholder="Remarks" className="min-h-[80px]" value={formData.remarks} onChange={(e) => setForm("remarks", e.target.value)} />
+              <Textarea id="remarks" placeholder="Remarks" className="min-h-[80px]" value={formData.remarks || ""} onChange={(e) => setForm("remarks", e.target.value)} />
             </div>
           </div>
 
@@ -281,7 +281,7 @@ const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
           <div className="space-y-2 mt-4">
             <h3 className="text-lg font-semibold">Additional Fields</h3>
             <Label htmlFor="referred-by">Referred BY</Label>
-            <Input id="referred-by" placeholder="Referred BY" value={formData.referredBy} onChange={(e)=>setForm("referredBy",e.target.value)} />
+            <Input id="referred-by" placeholder="Referred BY" value={formData.referredBy || ""} onChange={(e)=>setForm("referredBy",e.target.value)} />
           </div>
         </div>
         
