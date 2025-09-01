@@ -195,6 +195,7 @@ const [paginationData, setPaginationData]= useState({
   if (response.status) {
     toast.success("Staff member added successfully!");
     setIsModalOpen(false); // Close modal on submit
+    getData()
   }
   } catch (error :any) {
     toast.error(error?.message ||"Failed to add staff member. Please try again.");
@@ -561,11 +562,13 @@ const changeLimit = (value: string) => {
                     <TableCell className="font-medium">{index+1}</TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-3">   
-                      <img
+                      {staff?.profilePic ? <img
                         src={staff?.profilePic || "/placeholder.svg"}
                         alt={staff.name}
                         className="w-8 h-8 rounded-full object-cover"
-                      />
+                      /> : <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                        <User className="h-4 w-4 text-white" />
+                      </div>}
                       <span>{staff.name}</span>
                     </div>
                   </TableCell>
