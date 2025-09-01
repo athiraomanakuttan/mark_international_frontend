@@ -103,9 +103,8 @@ const handleExport = async () => {
     dispatch(fetchAllStaffs())
   }, [dispatch])
 
-  const router = useRouter()
     const pageRefresh = ()=>{
-      router.refresh()
+      setTimeout(()=>{ getLeadList() },1000)
     }
   const getLeadList = async () => {
     console.log("ffffffffffffffffffff")
