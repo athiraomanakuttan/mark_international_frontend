@@ -138,36 +138,39 @@ const handleAssignBtn = ()=>{
   return (
     <ModernDashboardLayout>
       <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
-        <main className="flex-1 p-6 md:p-2">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-6xl">
-            <div className="flex items-center justify-between mb-2">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Unassigned Leads</h1>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex items-center gap-2 bg-transparent">
-                  <Download className="h-4 w-4" />
-                  Export
+        <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-2">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 md:p-6 w-full max-w-none overflow-hidden">
+            {/* Header Section */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-2 gap-3 sm:gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-50 order-1">Unassigned Leads</h1>
+              <div className="flex flex-col xs:flex-row gap-2 order-2 sm:order-2">
+                <Button variant="outline" className="flex items-center justify-center gap-2 bg-transparent text-sm sm:text-base min-w-0">
+                  <Download className="h-4 w-4 flex-shrink-0" />
+                  <span >Export</span>
                 </Button>
                 <Button
-                  className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white"
+                  className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm sm:text-base min-w-0"
                   onClick={handleAssignBtn}
                 >
-                  <Plus className="h-4 w-4" />
-                  Assign Staff
+                  <Plus className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden xs:inline">Assign Staff</span>
+                  <span className="xs:hidden">Assign</span>
                 </Button>
               </div>
             </div>
+
             {/* Filter Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="grid gap-2">
-                <Label htmlFor="from-date">From Date (Created Date)</Label>
+                <Label htmlFor="from-date" className="text-sm font-medium">From Date (Created Date)</Label>
                 <DatePicker date={fromDate} setDate={setFromDate} />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="to-date">To Date (Created Date)</Label>
+                <Label htmlFor="to-date" className="text-sm font-medium">To Date (Created Date)</Label>
                 <DatePicker date={toDate} setDate={setToDate} />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="lead-category">Lead Category</Label>
+                <Label htmlFor="lead-category" className="text-sm font-medium">Lead Category</Label>
                 <MultiSelect
                   options={leadCategoryOptions}
                   selected={leadCategory}
@@ -176,7 +179,7 @@ const handleAssignBtn = ()=>{
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="lead-status">Lead Status</Label>
+                <Label htmlFor="lead-status" className="text-sm font-medium">Lead Status</Label>
                 <MultiSelect
                   options={leadStatusOptions}
                   selected={leadStatus}
@@ -184,21 +187,21 @@ const handleAssignBtn = ()=>{
                   placeholder="Select statuses"
                 />
               </div>
-              
-              
             </div>
-            <Button className="bg-emerald-500 hover:bg-emerald-600 text-white mb-6" onClick={getLeadList}>
+
+            <Button className="bg-emerald-500 hover:bg-emerald-600 text-white mb-4 sm:mb-6 w-full sm:w-auto" onClick={getLeadList}>
               View
             </Button>
+
             {/* Table Controls */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700 dark:text-gray-300">Show</span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3 sm:gap-2">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-700 dark:text-gray-300 whitespace-nowrap">Show</span>
                 <Select
                   value={entriesPerPage}
                   onValueChange={(value) => setPaginationData((prev) => ({ ...prev, limit: Number(value) }))}
                 >
-                  <SelectTrigger className="w-[70px]">
+                  <SelectTrigger className="w-16 sm:w-[70px]">
                     <SelectValue placeholder="10" />
                   </SelectTrigger>
                   <SelectContent>
@@ -207,7 +210,7 @@ const handleAssignBtn = ()=>{
                     <SelectItem value="50">50</SelectItem>
                   </SelectContent>
                 </Select>
-                <span className="text-sm text-gray-700 dark:text-gray-300">entries</span>
+                <span className="text-gray-700 dark:text-gray-300 whitespace-nowrap">entries</span>
               </div>
               <div className="flex items-center gap-2">
                 <Label htmlFor="search" className="sr-only">
@@ -218,72 +221,93 @@ const handleAssignBtn = ()=>{
                   placeholder="Search:"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-[200px]"
+                  className="w-full sm:w-[200px] text-sm"
                 />
               </div>
             </div>
+
             {/* Leads Table */}
-            <div className="overflow-x-auto border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[40px]">
-                      <Checkbox id="select-all"  onCheckedChange={()=>handleSelectLead("all")}/>
-                    </TableHead>
-                    <TableHead className="w-[50px]">#</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Phone No</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {leadData.length === 0 ? (
+            <div className="w-full overflow-hidden border rounded-md">
+              <div className="overflow-x-auto">
+                <Table className="min-w-full">
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={13} className="h-24 text-center text-gray-500 dark:text-gray-400">
-                        No data available in table
-                      </TableCell>
+                      <TableHead className="w-10 sm:w-[40px] px-2 sm:px-4">
+                        <Checkbox id="select-all" onCheckedChange={()=>handleSelectLead("all")}/>
+                      </TableHead>
+                      <TableHead className="w-12 sm:w-[50px] px-2 sm:px-4">#</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4">Name</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4">Phone No</TableHead>
+                      <TableHead className="min-w-[100px] px-2 sm:px-4">Category</TableHead>
+                      <TableHead className="min-w-[80px] px-2 sm:px-4">Status</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4">Created Date</TableHead>
                     </TableRow>
-                  ) : (
-                    leadData.map((lead, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <Checkbox 
-        id={`select-lead-${index}`} 
-        checked={selectedLeadList.includes(lead.id)}
-        onCheckedChange={() => handleSelectLead(lead.id)}
-      />
+                  </TableHeader>
+                  <TableBody>
+                    {leadData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="h-24 text-center text-gray-500 dark:text-gray-400 px-2 sm:px-4">
+                          No data available in table
                         </TableCell>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>{lead.name}</TableCell>
-                        <TableCell>{lead.phoneNumber || <span className="text-gray-500">N/A</span>}</TableCell>
-                        <TableCell>
-                          {LEAD_TYPES.find((data) => data.value === Number(lead.category))?.name || (
-                            <span className="text-gray-500">{lead.category}</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {LEAD_STATUS.find((data) => data.value === Number(lead.status))?.name || "N/A"}
-                        </TableCell>
-                        <TableCell>{lead.createdAt || <span className="text-gray-500">N/A</span>}</TableCell>
-                        
-        
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      leadData.map((lead, index) => (
+                        <TableRow key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <TableCell className="px-2 sm:px-4 py-2 sm:py-3">
+                            <Checkbox 
+                              id={`select-lead-${index}`} 
+                              checked={selectedLeadList.includes(lead.id)}
+                              onCheckedChange={() => handleSelectLead(lead.id)}
+                            />
+                          </TableCell>
+                          <TableCell className="px-2 sm:px-4 py-2 sm:py-3 text-sm">{index + 1}</TableCell>
+                          <TableCell className="px-2 sm:px-4 py-2 sm:py-3 text-sm font-medium">
+                            <div className="truncate max-w-[150px] sm:max-w-none" title={lead.name}>
+                              {lead.name}
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-2 sm:px-4 py-2 sm:py-3 text-sm">
+                            <div className="truncate max-w-[120px] sm:max-w-none" title={lead.phoneNumber || "N/A"}>
+                              {lead.phoneNumber || <span className="text-gray-500">N/A</span>}
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-2 sm:px-4 py-2 sm:py-3 text-sm">
+                            <div className="truncate max-w-[100px] sm:max-w-none">
+                              {LEAD_TYPES.find((data) => data.value === Number(lead.category))?.name || (
+                                <span className="text-gray-500">{lead.category}</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-2 sm:px-4 py-2 sm:py-3 text-sm">
+                            <div className="truncate max-w-[80px] sm:max-w-none">
+                              {LEAD_STATUS.find((data) => data.value === Number(lead.status))?.name || "N/A"}
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-2 sm:px-4 py-2 sm:py-3 text-sm">
+                            <div className="truncate max-w-[120px] sm:max-w-none" title={lead.createdAt || "N/A"}>
+                              {lead.createdAt || <span className="text-gray-500">N/A</span>}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
+
             {/* Bottom Pagination */}
-            <div className="flex items-center justify-between mt-4 text-sm text-gray-700 dark:text-gray-300">
-              <span>Showing page {paginationData.currentPage}  of {paginationData.totalPages} pages</span>
-              <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 gap-3 sm:gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <span className="text-center sm:text-left">
+                Showing page {paginationData.currentPage} of {paginationData.totalPages} pages
+              </span>
+              <div className="flex justify-center sm:justify-end gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   disabled={paginationData.currentPage === 1}
                   onClick={() => setPaginationData((prev) => ({ ...prev, currentPage: prev.currentPage - 1 }))}
+                  className="text-xs sm:text-sm"
                 >
                   Previous
                 </Button>
@@ -292,6 +316,7 @@ const handleAssignBtn = ()=>{
                   size="sm"
                   disabled={paginationData.currentPage >= paginationData.totalPages}
                   onClick={() => setPaginationData((prev) => ({ ...prev, currentPage: prev.currentPage + 1 }))}
+                  className="text-xs sm:text-sm"
                 >
                   Next
                 </Button>
@@ -301,6 +326,6 @@ const handleAssignBtn = ()=>{
         </main>
       </div>
       {isAssignModalOpen && <AssignLeadModal leadList={selectedLeadList} open={isAssignModalOpen} setOpen={setIsAssignModalOpen} leadAssinedSuccess={leadAssinedSuccess}  />}
-      </ModernDashboardLayout>
+    </ModernDashboardLayout>
   )
 }

@@ -171,24 +171,23 @@ yesterday.setDate(yesterday.getDate() - 1);
   return (
     <ModernDashboardLayout>
       <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
-        <main className="flex-1 p-6 md:p-2">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-6xl">
-            <div className="flex items-center justify-between mb-2">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Deleted Leads Report</h1>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex items-center gap-2 bg-transparent" onClick={handleExport}>
+        <main className="flex-1 p-4 sm:p-6 md:p-2">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 w-full max-w-none overflow-hidden">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-2 gap-4 sm:gap-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-50">Deleted Leads Report</h1>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <Button variant="outline" className="flex items-center gap-2 bg-transparent w-full sm:w-auto" onClick={handleExport}>
                   <Download className="h-4 w-4" />
                   Export
                 </Button>
-                <Button  className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white" onClick={handleDelete}>
+                <Button className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white w-full sm:w-auto" onClick={handleDelete}>
                   <Trash className="h-4 w-4" />
                   Delete Lead
                 </Button>
-                
               </div>
             </div>
             {/* Filter Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
               <div className="grid gap-2">
                 <Label htmlFor="from-date">From Date (Created Date)</Label>
                 <DatePicker date={fromDate} setDate={setFromDate} />
@@ -206,21 +205,18 @@ yesterday.setDate(yesterday.getDate() - 1);
                   placeholder="Select categories"
                 />
               </div>
-              
-              
               <div className="grid gap-2">
                 <Label htmlFor="staff">Staff</Label>
                 <MultiSelect options={staffOptions} selected={staff} onChange={setStaff} placeholder="Select staff" />
               </div>
-              
             </div> 
-            <Button className="bg-emerald-500 hover:bg-emerald-600 text-white mb-6" onClick={getLeadList}>
+            <Button className="bg-emerald-500 hover:bg-emerald-600 text-white mb-6 w-full sm:w-auto" onClick={getLeadList}>
               View
             </Button>
             {/* Table Controls */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700 dark:text-gray-300">Show</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4 sm:gap-0">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">Show</span>
                 <Select
                   value={paginationData.limit.toString()}
                   onValueChange={(value) => setPaginationData((prev) => ({ ...prev, limit: Number(value) }))}
@@ -234,9 +230,9 @@ yesterday.setDate(yesterday.getDate() - 1);
                     <SelectItem value="50">50</SelectItem>
                   </SelectContent>
                 </Select>
-                <span className="text-sm text-gray-700 dark:text-gray-300">entries</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">entries</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Label htmlFor="search" className="sr-only">
                   Search
                 </Label>
@@ -245,100 +241,139 @@ yesterday.setDate(yesterday.getDate() - 1);
                   placeholder="Search:"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-[200px]"
+                  className="w-full sm:w-[200px]"
                 />
               </div>
             </div>
             {/* Leads Table */}
-            <div className="overflow-x-auto border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[40px]">
-                      <Checkbox
-                                              id="select-all"
-                                              checked={
-                                                selectedLeadList.length === leadData.length &&
-                                                leadData.length > 0
-                                              }
-                                              onCheckedChange={handleSelectAllSimple}
-                                            />
-                    </TableHead>
-                    <TableHead className="w-[50px]">#</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Phone No</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Last Updated</TableHead>
-                    <TableHead>Staff</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created Date</TableHead>
-                    <TableHead>Created By</TableHead>
-                    <TableHead>Cost</TableHead>
-                    <TableHead>Lead Source</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {leadData.length === 0 ? (
+            <div className="w-full overflow-x-auto border rounded-md">
+              <div className="min-w-[1100px]">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={13} className="h-24 text-center text-gray-500 dark:text-gray-400">
-                        No data available in table
-                      </TableCell>
+                      <TableHead className="w-[40px]">
+                        <Checkbox
+                          id="select-all"
+                          checked={
+                            selectedLeadList.length === leadData.length &&
+                            leadData.length > 0
+                          }
+                          onCheckedChange={handleSelectAllSimple}
+                        />
+                      </TableHead>
+                      <TableHead className="w-[50px]">#</TableHead>
+                      <TableHead className="min-w-[120px]">Name</TableHead>
+                      <TableHead className="min-w-[120px]">Phone No</TableHead>
+                      <TableHead className="min-w-[100px]">Category</TableHead>
+                      <TableHead className="min-w-[120px]">Last Updated</TableHead>
+                      <TableHead className="min-w-[100px]">Staff</TableHead>
+                      <TableHead className="min-w-[100px]">Status</TableHead>
+                      <TableHead className="min-w-[120px]">Created Date</TableHead>
+                      <TableHead className="min-w-[120px]">Created By</TableHead>
+                      <TableHead className="min-w-[80px]">Cost</TableHead>
+                      <TableHead className="min-w-[120px]">Lead Source</TableHead>
+                      <TableHead className="min-w-[120px]">Action</TableHead>
                     </TableRow>
-                  ) : (
-                    leadData.map((lead, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                            <Checkbox
-                                                        id={`select-lead-${index}`}
-                                                        checked={selectedLeadList.includes(lead.id)}
-                                                        onCheckedChange={() => handleSelectLead(lead.id)}
-                                                      />
+                  </TableHeader>
+                  <TableBody>
+                    {leadData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={13} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                          No data available in table
                         </TableCell>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>{lead.name}</TableCell>
-                        <TableCell>{lead.phoneNumber || <span className="text-gray-500">N/A</span>}</TableCell>
-                        <TableCell>
-                          {LEAD_TYPES.find((data) => data.value === Number(lead.category))?.name || (
-                            <span className="text-gray-500">{lead.category}</span>
-                          )}
-                        </TableCell>
-                        <TableCell>{lead.updatedAt}</TableCell>
-                        <TableCell>{lead.assignedAgent_name || <span className="text-gray-500">N/A</span>}</TableCell>
-                        <TableCell>
-                          <label className="text-red-500">{LEAD_STATUS.find((data) => data.value === Number(lead.status))?.name || "N/A"}</label>
-                        </TableCell>
-                        <TableCell>{lead.createdAt || <span className="text-gray-500">N/A</span>}</TableCell>
-                        <TableCell>{lead.createdByName || <span className="text-gray-500">N/A</span>}</TableCell>
-                        <TableCell>{lead.cost || <span className="text-gray-500">0</span>}</TableCell>
-                        <TableCell>
-                          {LEAD_SOURCES.find((data) => data.value == Number(lead.leadSource))?.name || (
-                            <span className="text-gray-500">N/A</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Button onClick={()=>handleLeadUpdate(lead.id)}><RefreshCcw/></Button>
-                          <Link href={`/lead-management/lead/${lead.id}`}>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="text-green-500 hover:bg-green-50 dark:hover:bg-green-900"
-                                                    >
-                                                      <Eye className="h-4 w-4" />
-                                                      <span className="sr-only">View</span>
-                                                    </Button>
-                                                    </Link>
-                        </TableCell>
-                        
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      leadData.map((lead, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                              <Checkbox
+                                id={`select-lead-${index}`}
+                                checked={selectedLeadList.includes(lead.id)}
+                                onCheckedChange={() => handleSelectLead(lead.id)}
+                              />
+                          </TableCell>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>
+                            <span className="truncate block">{lead.name}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {lead.phoneNumber || <span className="text-gray-500">N/A</span>}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {LEAD_TYPES.find((data) => data.value === Number(lead.category))?.name || (
+                                <span className="text-gray-500">{lead.category}</span>
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">{lead.updatedAt}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {lead.assignedAgent_name || <span className="text-gray-500">N/A</span>}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              <label className="text-red-500">{LEAD_STATUS.find((data) => data.value === Number(lead.status))?.name || "N/A"}</label>
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {lead.createdAt || <span className="text-gray-500">N/A</span>}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {lead.createdByName || <span className="text-gray-500">N/A</span>}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {lead.cost || <span className="text-gray-500">0</span>}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {LEAD_SOURCES.find((data) => data.value == Number(lead.leadSource))?.name || (
+                                <span className="text-gray-500">N/A</span>
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1 sm:gap-2">
+                              <Button 
+                                className="h-8 w-8 sm:h-10 sm:w-10" 
+                                size="icon" 
+                                onClick={()=>handleLeadUpdate(lead.id)}
+                              >
+                                <RefreshCcw className="h-3 w-3 sm:h-4 sm:w-4"/>
+                              </Button>
+                              <Link href={`/lead-management/lead/${lead.id}`}>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-green-500 hover:bg-green-50 dark:hover:bg-green-900 h-8 w-8 sm:h-10 sm:w-10"
+                                >
+                                  <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                                  <span className="sr-only">View</span>
+                                </Button>
+                              </Link>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
             {/* Bottom Pagination */}
-            <div className="flex items-center justify-between mt-4 text-sm text-gray-700 dark:text-gray-300">
-              <span>Showing page {paginationData.currentPage}  of {paginationData.totalPages} pages</span>
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-4 text-sm text-gray-700 dark:text-gray-300 gap-4 sm:gap-0">
+              <span className="text-center sm:text-left">Showing page {paginationData.currentPage} of {paginationData.totalPages} pages</span>
               <div className="flex gap-2">
                 <Button
                   variant="outline"

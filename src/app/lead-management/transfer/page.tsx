@@ -214,21 +214,24 @@ export default function LeadsReportPage() {
   return (
     <ModernDashboardLayout>
       <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
-        <main className="flex-1 p-6 md:p-2">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-6xl">
-            <div className="flex items-center justify-between mb-2">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">
+        <main className="flex-1 p-4 sm:p-6 md:p-2">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 w-full max-w-none overflow-hidden">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-2 gap-4 sm:gap-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-50">
                 Leads Transfer
               </h1>
-              <div className="flex gap-2">
-                <Button className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={()=>{setIsTransferModalOpen(true)}} >
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button 
+                  className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white w-full sm:w-auto" 
+                  onClick={()=>{setIsTransferModalOpen(true)}}
+                >
                   <Plus className="h-4 w-4" />
                   Transfer
                 </Button>
               </div>
             </div>
             {/* Filter Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
               <div className="grid gap-2">
                 <Label htmlFor="from-date">From Date (Created Date)</Label>
                 <DatePicker date={fromDate} setDate={setFromDate} />
@@ -293,15 +296,15 @@ export default function LeadsReportPage() {
               </div>
             </div>
             <Button
-              className="bg-emerald-500 hover:bg-emerald-600 text-white mb-6"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white mb-6 w-full sm:w-auto"
               onClick={getLeadList}
             >
               View
             </Button>
             {/* Table Controls */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4 sm:gap-0">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
                   Show
                 </span>
                 <Select
@@ -322,11 +325,11 @@ export default function LeadsReportPage() {
                     <SelectItem value="50">50</SelectItem>
                   </SelectContent>
                 </Select>
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
                   entries
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Label htmlFor="search" className="sr-only">
                   Search
                 </Label>
@@ -335,119 +338,136 @@ export default function LeadsReportPage() {
                   placeholder="Search:"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-[200px]"
+                  className="w-full sm:w-[200px]"
                 />
               </div>
             </div>
             {/* Leads Table */}
-            <div className="overflow-x-auto border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[40px]">
-                      <Checkbox
-                        id="select-all"
-                        checked={
-                          selectedLeadList.length === leadData.length &&
-                          leadData.length > 0
-                        }
-                        onCheckedChange={handleSelectAllSimple}
-                      />
-                    </TableHead>
-                    <TableHead className="w-[50px]">#</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Phone No</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Last Updated</TableHead>
-                    <TableHead>Staff</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created Date</TableHead>
-                    <TableHead>Created By</TableHead>
-                    <TableHead>Cost</TableHead>
-                    <TableHead>Lead Source</TableHead>
-                    
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {leadData.length === 0 ? (
+            <div className="w-full overflow-x-auto border rounded-md">
+              <div className="min-w-[1000px]">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell
-                        colSpan={13}
-                        className="h-24 text-center text-gray-500 dark:text-gray-400"
-                      >
-                        No data available in table
-                      </TableCell>
+                      <TableHead className="w-[40px]">
+                        <Checkbox
+                          id="select-all"
+                          checked={
+                            selectedLeadList.length === leadData.length &&
+                            leadData.length > 0
+                          }
+                          onCheckedChange={handleSelectAllSimple}
+                        />
+                      </TableHead>
+                      <TableHead className="w-[50px]">#</TableHead>
+                      <TableHead className="min-w-[120px]">Name</TableHead>
+                      <TableHead className="min-w-[120px]">Phone No</TableHead>
+                      <TableHead className="min-w-[100px]">Category</TableHead>
+                      <TableHead className="min-w-[120px]">Last Updated</TableHead>
+                      <TableHead className="min-w-[100px]">Staff</TableHead>
+                      <TableHead className="min-w-[100px]">Status</TableHead>
+                      <TableHead className="min-w-[120px]">Created Date</TableHead>
+                      <TableHead className="min-w-[120px]">Created By</TableHead>
+                      <TableHead className="min-w-[80px]">Cost</TableHead>
+                      <TableHead className="min-w-[120px]">Lead Source</TableHead>
                     </TableRow>
-                  ) : (
-                    leadData.map((lead, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <Checkbox
-                            id={`select-lead-${index}`}
-                            checked={selectedLeadList.includes(lead.id)}
-                            onCheckedChange={() => handleSelectLead(lead.id)}
-                          />
-                        </TableCell>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>{lead.name}</TableCell>
-                        <TableCell>
-                          {lead.phoneNumber || (
-                            <span className="text-gray-500">N/A</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {LEAD_TYPES.find(
-                            (data) => data.value === Number(lead.category)
-                          )?.name || (
-                            <span className="text-gray-500">
-                              {lead.category}
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>{lead.updatedAt}</TableCell>
-                        <TableCell>
-                          {lead.assignedAgent_name || (
-                            <span className="text-gray-500">N/A</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {LEAD_STATUS.find(
-                            (data) => data.value === Number(lead.status)
-                          )?.name || "N/A"}
-                        </TableCell>
-                        <TableCell>
-                          {lead.createdAt || (
-                            <span className="text-gray-500">N/A</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {lead.createdByName || (
-                            <span className="text-gray-500">N/A</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {lead.cost || (
-                            <span className="text-gray-500">0</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {LEAD_SOURCES.find(
-                            (data) => data.value == Number(lead.leadSource)
-                          )?.name || <span className="text-gray-500">N/A</span>}
-                        </TableCell>
-                        <TableCell className="flex justify-center gap-2">
-                          
-                          
+                  </TableHeader>
+                  <TableBody>
+                    {leadData.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={12}
+                          className="h-24 text-center text-gray-500 dark:text-gray-400"
+                        >
+                          No data available in table
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      leadData.map((lead, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Checkbox
+                              id={`select-lead-${index}`}
+                              checked={selectedLeadList.includes(lead.id)}
+                              onCheckedChange={() => handleSelectLead(lead.id)}
+                            />
+                          </TableCell>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>
+                            <span className="truncate block">{lead.name}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {lead.phoneNumber || (
+                                <span className="text-gray-500">N/A</span>
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {LEAD_TYPES.find(
+                                (data) => data.value === Number(lead.category)
+                              )?.name || (
+                                <span className="text-gray-500">
+                                  {lead.category}
+                                </span>
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">{lead.updatedAt}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {lead.assignedAgent_name || (
+                                <span className="text-gray-500">N/A</span>
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {LEAD_STATUS.find(
+                                (data) => data.value === Number(lead.status)
+                              )?.name || "N/A"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {lead.createdAt || (
+                                <span className="text-gray-500">N/A</span>
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {lead.createdByName || (
+                                <span className="text-gray-500">N/A</span>
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {lead.cost || (
+                                <span className="text-gray-500">0</span>
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="truncate block">
+                              {LEAD_SOURCES.find(
+                                (data) => data.value == Number(lead.leadSource)
+                              )?.name || <span className="text-gray-500">N/A</span>}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
             {/* Bottom Pagination */}
-            <div className="flex items-center justify-between mt-4 text-sm text-gray-700 dark:text-gray-300">
-              <span>Showing page {paginationData.currentPage}  of {paginationData.totalPages} pages</span>
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-4 text-sm text-gray-700 dark:text-gray-300 gap-4 sm:gap-0">
+              <span className="text-center sm:text-left">Showing page {paginationData.currentPage} of {paginationData.totalPages} pages</span>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
