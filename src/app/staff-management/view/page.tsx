@@ -59,6 +59,10 @@ import { StaffDataType } from "@/types/staff-type";
 import UpdateStaffModal from "@/components/admin/updateStaff";
 import Link from "next/link";
 
+import { useDispatch, useSelector } from "react-redux"
+import { AppDispatch, RootState } from "@/lib/redux/store"
+import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
+
 // Placeholder data for staff members/
 
 
@@ -210,7 +214,11 @@ const changeLimit = (value: string) => {
   const changePage = (page: number) => {
     setPaginationData((prev) => ({ ...prev, currentPage: page }));
   };
-
+   const dispatch = useDispatch<AppDispatch>()
+  const { staffList } = useSelector((state: RootState) => state.staff);
+  useEffect(() => {
+      dispatch(fetchAllStaffs())
+    }, [dispatch])
 
   return (
 
@@ -220,7 +228,7 @@ const changeLimit = (value: string) => {
           <h1 className="text-2xl font-bold text-slate-900">
             Staff Management
           </h1>
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}> 
             <DialogTrigger asChild>
               <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Plus className="mr-2 h-4 w-4" /> Add Staff
@@ -422,9 +430,11 @@ const changeLimit = (value: string) => {
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">User 1</SelectItem>
-                      <SelectItem value="2">User 2</SelectItem>
-                      <SelectItem value="3">User 3</SelectItem>
+                      {staffList.map((staff) => (
+                            <SelectItem key={staff.id} value={String(staff.id)}>
+                              {staff.name}
+                            </SelectItem>
+                          ))}
                     </SelectContent>
                   </Select>
                 </div>
