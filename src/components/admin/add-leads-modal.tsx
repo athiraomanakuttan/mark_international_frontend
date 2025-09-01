@@ -98,7 +98,7 @@ const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
         if(response.status){
             toast.success("Lead created successfully")
             setOpen(false)
-            if(pageRefresh) pageRefresh()
+            if(pageRefresh)  pageRefresh()
         }
     }
     catch(err:any){

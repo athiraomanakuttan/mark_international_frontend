@@ -344,8 +344,7 @@ export default function LeadsReportPage() {
             </div>
             {/* Leads Table */}
             <div className="w-full overflow-x-auto border rounded-md">
-              <div className="min-w-[1000px]">
-                <Table>
+                  <Table className="min-w-[1200px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[40px]">
@@ -463,7 +462,6 @@ export default function LeadsReportPage() {
                     )}
                   </TableBody>
                 </Table>
-              </div>
             </div>
             {/* Bottom Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between mt-4 text-sm text-gray-700 dark:text-gray-300 gap-4 sm:gap-0">

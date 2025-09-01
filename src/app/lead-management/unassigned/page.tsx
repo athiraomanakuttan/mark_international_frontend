@@ -227,9 +227,8 @@ const handleAssignBtn = ()=>{
             </div>
 
             {/* Leads Table */}
-            <div className="w-full overflow-hidden border rounded-md">
-              <div className="overflow-x-auto">
-                <Table className="min-w-full">
+            <div className="w-full overflow-x-auto border rounded-md">
+  <Table className="min-w-[1200px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-10 sm:w-[40px] px-2 sm:px-4">
@@ -293,7 +292,6 @@ const handleAssignBtn = ()=>{
                     )}
                   </TableBody>
                 </Table>
-              </div>
             </div>
 
             {/* Bottom Pagination */}

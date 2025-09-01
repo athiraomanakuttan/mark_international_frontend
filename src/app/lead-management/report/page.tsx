@@ -20,13 +20,14 @@ import { MultiSelect } from "@/components/ui/multi-select" // Import the new Mul
 import EditLeadsModal from '@/components/admin/edit-leads-modal'
 import { toast } from "react-toastify"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 
 export default function LeadsReportPage() {
   const yesterday = new Date();
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
 yesterday.setDate(yesterday.getDate() - 10);
   const [fromDate, setFromDate] = useState<Date | undefined>(yesterday)
-  const [toDate, setToDate] = useState<Date | undefined>(new Date())
+  const [toDate, setToDate] = useState<Date | undefined>(endOfDay)
 
   const [leadCategory, setLeadCategory] = useState<(string | number)[]>([])
   const [leadStatus, setLeadStatus] = useState<(string | number)[]>([])
@@ -103,8 +104,8 @@ const handleExport = async () => {
     dispatch(fetchAllStaffs())
   }, [dispatch])
 
-    const pageRefresh = ()=>{
-      setTimeout(()=>{ getLeadList() },1000)
+    const pageRefresh = async ()=>{
+       await getLeadList()
     }
   const getLeadList = async () => {
     console.log("ffffffffffffffffffff")
@@ -260,8 +261,7 @@ const handleExport = async () => {
             </div>
             {/* Leads Table */}
             <div className="w-full overflow-x-auto border rounded-md">
-              <div className="min-w-[1200px]">
-                <Table>
+            <Table className="min-w-[1200px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[50px]">#</TableHead>
@@ -384,7 +384,7 @@ const handleExport = async () => {
                     )}
                   </TableBody>
                 </Table>
-              </div>
+              
             </div>
             {/* Bottom Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between mt-4 text-sm text-gray-700 dark:text-gray-300 gap-4 sm:gap-0">
