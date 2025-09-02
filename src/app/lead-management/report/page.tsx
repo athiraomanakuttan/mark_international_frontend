@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DatePicker } from "@/components/ui/date-picker"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Download, Trash2, Pencil, Eye } from "lucide-react"
 import type { LeadFilterType, LeadResponse } from "@/types/lead-type"
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
@@ -48,12 +49,63 @@ yesterday.setDate(yesterday.getDate() - 10);
     limit: 10,
     totalItems: 0,
   })
+  
   const handleLeadUpdate = (lead: LeadResponse)=>{
     setSelectedLead(lead)
   }
-  useEffect(()=>{console.log("selectedLeadList", selectedLeadList)},[selectedLeadList]) // come
   
+  // Handle individual lead selection
+  const handleLeadSelection = (leadId: string, isChecked: boolean) => {
+    if (isChecked) {
+      setSelectedLeadList(prev => [...prev, leadId])
+    } else {
+      setSelectedLeadList(prev => prev.filter(id => id !== leadId))
+    }
+  }
 
+  // Handle select all functionality
+  const handleSelectAll = (isChecked: boolean) => {
+    if (isChecked) {
+      // Select all leads that can be selected (exclude status 0 and -1)
+      const selectableLeads = leadData
+        .filter(lead => lead.status !== 0 && lead.status !== -1)
+        .map(lead => lead.id)
+      setSelectedLeadList(selectableLeads)
+    } else {
+      setSelectedLeadList([])
+    }
+  }
+
+  // Check if all selectable leads are selected
+  const selectableLeads = leadData.filter(lead => lead.status !== 0 && lead.status !== -1)
+  const isAllSelected = selectableLeads.length > 0 && selectedLeadList.length === selectableLeads.length
+  const isIndeterminate = selectedLeadList.length > 0 && selectedLeadList.length < selectableLeads.length
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedLeadList.length === 0) {
+      toast.warning("Please select leads to delete")
+      return
+    }
+
+    try {
+      const response = await deletelead(0, selectedLeadList)
+      if (response.status) {
+        toast.success(`${selectedLeadList.length} lead(s) deleted successfully`)
+        setSelectedLeadList([])
+        getLeadList()
+      }
+    } catch (err) {
+      toast.error("Failed to delete leads")
+    }
+  }
+
+  useEffect(()=>{console.log("selectedLeadList", selectedLeadList)},[selectedLeadList])
+  
+  // Clear selection when data changes
+  useEffect(() => {
+    setSelectedLeadList([])
+  }, [leadData])
 
   const  handleDelete = async (leadId: string)=>{
     
@@ -227,6 +279,34 @@ const handleExport = async () => {
             <Button className="bg-emerald-500 hover:bg-emerald-600 text-white mb-6 w-full sm:w-auto" onClick={getLeadList}>
               View
             </Button>
+
+            {/* Bulk Actions */}
+            {selectedLeadList.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  {selectedLeadList.length} lead(s) selected
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    className="flex items-center gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete Selected ({selectedLeadList.length})
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedLeadList([])}
+                  >
+                    Clear Selection
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Table Controls */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4 sm:gap-0">
               <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -261,9 +341,16 @@ const handleExport = async () => {
             </div>
             {/* Leads Table */}
             <div className="w-full overflow-x-auto border rounded-md">
-            <Table className="min-w-[1200px]">
+            <Table className="min-w-[1300px]">
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-[50px]">
+                        <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          disabled={selectableLeads.length === 0}
+                        />
+                      </TableHead>
                       <TableHead className="w-[50px]">#</TableHead>
                       <TableHead className="min-w-[120px]">Name</TableHead>
                       <TableHead className="min-w-[120px]">Phone No</TableHead>
@@ -281,14 +368,20 @@ const handleExport = async () => {
                   <TableBody>
                     {leadData.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={12} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                        <TableCell colSpan={13} className="h-24 text-center text-gray-500 dark:text-gray-400">
                           No data available in table
                         </TableCell>
                       </TableRow>
                     ) : (
                       leadData.map((lead, index) => (
                         <TableRow key={index}>
-                          
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedLeadList.includes(lead.id)}
+                              onCheckedChange={(checked) => handleLeadSelection(lead.id, checked as boolean)}
+                              disabled={lead.status === 0 || lead.status === -1}
+                            />
+                          </TableCell>
                           <TableCell>{index + 1}</TableCell>
                            <TableCell>
                             <div className="flex items-center gap-2">
