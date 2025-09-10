@@ -8,7 +8,7 @@ import  StoreProvider  from "@/lib/redux/StoreProvider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Welcome - Login",
+  title: "Mark International",
   description: "Sign in to your account",
 }
 
