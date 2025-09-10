@@ -13,11 +13,11 @@ import { useDispatch, useSelector } from "react-redux"
 import { AppDispatch, RootState } from "@/lib/redux/store"
 import { Flag } from "lucide-react"
 import { phoneCodes } from "@/data/phoneCodeData"
-import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
 import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
-import { bulkLeadUpload } from "@/service/admin/leadService"
 import { toast } from "react-toastify"
 import * as XLSX from 'xlsx'
+import { bulkLeadUpload } from "@/service/staff/leadService"
+import { ModernDashboardLayout } from "@/components/staff/modern-dashboard-navbar"
 
 interface ExcelRow {
   [key: string]: any
@@ -631,25 +631,7 @@ export default function LeadImportForm() {
                       />
                     </div>
 
-                    {/* Staff Single Selection */}
-                    <div className="grid gap-2">
-                      <Label>Select Staff Member *</Label>
-                      <Select
-                        value={commonFormData.staff}
-                        onValueChange={(value) => setCommonFormData(prev => ({ ...prev, staff: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Staff Member" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {staffList.map((staff) => (
-                            <SelectItem key={staff.id} value={String(staff.id)}>
-                              {staff.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    
 
                     {/* Other Form Fields */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

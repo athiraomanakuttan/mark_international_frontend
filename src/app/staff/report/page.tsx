@@ -46,6 +46,30 @@ export default function LeadsReportPage() {
     setSelectedLead(lead)
   }
   
+  const selectableLeads = leadData.filter(lead => lead.status !== 0 && lead.status !== -1)
+    const isAllSelected = selectableLeads.length > 0 && selectedLeadList.length === selectableLeads.length
+    const isIndeterminate = selectedLeadList.length > 0 && selectedLeadList.length < selectableLeads.length
+  
+    // Handle bulk delete
+    const handleBulkDelete = async () => {
+      if (selectedLeadList.length === 0) {
+        toast.warning("Please select leads to delete")
+        return
+      }
+  
+      try {
+        const response = await deletelead(0, selectedLeadList)
+        if (response.status) {
+          toast.success(`${selectedLeadList.length} lead(s) deleted successfully`)
+          setSelectedLeadList([])
+          getLeadList()
+        }
+      } catch (err) {
+        toast.error("Failed to delete leads")
+      }
+    }
+  
+
 
   const handleSelectLead = (leadId: string)=>{
     if(leadId === "all" && selectedLeadList.length>0){ 
@@ -107,6 +131,24 @@ const handleExport = async () => {
     toast.error("Unable to export data. Try again");
   }
 };
+const handleSelectAll = (isChecked: boolean) => {
+    if (isChecked) {
+      // Select all leads that can be selected (exclude status 0 and -1)
+      const selectableLeads = leadData
+        .filter(lead => lead.status !== 0 && lead.status !== -1)
+        .map(lead => lead.id)
+      setSelectedLeadList(selectableLeads)
+    } else {
+      setSelectedLeadList([])
+    }
+  }
+const handleLeadSelection = (leadId: string, isChecked: boolean) => {
+    if (isChecked) {
+      setSelectedLeadList(prev => [...prev, leadId])
+    } else {
+      setSelectedLeadList(prev => prev.filter(id => id !== leadId))
+    }
+  }
   const getLeadList = async () => {
     try {
       const statusParam = leadStatus.length > 0 ? leadStatus.join(",") : "7" // '7' for All, or empty string if backend expects that
@@ -211,12 +253,39 @@ const handleExport = async () => {
             <Button className="bg-emerald-500 hover:bg-emerald-600 text-white mb-6" onClick={getLeadList}>
               View
             </Button>
+
+            {selectedLeadList.length > 0 && (
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                              {selectedLeadList.length} lead(s) selected
+                            </span>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={handleBulkDelete}
+                                className="flex items-center gap-2"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Delete Selected ({selectedLeadList.length})
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedLeadList([])}
+                              >
+                                Clear Selection
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
             {/* Table Controls */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-700 dark:text-gray-300">Show</span>
                 <Select
-                  value={entriesPerPage}
+                  value={paginationData.limit.toString()}
                   onValueChange={(value) => setPaginationData((prev) => ({ ...prev, limit: Number(value) }))}
                 >
                   <SelectTrigger className="w-[70px]">
@@ -249,7 +318,11 @@ const handleExport = async () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40px]">
-                      <Checkbox id="select-all"  onCheckedChange={()=>handleSelectLead("all")}/>
+                      <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          disabled={selectableLeads.length === 0}
+                        />
                     </TableHead>
                     <TableHead className="w-[50px]">#</TableHead>
                     <TableHead>Name</TableHead>
@@ -275,7 +348,11 @@ const handleExport = async () => {
                     leadData.map((lead, index) => (
                       <TableRow key={index}>
                         <TableCell>
-                          <Checkbox id={`select-lead-${index}`}  onCheckedChange={()=>handleSelectLead(lead.id)}/>
+                          <Checkbox
+                                                        checked={selectedLeadList.includes(lead.id)}
+                                                        onCheckedChange={(checked) => handleLeadSelection(lead.id, checked as boolean)}
+                                                        disabled={lead.status === 0 || lead.status === -1}
+                                                      />
                         </TableCell>
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>
@@ -348,14 +425,14 @@ const handleExport = async () => {
                                                       <Eye className="h-4 w-4" />
                                                       <span className="sr-only">View</span>
                                                     </Button>
-                                                    </Link>
+                                                    </Link> 
                                                     
                         </TableCell> }
                       </TableRow>
                     ))
                   )}
                 </TableBody>
-              </Table>8
+              </Table>
             </div>
             {/* Bottom Pagination */}
             <div className="flex items-center justify-between mt-4 text-sm text-gray-700 dark:text-gray-300">

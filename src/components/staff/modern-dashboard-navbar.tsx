@@ -15,6 +15,7 @@ import {
   X,
   Settings,
   Phone,
+  Download
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -65,6 +66,11 @@ const menuItems = [
         title: "Lead Report",
         url: "/staff/report",
         icon: FileText,
+      },
+      {
+        title: "import lead",
+        url: "/staff/import",
+        icon: Download,
       },
     ],
   },
