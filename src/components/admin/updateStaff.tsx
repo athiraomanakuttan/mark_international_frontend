@@ -37,6 +37,8 @@ import {useFetchFormData} from "@/hook/FormHook"; // adjust this import based on
 import { StaffDataType, StaffUpdateType } from "@/types/staff-type";
 import { updateStaff } from "@/service/admin/staffService";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/lib/redux/store";
 interface AddStaffModalProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
@@ -74,6 +76,9 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     console.error("Error updating staff:", error);
   }
 }
+ const dispatch = useDispatch<AppDispatch>()
+  const { staffList } = useSelector((state: RootState) => state.staff);
+  
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -230,22 +235,24 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               Accessible Users
             </Label>
             <Select
-              onValueChange={(value) =>
-                setForm("accessibleUsers", [
-                  ...(formData.accessibleUsers || []),
-                  Number(value),
-                ])
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">User 1</SelectItem>
-                <SelectItem value="2">User 2</SelectItem>
-                <SelectItem value="3">User 3</SelectItem>
-              </SelectContent>
-            </Select>
+                                onValueChange={(value) =>
+                                  setForm("accessibleUsers", [
+                                    ...(formData.accessibleUsers || []),
+                                    Number.parseInt(value),
+                                  ])
+                                }
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {staffList.map((staff) => (
+                                        <SelectItem key={staff.id} value={String(staff.id)}>
+                                          {staff.name}
+                                        </SelectItem>
+                                      ))}
+                                </SelectContent>
+                              </Select>
           </div>
 
           {/* Opening Balance */}
