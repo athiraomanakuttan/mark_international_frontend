@@ -17,6 +17,7 @@ import { ModernDashboardLayout } from "@/components/staff/modern-dashboard-navba
 import { deletelead, getExportLeads, getLeads } from "@/service/staff/leadService"
 import AddLeadsModal from "@/components/staff/add-leads-modal"
 import EditLeadsModal from "@/components/staff/edit-leads-modal"
+import {LeadHistoryModal} from "@/components/lead/LeadModal"
 import Link from "next/link"
 
 export default function LeadsReportPage() {
@@ -36,6 +37,8 @@ export default function LeadsReportPage() {
   const [selectedLead, setSelectedLead]= useState<LeadResponse>()
   const [selectedLeadList, setSelectedLeadList] = useState<string[]>([])
   const [leadData, setLeadData] = useState<LeadResponse[]>([])
+  const [isLeadModalOpen,setLeadModalOpen] = useState(false)
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
   const [paginationData, setPaginationData] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -355,6 +358,32 @@ const handleLeadSelection = (leadId: string, isChecked: boolean) => {
                                                       />
                         </TableCell>
                         <TableCell>{index + 1}</TableCell>
+                        {(lead?.status !==0 && lead.status!== -1) && 
+                        <TableCell className="flex justify-center gap-2">
+                         <Button
+  variant="ghost"
+  size="icon"
+  className="text-green-500 hover:bg-green-50 dark:hover:bg-green-900"
+  onClick={() => {
+    setSelectedLeadId(lead.id)
+    setLeadModalOpen(true)
+  }}
+>
+  <Eye className="h-4 w-4" />
+  <span className="sr-only">View</span>
+</Button>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900" 
+                            onClick={()=>handleLeadUpdate(lead)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                          </Button> 
+                                                    
+                        </TableCell> }
                         <TableCell>
   <div className="flex items-center gap-2">
     {(() => {
@@ -407,25 +436,8 @@ const handleLeadSelection = (leadId: string, isChecked: boolean) => {
                             <Trash2 className="h-4 w-4" />
                             <span className="sr-only">Delete</span>
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900" 
-                            onClick={()=>handleLeadUpdate(lead)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">Edit</span>
-                          </Button>
-                          <Link href={`/staff/lead/${lead.id}`}>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="text-green-500 hover:bg-green-50 dark:hover:bg-green-900"
-                                                    >
-                                                      <Eye className="h-4 w-4" />
-                                                      <span className="sr-only">View</span>
-                                                    </Button>
-                                                    </Link> 
+                          
+                          
                                                     
                         </TableCell> }
                       </TableRow>
@@ -461,6 +473,14 @@ const handleLeadSelection = (leadId: string, isChecked: boolean) => {
       </div>
       {isAddModalOpen && <AddLeadsModal open={isAddModalOpen} setOpen={setIsAddModalOpen} />}
       {(isUpdateModelOpen && selectedLead) && <EditLeadsModal leadData={selectedLead} open={isUpdateModelOpen} setOpen={setIsUpdateModelOpen} />}
+    {isLeadModalOpen && selectedLeadId && (
+  <LeadHistoryModal
+    leadId={selectedLeadId}
+    open={isLeadModalOpen}
+    onOpenChange={setLeadModalOpen}
+  />
+)}
+
     </ModernDashboardLayout>
   )
 }

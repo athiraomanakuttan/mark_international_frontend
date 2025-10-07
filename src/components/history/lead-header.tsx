@@ -75,18 +75,7 @@ export function LeadHeader({ leadData }: LeadHeaderProps) {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Select defaultValue={leadData?.category}>
-              <SelectTrigger className="w-40 border-slate-300 focus:border-blue-500">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="study abroad">Study abroad</SelectItem>
-                <SelectItem value="immigration">Immigration</SelectItem>
-                <SelectItem value="visa">Visa</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          
         </div>
       </CardContent>
     </Card>
