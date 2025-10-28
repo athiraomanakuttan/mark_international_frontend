@@ -385,8 +385,10 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem>
+                <Link href='/password-reset' className="flex w-full">
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem className="text-red-600" onClick={logoutUser}>
                 Logout

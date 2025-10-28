@@ -117,4 +117,17 @@ export const menuItems = [
       },
     ],
   },
+  {
+    title: 'Branch',
+    icon: UserPlus,
+    color: "bg-yellow-500",
+    items: [
+      {
+        title: "View Branch",
+        url: "/branch-management/view",
+        icon: Eye,
+      },
+    ]
+    },
+    
 ]

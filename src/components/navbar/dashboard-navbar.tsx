@@ -224,8 +224,11 @@ function DashboardHeader() {
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem>
+                <Link href="/settings" className="flex w-full"> 
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
+                </Link>
+                
               </DropdownMenuItem>
               <DropdownMenuItem>Logout</DropdownMenuItem>
             </DropdownMenuContent>
