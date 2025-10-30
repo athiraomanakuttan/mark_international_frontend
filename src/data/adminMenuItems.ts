@@ -9,7 +9,7 @@ import {
   Download,
   ArrowRightLeft,
   Eye,
-  Award,
+  Blocks,
   Bell,
   User,
   Menu,
@@ -119,8 +119,8 @@ export const menuItems = [
   },
   {
     title: 'Branch',
-    icon: UserPlus,
-    color: "bg-yellow-500",
+    icon: Blocks,
+    color: "bg-blue-500",
     items: [
       {
         title: "View Branch",

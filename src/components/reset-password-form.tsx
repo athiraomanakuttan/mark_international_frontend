@@ -30,7 +30,6 @@ export default function ResetPasswordForm() {
       setError("Passwords do not match.")
       return
     }
-
     try {
       setSubmitting(true)
       const data = await changePassword(password)
