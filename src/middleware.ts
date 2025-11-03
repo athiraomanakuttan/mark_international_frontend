@@ -3,7 +3,7 @@ import { NextResponse, NextRequest } from 'next/server'
 import type { NextFetchEvent } from 'next/server'
 import jwt from 'jsonwebtoken'
 
-const PUBLIC_ROUTES = ['/login', '/signup'];
+const PUBLIC_ROUTES = ['/login', '/signup','/registration'];
 const ADMIN_ROUTES = [
   '/dashboard',
   '/staff-management',
