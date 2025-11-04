@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
-import { Eye, Search, Calendar, User, Phone, MapPin, FileText, ChevronLeft, ChevronRight } from "lucide-react"
+import { Eye, Search, Calendar, User, Phone, MapPin, FileText, ChevronLeft, ChevronRight, Download } from "lucide-react"
 import { toast } from "react-toastify"
 import { getRegistrations, getRegistrationById } from "@/service/registrationService"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -132,6 +132,28 @@ export default function RegistrationsPage() {
       month: 'short',
       day: 'numeric'
     })
+  }
+
+  // Download document
+  const downloadDocument = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      const downloadUrl = window.URL.createObjectURL(blob)
+      
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      window.URL.revokeObjectURL(downloadUrl)
+      toast.success('Document downloaded successfully!')
+    } catch (error) {
+      console.error('Error downloading document:', error)
+      toast.error('Failed to download document')
+    }
   }
 
   // Get status badge
@@ -457,14 +479,25 @@ export default function RegistrationsPage() {
                                         <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Upload Date</label>
                                         <p className="text-sm text-slate-700 font-medium">{formatDate(document.uploadedAt)}</p>
                                       </div>
-                                      <Button
-                                        size="sm"
-                                        onClick={() => window.open(document.url, '_blank')}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-                                      >
-                                        <Eye className="w-4 h-4 mr-2" />
-                                        View Document
-                                      </Button>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          size="sm"
+                                          onClick={() => window.open(document.url, '_blank')}
+                                          className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                                        >
+                                          <Eye className="w-4 h-4 mr-2" />
+                                          View
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => downloadDocument(document.url, document.title)}
+                                          className="border-green-200 hover:bg-green-50 text-green-700 hover:text-green-800 shadow-sm"
+                                        >
+                                          <Download className="w-4 h-4 mr-2" />
+                                          Download
+                                        </Button>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
