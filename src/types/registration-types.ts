@@ -43,6 +43,10 @@ export interface RegistrationFormErrors {
 
 // API Response types
 export interface RegistrationResponse {
-  status: boolean
-  message: string
+  // Some APIs return { status: boolean } while others return { success: boolean }
+  // Accept either to be tolerant of backend shape differences
+  status?: boolean
+  success?: boolean
+  message?: string
+  data?: any
 }

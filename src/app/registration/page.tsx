@@ -229,11 +229,13 @@ export default function RegistrationPage() {
 
       // Submit to API
       const response = await submitRegistration(submitData)
-      
-      if (!response.status) {
-        throw new Error(response.message || "Registration failed")
+
+      // Backend may return { status: boolean } or { success: boolean }
+      const ok = (response as any).status ?? (response as any).success
+      if (!ok) {
+        throw new Error((response as any).message || "Registration failed")
       }
-      
+
       toast.success("Registration submitted successfully!")
       
       // Reset form

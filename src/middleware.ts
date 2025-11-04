@@ -1,4 +1,5 @@
 // middleware.ts
+import './lib/localStorageShim'
 import { NextResponse, NextRequest } from 'next/server'
 import type { NextFetchEvent } from 'next/server'
 import jwt from 'jsonwebtoken'

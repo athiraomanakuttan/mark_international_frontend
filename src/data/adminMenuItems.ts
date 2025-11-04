@@ -71,6 +71,11 @@ export const menuItems = [
         url: "/staff-management/view",
         icon: Eye,
       },
+      {
+        title: "View Registration",
+        url: "/staff-management/registrations",
+        icon: FileText,
+      },
       // {
       //   title: "Designation",
       //   url: "/staff-management/designation",

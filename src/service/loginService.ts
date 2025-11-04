@@ -7,8 +7,14 @@ export async function loginUser(credentials: LoginType): Promise<LoginResponse> 
    const response  = await axios.post<LoginResponse>(`${BACKEND_URI}/auth/login`, credentials)
    console.log("response",response.data)
     if (response.data.status) {
-        //set the access token in local storage
-        localStorage.setItem("accessToken", response.data.token || "")
+        // set the access token in local storage (only on client)
+        try {
+          if (typeof window !== 'undefined' && typeof localStorage?.setItem === 'function') {
+            localStorage.setItem("accessToken", response.data.token || "")
+          }
+        } catch (e) {
+          // ignore server/runtime environments where localStorage isn't available
+        }
         return response.data as LoginResponse
     }else {
       return {

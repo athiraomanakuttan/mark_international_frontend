@@ -26,10 +26,42 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = [];
 };
 
+// Safe helpers to avoid accessing `localStorage` or `window` in server/runtime contexts
+const isClient = () => typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+const safeGet = (key: string): string | null => {
+  try {
+    if (typeof window !== "undefined")
+      // return null
+    return isClient() && typeof localStorage.getItem === 'function' ? localStorage.getItem(key) : null;
+    else return null;
+  } catch (e) {
+    return null;
+  }
+};
+const safeSet = (key: string, value: string) => {
+  try {
+    if (isClient() && typeof localStorage.setItem === 'function') localStorage.setItem(key, value);
+  } catch (e) {
+    /* swallow */
+  }
+};
+const safeRemove = (key: string) => {
+  try {
+    if (isClient() && typeof localStorage.removeItem === 'function') localStorage.removeItem(key);
+  } catch (e) {
+    /* swallow */
+  }
+};
+const safeRedirectToLogin = () => {
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+};
+
 
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const token = localStorage.getItem('accessToken');
+    const token = safeGet('accessToken');
     if (token && config.headers) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -62,7 +94,7 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = safeGet('refreshToken');
         if (!refreshToken) throw new Error('No refresh token found');
 
         const response = await axios.post<{ accessToken: string }>(
@@ -71,7 +103,7 @@ axiosInstance.interceptors.response.use(
         );
 
         const newAccessToken = response.data.accessToken;
-        localStorage.setItem('accessToken', newAccessToken);
+        safeSet('accessToken', newAccessToken);
         axiosInstance.defaults.headers['Authorization'] = `Bearer ${newAccessToken}`;
         processQueue(null, newAccessToken);
 
@@ -79,10 +111,13 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        toast.error('Session expired. Please log in again.');
-        window.location.href = '/login';
+        safeRemove('accessToken');
+        safeRemove('refreshToken');
+        if (typeof window !== 'undefined') {
+          // Only show toast / redirect on client
+          toast.error('Session expired. Please log in again.');
+          safeRedirectToLogin();
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
