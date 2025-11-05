@@ -3,6 +3,7 @@
 import type * as React from "react"
 import {
   BarChart3,
+  Calendar,
   ChevronDown,
   FileText,
   Home,
@@ -56,6 +57,12 @@ const menuItems = [
     url: "/staff/dashboard",
     icon: Home,
     color: "bg-blue-500",
+  },
+  {
+    title: "Attendance",
+    url: "/staff/attendance",
+    icon: Calendar,
+    color: "bg-purple-500",
   },
   {
     title: "Lead Management",

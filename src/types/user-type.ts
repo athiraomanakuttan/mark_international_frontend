@@ -5,6 +5,7 @@ export interface UserType {
     designation: string
     isAdmin: boolean
     role: string
+    joiningDate?: string
 }
 
 

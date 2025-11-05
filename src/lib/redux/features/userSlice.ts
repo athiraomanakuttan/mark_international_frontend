@@ -8,10 +8,23 @@ const getTokenFromStorage = (): string | null => {
   return null
 }
 
+const getUserFromStorage = (): UserType | null => {
+  if (typeof window !== 'undefined') {
+    try {
+      const userData = localStorage.getItem('userData')
+      return userData ? JSON.parse(userData) : null
+    } catch (error) {
+      console.error('Error parsing stored user data:', error)
+      return null
+    }
+  }
+  return null
+}
+
 const initialState: UserState = {
-  user: null,
+  user: getUserFromStorage(),
   token: getTokenFromStorage(),
-  isAuthenticated: !!getTokenFromStorage(),
+  isAuthenticated: !!getTokenFromStorage() && !!getUserFromStorage(),
   loading: false,
 }
 
@@ -27,6 +40,7 @@ const userSlice = createSlice({
       
       if (typeof window !== 'undefined') {
         localStorage.setItem('accessToken', action.payload.token)
+        localStorage.setItem('userData', JSON.stringify(action.payload.user))
       }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -38,9 +52,10 @@ const userSlice = createSlice({
       state.isAuthenticated = false
       state.loading = false
       
-      // Remove token from localStorage (client-side only)
+      // Remove token and user data from localStorage (client-side only)
       if (typeof window !== 'undefined') {
         localStorage.removeItem('accessToken')
+        localStorage.removeItem('userData')
       }
     },
     updateUser: (state, action: PayloadAction<Partial<UserType>>) => {
@@ -51,9 +66,22 @@ const userSlice = createSlice({
     // Initialize user from localStorage on client-side hydration
     initializeAuth: (state) => {
       const token = getTokenFromStorage()
-      if (token) {
+      const user = getUserFromStorage()
+      
+      if (token && user) {
         state.token = token
+        state.user = user
         state.isAuthenticated = true
+      } else {
+        // If we don't have both token and user, clear everything
+        state.token = null
+        state.user = null
+        state.isAuthenticated = false
+        
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('userData')
+        }
       }
     },
   },
