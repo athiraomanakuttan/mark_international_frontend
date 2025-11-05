@@ -76,11 +76,11 @@ export const menuItems = [
         url: "/staff-management/registrations",
         icon: FileText,
       },
-      // {
-      //   title: "Designation",
-      //   url: "/staff-management/designation",
-      //   icon: Award,
-      // },
+      {
+        title: "Designations",
+        url: "/admin/designations",
+        icon: Eye,
+      },
     ],
   }, {
     title: "Event Management",
