@@ -69,7 +69,7 @@ const EmployeeViewModal: React.FC<EmployeeViewModalProps> = ({
               <div className="flex items-center space-x-4">
                 <Avatar className="h-20 w-20">
                   <AvatarImage 
-                    src={employee.profilePicture ? `${process.env.NEXT_PUBLIC_API_URL}/${employee.profilePicture}` : undefined}
+                    src={employee.profilePicture || undefined}
                     alt={employee.name}
                   />
                   <AvatarFallback className="text-lg">
@@ -81,7 +81,7 @@ const EmployeeViewModal: React.FC<EmployeeViewModalProps> = ({
                     {employee.name}
                   </h3>
                   <p className="text-lg text-gray-600 dark:text-gray-300">
-                    {employee.designation.name}
+                    {employee.designation}
                   </p>
                   
                 </div>
@@ -141,12 +141,7 @@ const EmployeeViewModal: React.FC<EmployeeViewModalProps> = ({
                   <UserCheck className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Designation</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-50">{employee.designation.name}</p>
-                    {employee.designation.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                        {employee.designation.description}
-                      </p>
-                    )}
+                    <p className="font-medium text-gray-900 dark:text-gray-50">{employee.designation}</p>
                   </div>
                 </div>
                 

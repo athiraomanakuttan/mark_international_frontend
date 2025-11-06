@@ -66,7 +66,7 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
         name: employee.name,
         email: employee.email,
         phoneNumber: employee.phoneNumber,
-        designation: employee.designation._id,
+        designation: employee.designationId, // Changed to use designationId
         dateOfJoining: new Date(employee.dateOfJoining).toISOString().split('T')[0],
         address: employee.address || '',
         status: employee.status,
@@ -74,7 +74,7 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
       
       // Set image preview if exists
       if (employee.profilePicture) {
-        setImagePreview(`${process.env.NEXT_PUBLIC_API_URL}/${employee.profilePicture}`);
+        setImagePreview(employee.profilePicture);
       }
     } else {
       // Reset form for add mode
@@ -225,7 +225,7 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
         await EmployeeService.createEmployee(submitData);
         toast.success('Employee created successfully!');
       } else {
-        await EmployeeService.updateEmployee(employee!._id, submitData);
+        await EmployeeService.updateEmployee(employee!.id, submitData);
         toast.success('Employee updated successfully!');
       }
       

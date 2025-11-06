@@ -1,19 +1,17 @@
 // Employee Types for Frontend
 export interface Employee {
-  _id: string;
+  id: string;
   name: string;
   email: string;
   phoneNumber: string;
-  designation: {
-    _id: string;
-    name: string;
-    description?: string;
-  };
+  designation: string; // Changed to string (designation name)
+  designationId: string; // Added designation ID
   dateOfJoining: string;
   profilePicture?: string;
   address?: string;
   status: number;
-  createdBy: string;
+  createdById: string; // Changed from createdBy
+  createdByName: string; // Added created by name
   createdAt: string;
   updatedAt: string;
 }
@@ -65,11 +63,7 @@ export interface EmployeesResponse {
   message: string;
   data: {
     employees: Employee[];
-    totalCount: number;
-    totalPages: number;
-    currentPage: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
+    totalRecords: number; // Changed from totalCount to match backend
   };
 }
 

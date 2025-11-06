@@ -84,8 +84,8 @@ const EmployeeTable: React.FC = () => {
 
       if (response.status) {
         setEmployees(response.data.employees);
-        setTotalPages(response.data.totalPages);
-        setTotalCount(response.data.totalCount);
+        setTotalCount(response.data.totalRecords);
+        setTotalPages(Math.ceil(response.data.totalRecords / pageSize));
       } else {
         toast.error('Failed to load employees');
       }
@@ -148,7 +148,7 @@ const EmployeeTable: React.FC = () => {
     if (!selectedEmployee) return;
 
     try {
-      await EmployeeService.deleteEmployee(selectedEmployee._id);
+      await EmployeeService.deleteEmployee(selectedEmployee.id);
       toast.success(`Employee "${selectedEmployee.name}" deleted successfully!`);
       loadEmployees();
       setIsDeleteModalOpen(false);
@@ -299,11 +299,11 @@ const EmployeeTable: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {employees.map((employee) => (
-                      <TableRow key={employee._id}>
+                      <TableRow key={employee.id}>
                         <TableCell>
                           <Avatar className="h-10 w-10">
                             <AvatarImage 
-                              src={employee.profilePicture ? `${process.env.NEXT_PUBLIC_API_URL}/${employee.profilePicture}` : undefined}
+                              src={employee.profilePicture || undefined}
                               alt={employee.name}
                             />
                             <AvatarFallback>
@@ -325,7 +325,7 @@ const EmployeeTable: React.FC = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {employee.designation.name}
+                          {employee.designation}
                         </TableCell>
                         <TableCell>
                           {formatDate(employee.dateOfJoining)}
