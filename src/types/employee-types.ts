@@ -41,7 +41,7 @@ export interface UpdateEmployeeRequest {
 
 export interface EmployeeFilter {
   designation?: string;
-  status?: number;
+  status?: 0 | 1;
   dateOfJoiningFrom?: string;
   dateOfJoiningTo?: string;
 }

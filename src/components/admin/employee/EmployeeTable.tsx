@@ -58,7 +58,6 @@ const EmployeeTable: React.FC = () => {
   
   // Filters
   const [filters, setFilters] = useState<EmployeeFilter>({});
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -67,19 +66,43 @@ const EmployeeTable: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
+  // Debug effect to track filter changes
   useEffect(() => {
+    console.log('🔍 Filters state changed:', filters);
+  }, [filters]);
+
+  useEffect(() => {
+    console.log('📊 Loading employees due to change in:', { currentPage, searchTerm, filters });
     loadEmployees();
-    loadDesignations();
   }, [currentPage, searchTerm, filters]);
+
+  useEffect(() => {
+    loadDesignations();
+  }, []);
 
   const loadEmployees = async () => {
     setIsLoading(true);
     try {
+      // Clean filters to remove undefined/null/empty values
+      const cleanedFilters = Object.entries(filters).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null && value !== '' && value !== 'all') {
+          acc[key as keyof EmployeeFilter] = value;
+        }
+        return acc;
+      }, {} as EmployeeFilter);
+
+      console.log('Loading employees with params:', {
+        page: currentPage,
+        limit: pageSize,
+        search: searchTerm.trim(),
+        filter: cleanedFilters,
+      });
+
       const response = await EmployeeService.getEmployees({
         page: currentPage,
         limit: pageSize,
-        search: searchTerm,
-        filter: filters,
+        search: searchTerm.trim(),
+        filter: cleanedFilters,
       });
 
       if (response.status) {
@@ -117,14 +140,29 @@ const EmployeeTable: React.FC = () => {
   };
 
   const handleFilterChange = (key: keyof EmployeeFilter, value: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value === 'all' ? undefined : value
-    }));
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      
+      if (value === 'all' || value === '' || value === undefined) {
+        // Remove the filter key entirely when 'all' is selected or value is empty
+        delete newFilters[key];
+      } else {
+        // Set the filter value, converting to number for status
+        if (key === 'status') {
+          newFilters[key] = parseInt(value) as 0 | 1;
+        } else {
+          newFilters[key] = value;
+        }
+      }
+      
+      console.log(`Filter changed - ${key}:`, value, 'New filters:', newFilters);
+      return newFilters;
+    });
     setCurrentPage(1);
   };
 
   const clearFilters = () => {
+    console.log('🧹 Clearing all filters');
     setFilters({});
     setCurrentPage(1);
   };
@@ -219,7 +257,10 @@ const EmployeeTable: React.FC = () => {
             <div className="flex flex-wrap gap-2">
               <Select
                 value={filters.designation || 'all'}
-                onValueChange={(value) => handleFilterChange('designation', value)}
+                onValueChange={(value) => {
+                  console.log('Designation filter changed to:', value);
+                  handleFilterChange('designation', value);
+                }}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by designation" />
@@ -235,8 +276,11 @@ const EmployeeTable: React.FC = () => {
               </Select>
 
               <Select
-                value={filters.status?.toString() || 'all'}
-                onValueChange={(value) => handleFilterChange('status', value)}
+                value={filters.status !== undefined ? filters.status.toString() : 'all'}
+                onValueChange={(value) => {
+                  console.log('Status filter changed to:', value);
+                  handleFilterChange('status', value);
+                }}
               >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Filter by status" />

@@ -16,19 +16,34 @@ export class EmployeeService {
   static async getEmployees(params: GetEmployeesParams = {}): Promise<EmployeesResponse> {
     try {
       const { page = 1, limit = 10, search = '', filter = {} } = params;
+      
+      // Clean the filter object to remove empty values
+      const cleanedFilter = Object.entries(filter).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null && value !== '' && value !== 'all') {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      const requestParams = {
+        page,
+        limit,
+        search: search.trim(),
+        filter: JSON.stringify(cleanedFilter),
+      };
+
+      console.log('⚠️ Sending request: GET /api/admin/employees with params:', requestParams);
+      console.log('Filter object before stringifying:', cleanedFilter);
+      console.log('Filter string:', requestParams.filter);
 
       const response = await axiosInstance.get('/admin/employees', {
-        params: {
-          page,
-          limit,
-          search,
-          filter: JSON.stringify(filter),
-        },
+        params: requestParams,
       });
 
+      console.log('✅ Employees fetched successfully:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error fetching employees:', error);
+      console.error('❌ Error fetching employees:', error);
       throw error;
     }
   }
