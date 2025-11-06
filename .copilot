@@ -1,0 +1,435 @@
+# Mark International Frontend Guidelines (.copilot)
+
+## 🖥️ Frontend Architecture (Next.js 14 + TypeScript + Redux + Tailwind)
+
+### 📁 Folder Structure
+```
+Frontend/src/
+├── app/                     # Next.js 14 App Router pages
+├── components/              # Reusable UI components
+│   ├── admin/              # Admin-specific components
+│   ├── staff/              # Staff-specific components
+│   ├── ui/                 # Base UI components (shadcn/ui)
+│   └── Table/              # Table components
+├── service/                # API service layer
+│   ├── admin/              # Admin-specific services
+│   └── staff/              # Staff-specific services
+├── types/                  # TypeScript type definitions
+├── lib/                    # Utilities & configurations
+├── hooks/                  # Custom React hooks
+├── validation/             # Form validation schemas
+└── constance/              # Frontend constants
+```
+
+## 🎯 Frontend Development Patterns
+
+### 1. **Service Layer Pattern (MANDATORY)**
+All API calls MUST go through service functions, not direct axios calls in components.
+
+#### 1.1 **HTTP Client (axiosInstance) Standard**
+- **CRITICAL**: All network calls MUST use the centralized `axiosInstance` at `src/service/axiosInstance.ts`
+- **FORBIDDEN**: Do not call `fetch()` or create new axios instances in components
+- **PATTERN**: Use service functions that in turn use `axiosInstance`
+- **BENEFITS**: Automatic Authorization headers and token refresh via interceptors
+
+**Required Patterns:**
+```typescript
+// ✅ CORRECT - JSON request
+const { data } = await axiosInstance.get('/admin/designations', { params: { page, limit } });
+
+// ✅ CORRECT - FormData (file upload)
+const form = new FormData();
+form.append('file', file);
+const { data } = await axiosInstance.post('/admin/employees', form, { 
+  headers: { 'Content-Type': 'multipart/form-data' } 
+});
+
+// ❌ WRONG - Direct fetch
+fetch('/api/employees') // NEVER DO THIS
+
+// ❌ WRONG - New axios instance
+axios.create().get('/api/employees') // NEVER DO THIS
+```
+
+### 2. **Component Architecture**
+- **Page Components**: In `app/` directory (App Router)
+- **Feature Components**: Organized by domain (admin/, staff/, etc.)
+- **UI Components**: Reusable base components in `ui/`
+
+### 3. **State Management**
+- **Redux Toolkit**: For global application state
+- **React Hook Form**: For form state management
+- **React Query/SWR**: For server state (if implemented)
+
+## 📋 Where to Write Frontend Code
+
+### **Types**
+- **Location**: `src/types/`
+- **Purpose**: TypeScript interfaces for API responses, form data
+- **Example**: `lead-type.ts`, `staff-type.ts`
+- **Pattern**: Mirror backend DTOs but adapt for frontend needs
+
+### **Services**
+- **Location**: `src/service/` (with admin/ and staff/ subfolders)
+- **Purpose**: API communication, data fetching
+- **Pattern**: Export async functions that use axiosInstance
+```typescript
+export const createEmployee = async (employeeData: EmployeeBasicType) => {
+    const response = await axiosInstance.post('/admin/employees', employeeData);
+    return response.data;
+}
+
+export const getEmployees = async (page: number = 1, limit: number = 10) => {
+    const response = await axiosInstance.get('/admin/employees', { 
+        params: { page, limit } 
+    });
+    return response.data;
+}
+```
+
+### **Components**
+- **Location**: `src/components/` (organized by feature/domain)
+- **Purpose**: UI components, forms, tables
+- **Pattern**: Use TypeScript, proper prop interfaces
+
+### **Pages**
+- **Location**: `src/app/` (Next.js App Router structure)
+- **Purpose**: Route components, page layouts
+- **Pattern**: Server and Client components as needed
+
+### **Hooks**
+- **Location**: `src/hooks/`
+- **Purpose**: Custom React hooks for reusable logic
+- **Example**: API hooks, form hooks, state hooks
+
+### **Validation**
+- **Location**: `src/validation/`
+- **Purpose**: Form validation schemas (Zod, Yup, etc.)
+- **Pattern**: Export validation schemas for forms
+
+## 🎨 **UI/UX Design Patterns & Standards (MANDATORY)**
+
+### 🎨 **Color Theme Standards**
+ALL components MUST follow the consistent Mark International color theme:
+
+#### **Primary Color Palette:**
+- **Background**: `bg-gray-50` (light) / `bg-gray-900` (dark)
+- **Cards**: `bg-white` (light) / `bg-gray-800` (dark) with `shadow-md`  
+- **Primary Button**: `bg-emerald-500 hover:bg-emerald-600 text-white`
+- **Loading Spinner**: `border-emerald-600`
+- **Sidebar**: `bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900`
+- **Header**: `bg-white border-b border-slate-200`
+
+#### **Typography Colors:**
+- **Headers/Titles**: `text-gray-900` (light) / `text-gray-50` (dark)`
+- **Subtext/Descriptions**: `text-gray-600` (light) / `text-gray-300` (dark)`
+- **Muted Text**: `text-gray-500` (light) / `text-gray-400` (dark)`
+- **Icons**: `text-gray-500` (light) / `text-gray-400` (dark)`
+
+#### **Required Theme Implementation:**
+```tsx
+// Page Header Example
+<h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Page Title</h2>
+<p className="text-gray-600 dark:text-gray-300">Description text</p>
+
+// Card Example  
+<Card className="bg-white dark:bg-gray-800 shadow-md">
+  <CardTitle className="text-gray-900 dark:text-gray-50">Card Title</CardTitle>
+</Card>
+
+// Primary Button Example
+<Button className="bg-emerald-500 hover:bg-emerald-600 text-white">Action</Button>
+
+// Loading Spinner Example
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+```
+
+### 📋 **Table Design Standards (MANDATORY)**
+All data tables across the application MUST follow the lead management table styling:
+
+#### **Required Table Features:**
+- **ModernDashboardLayout** wrapper for consistent page structure
+- **Professional table styling** with `Table`, `TableHeader`, `TableBody` components
+- **Search functionality** with search input in top-right corner
+- **Entries per page selector** (10, 25, 50 options)
+- **Pagination controls** with Previous/Next buttons
+- **Loading states** and empty state messages
+- **Action buttons** (Edit/Delete) with proper icons and hover effects
+- **Responsive design** with horizontal scroll on mobile
+- **Status badges** for status fields with proper colors
+
+#### **Table Structure Template:**
+```tsx
+<ModernDashboardLayout>
+  <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
+    <main className="flex-1 p-4 sm:p-6 md:p-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
+        {/* Header with title and Add button */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Table Title</h2>
+          <Button className="bg-emerald-500 hover:bg-emerald-600 text-white">
+            <Plus className="h-4 w-4 mr-2" />
+            Add New
+          </Button>
+        </div>
+        
+        {/* Search and entries selector */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-600 dark:text-gray-400">Show</span>
+            <Select value={entriesPerPage.toString()} onValueChange={handleEntriesPerPageChange}>
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-gray-600 dark:text-gray-400">entries</span>
+          </div>
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="pl-10 w-64"
+            />
+          </div>
+        </div>
+        
+        {/* Table with proper styling */}
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {/* Table headers */}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {/* Table rows */}
+            </TableBody>
+          </Table>
+        </div>
+        
+        {/* Pagination */}
+        <div className="flex justify-between items-center mt-4">
+          <p className="text-gray-600 dark:text-gray-400">
+            Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} entries
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleNext}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</ModernDashboardLayout>
+```
+
+### 📝 **Form Modal Standards (MANDATORY)**
+ALL form operations (Add/Edit) MUST use modal dialogs - NEVER create separate pages:
+
+#### **Modal Requirements:**
+- **Dialog component** from shadcn/ui for modals
+- **Separate modals** for Add and Edit operations
+- **Form validation** with error messages
+- **Loading states** during submission
+- **Toast notifications** for success/error feedback using react-toastify
+- **Proper modal titles** ("Add New [Entity]" / "Edit [Entity]")
+- **Cancel and Submit buttons** with appropriate styling
+
+#### **Modal Implementation Pattern:**
+```tsx
+import { toast } from 'react-toastify';
+
+// Add Modal
+<Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+  <DialogContent className="max-w-md">
+    <DialogHeader>
+      <DialogTitle>Add New [Entity]</DialogTitle>
+    </DialogHeader>
+    <EntityForm
+      onSubmit={handleAddFormSubmit}
+      onCancel={handleCloseAddModal}
+      initialData={null}
+      isLoading={isFormLoading}
+    />
+  </DialogContent>
+</Dialog>
+
+// Success/Error Handling
+const handleSubmit = async (data: EntityType) => {
+  try {
+    await EntityService.createEntity(data);
+    toast.success('Entity created successfully!');
+    loadEntities();
+    setIsAddModalOpen(false);
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create entity';
+    toast.error(errorMessage);
+  }
+};
+```
+
+### 🔐 **Authenticated Page Standards (MANDATORY)**
+ALL authenticated pages MUST include the navigation bar:
+
+#### **Required Layout Structure:**
+```tsx
+'use client';
+
+import { ModernDashboardLayout } from '@/components/navbar/modern-dashboard-navbar';
+
+const AuthenticatedPage: React.FC = () => {
+  return (
+    <ModernDashboardLayout>
+      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 p-4 sm:p-6 md:p-2">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 w-full max-w-none overflow-hidden">
+            {/* Page content goes here */}
+          </div>
+        </main>
+      </div>
+    </ModernDashboardLayout>
+  );
+};
+```
+
+#### **Navigation Requirements:**
+- **ModernDashboardLayout** wrapper is MANDATORY for all authenticated pages
+- **Consistent page structure** with proper spacing and styling
+- **Responsive design** that works on all screen sizes
+- **Dark mode support** built into the layout
+- **User authentication status** handled by the layout component
+
+## 🎯 **Navigation Standards**
+- **Single menu item** per entity (e.g., "Employees" not "Add Employee" + "View Employees")
+- **Add functionality** accessed via button on main page, opens modal
+- **Consistent menu structure** following existing patterns
+
+## 🔧 **Component Standards**
+- **Emerald buttons** for primary actions (`bg-emerald-500 hover:bg-emerald-600`)
+- **Proper loading states** with spinners or disabled states
+- **Error boundaries** and proper error handling
+- **Responsive design** with mobile-first approach
+- **Consistent spacing** using Tailwind classes
+- **Dark mode support** where applicable
+
+## 🚨 **Toast Notifications (MANDATORY)**
+ALL user actions MUST provide feedback using react-toastify:
+
+```typescript
+import { toast } from 'react-toastify';
+
+// Success messages
+toast.success('Employee created successfully!');
+toast.success(`Employee "${employee.name}" deleted successfully!`);
+
+// Error messages with API response handling
+catch (error: any) {
+  const errorMessage = error?.response?.data?.message || error?.message || 'Operation failed';
+  toast.error(errorMessage);
+}
+
+// Loading states for data fetching
+catch (error: any) {
+  console.error('Error loading data:', error);
+  toast.error('Failed to load data. Please try again.');
+}
+```
+
+## 📚 Frontend Development Checklist
+
+### Adding a New Entity Frontend:
+- [ ] `src/types/entity-type.ts` - TypeScript interfaces
+- [ ] `src/service/entityService.ts` - API functions using axiosInstance
+- [ ] `src/components/admin/entity/EntityTable.tsx` - Table component with search/pagination
+- [ ] `src/components/admin/entity/EntityFormModal.tsx` - Modal form component
+- [ ] `src/components/admin/entity/EntityViewModal.tsx` - View details modal (if needed)
+- [ ] `src/validation/entityValidation.ts` - Form validation schemas
+- [ ] `src/app/admin/entities/page.tsx` - Main page with ModernDashboardLayout
+- [ ] Update navigation in sidebar component
+- [ ] Implement toast notifications for all CRUD operations
+- [ ] Follow color theme standards throughout
+- [ ] Ensure responsive design and mobile compatibility
+
+## ⚠️ **Critical Don'ts**
+- ❌ **NEVER use fetch()** - Always use axiosInstance
+- ❌ **NEVER create separate pages for forms** - Always use modals
+- ❌ **NEVER create different table styles** - Always follow the standard pattern
+- ❌ **NEVER skip loading states** - Always show feedback during operations
+- ❌ **NEVER ignore error handling** - Always implement proper error boundaries and toast notifications
+- ❌ **NEVER hardcode values** - Always use proper TypeScript interfaces
+- ❌ **NEVER create authenticated pages without navbar** - Always use ModernDashboardLayout
+- ❌ **NEVER skip toast notifications** - Always provide user feedback for actions
+
+## 🔗 API Integration Standards
+- **Base URL**: Configured in `axiosInstance.ts`
+- **Authentication**: Automatic token handling via interceptors
+- **Error Handling**: Global error handling in axios interceptors
+- **Toast Integration**: All API errors should show user-friendly toast messages
+- **Token Refresh**: Automatic refresh token handling
+
+## 📁 **File Upload Standards (Cloudinary) - MANDATORY**
+**ALL file and image uploads MUST use Cloudinary** - Configuration is already set up:
+
+### **File Upload Implementation:**
+```typescript
+// For file uploads, always use FormData with axiosInstance
+const handleFileUpload = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('folder', 'employees'); // or appropriate folder name
+  
+  try {
+    const response = await axiosInstance.post('/admin/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    
+    // Cloudinary returns secure URL
+    const fileUrl = response.data.data.secure_url;
+    toast.success('File uploaded successfully!');
+    return fileUrl;
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || 'File upload failed';
+    toast.error(errorMessage);
+    throw error;
+  }
+};
+```
+
+### **File Upload Requirements:**
+- **Never store files locally** - Always use the configured Cloudinary service
+- **Use FormData** for file uploads with proper Content-Type headers
+- **Include folder structure** in upload requests for organization
+- **Handle upload progress** and loading states for better UX
+- **Validate file types and sizes** before upload
+- **Display upload success/error** with toast notifications
+- **Store Cloudinary URLs** in database, not local file paths
+
+### **Supported File Types:**
+- **Images**: JPG, PNG, GIF, WebP (for employee photos, documents, etc.)
+- **Documents**: PDF, DOC, DOCX (for certificates, resumes, etc.)
+- **Other**: As configured in backend Cloudinary settings
+
+This frontend architecture ensures maintainable, scalable, and type-safe code with consistent UI/UX patterns, proper user feedback, seamless API integration, and cloud-based file storage.
