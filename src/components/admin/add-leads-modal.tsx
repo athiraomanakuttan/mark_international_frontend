@@ -204,7 +204,7 @@ const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
                 </SelectTrigger>
                 <SelectContent>
                   {staffList.map(staff=>(
-                  <SelectItem value={staff.id || ""} key={staff.id}>{staff.name}</SelectItem>
+                  <SelectItem value={staff.id || "unassigned"} key={staff.id || "unassigned"}>{staff.name}</SelectItem>
                   ))}
                   
                 </SelectContent>

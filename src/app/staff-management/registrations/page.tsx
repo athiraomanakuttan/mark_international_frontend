@@ -137,22 +137,24 @@ export default function RegistrationsPage() {
   // Download document
   const downloadDocument = async (url: string, filename: string) => {
     try {
-      const response = await fetch(url)
-      const blob = await response.blob()
-      const downloadUrl = window.URL.createObjectURL(blob)
-      
-      const link = document.createElement('a')
-      link.href = downloadUrl
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      
-      window.URL.revokeObjectURL(downloadUrl)
-      toast.success('Document downloaded successfully!')
+      // Use axiosInstance to download blobs (works with absolute or relative URLs)
+      const axiosInstance = (await import('@/service/axiosInstance')).default;
+      const response = await axiosInstance.get(url, { responseType: 'blob' });
+      const blob = response.data as Blob;
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success('Document downloaded successfully!');
     } catch (error) {
-      console.error('Error downloading document:', error)
-      toast.error('Failed to download document')
+      console.error('Error downloading document:', error);
+      toast.error('Failed to download document');
     }
   }
 

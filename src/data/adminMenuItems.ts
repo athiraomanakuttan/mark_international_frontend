@@ -82,7 +82,20 @@ export const menuItems = [
         icon: Eye,
       },
     ],
-  }, {
+  },
+  {
+    title: "Employee",
+    icon: Users,
+    color: "bg-indigo-500",
+    items: [
+      {
+        title: "View Employees",
+        url: "/admin/employees",
+        icon: Eye,
+      },
+    ],
+  },
+  {
     title: "Event Management",
     icon: FileBox,
     color: "bg-purple-500",

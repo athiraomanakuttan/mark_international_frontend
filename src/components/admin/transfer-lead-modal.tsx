@@ -76,7 +76,7 @@ export default function TransferLeadModal({ open, setOpen, leadList, transferSuc
                 </SelectTrigger>
                 <SelectContent>
                   {staffList.map(staff=>(
-                  <SelectItem value={staff.id || ""} key={staff.id}>{staff.name}</SelectItem>
+                  <SelectItem value={staff.id || "unassigned"} key={staff.id || "unassigned"}>{staff.name}</SelectItem>
                   ))}
                   
                 </SelectContent>

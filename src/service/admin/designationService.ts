@@ -22,6 +22,7 @@ export const getDesignations = async (
         const response = await axiosInstance.get(
             `/admin/designations?page=${page}&limit=${limit}&filter=${filter}&search=${search || ''}`
         );
+        console.log('Designation service response:', response.data.data); 
         return response.data;
     } catch (error) {
         console.error('Error getting designations:', error);

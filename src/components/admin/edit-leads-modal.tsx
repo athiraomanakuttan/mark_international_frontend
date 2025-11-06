@@ -313,7 +313,7 @@ export default function EditLeadsModal({ open, setOpen, leadData, onLeadUpdated 
                   </SelectTrigger>
                   <SelectContent>
                     {staffList.map((staff) => (
-                      <SelectItem value={staff.id || ""} key={staff.id}>
+                      <SelectItem value={staff.id || "unassigned"} key={staff.id || "unassigned"}>
                         {staff.name}
                       </SelectItem>
                     ))}
