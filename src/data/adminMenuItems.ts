@@ -19,7 +19,8 @@ import {
   Unlink,
   FileBox,
   ListMinus,
-  ClipboardList
+  ClipboardList,
+  UserX
 } from "lucide-react"
 
 export const menuItems = [
@@ -81,6 +82,11 @@ export const menuItems = [
         title: "Resignations",
         url: "/admin/resignations",
         icon: ClipboardList,
+      },
+      {
+        title: "Terminations",
+        url: "/admin/terminations",
+        icon: UserX,
       },
       {
         title: "Designations",
