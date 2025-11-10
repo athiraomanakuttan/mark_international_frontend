@@ -16,7 +16,8 @@ import {
   X,
   Settings,
   Phone,
-  Download
+  Download,
+  ClipboardList
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -63,6 +64,18 @@ const menuItems = [
     url: "/staff/attendance",
     icon: Calendar,
     color: "bg-purple-500",
+  },
+  {
+    title: "Applications",
+    icon: ClipboardList,
+    color: "bg-red-500",
+    items: [
+      {
+        title: "Resignation",
+        url: "/staff/application/resignation",
+        icon: FileText,
+      },
+    ],
   },
   {
     title: "Lead Management",

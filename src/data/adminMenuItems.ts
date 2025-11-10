@@ -18,7 +18,8 @@ import {
   Trash,
   Unlink,
   FileBox,
-  ListMinus
+  ListMinus,
+  ClipboardList
 } from "lucide-react"
 
 export const menuItems = [
@@ -75,6 +76,11 @@ export const menuItems = [
         title: "View Registration",
         url: "/staff-management/registrations",
         icon: FileText,
+      },
+      {
+        title: "Resignations",
+        url: "/admin/resignations",
+        icon: ClipboardList,
       },
       {
         title: "Designations",
