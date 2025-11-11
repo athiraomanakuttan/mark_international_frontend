@@ -10,17 +10,18 @@ import { useDispatch, useSelector } from "react-redux"
 import { AppDispatch, RootState } from "@/lib/redux/store"
 import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
 import { toast } from "react-toastify"
-import { createEvent, getUpcomingEvents, updateEvent } from "@/service/eventService"
+import { createEvent, getAllEvents, getUpcomingEventsByStatus, getOngoingEventsByStatus, getPastEventsByStatus, updateEvent } from "@/service/eventService"
 import { EventCard } from "@/components/events/staff/event-card"
 import { ModernDashboardLayout } from "@/components/staff/modern-dashboard-navbar"
 import Link from "next/link"
 
-
+type EventStatus = "all" | "upcoming" | "ongoing" | "past"
 
 export default function EventsPage() {
   const [events, setEvents] = useState<EventType[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<EventType | undefined>()
+  const [activeTab, setActiveTab] = useState<EventStatus>("all")
 
   const dispatch = useDispatch<AppDispatch>()
 const { staffList } = useSelector((state: RootState) => state.staff);
@@ -38,7 +39,23 @@ useEffect(() => {
 
   const getUpcomingEventData = async ()=>{
     try{
-      const response = await getUpcomingEvents()
+      let response;
+      switch(activeTab) {
+        case "all":
+          response = await getAllEvents();
+          break;
+        case "upcoming":
+          response = await getUpcomingEventsByStatus();
+          break;
+        case "ongoing":
+          response = await getOngoingEventsByStatus();
+          break;
+        case "past":
+          response = await getPastEventsByStatus();
+          break;
+        default:
+          response = await getAllEvents();
+      }
       if(response.status){
         setEvents(response.data)
       }
@@ -48,7 +65,7 @@ useEffect(() => {
   }
 useEffect(()=>{
   getUpcomingEventData()
-},[isModalOpen])
+},[isModalOpen, activeTab])
   return (
     <ModernDashboardLayout>
     <div className="min-h-screen bg-slate-50">
@@ -59,6 +76,50 @@ useEffect(()=>{
             <p className="text-slate-600 mt-1">Manage your event assignments</p>
           </div>
           
+        </div>
+
+        {/* Status Tabs */}
+        <div className="flex gap-2 mb-6 bg-white p-1 rounded-lg shadow-sm border border-slate-200">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`px-6 py-2 rounded-md font-medium transition-colors ${
+              activeTab === "all"
+                ? "bg-blue-500 text-white"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            All Events
+          </button>
+          <button
+            onClick={() => setActiveTab("upcoming")}
+            className={`px-6 py-2 rounded-md font-medium transition-colors ${
+              activeTab === "upcoming"
+                ? "bg-blue-500 text-white"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            Upcoming
+          </button>
+          <button
+            onClick={() => setActiveTab("ongoing")}
+            className={`px-6 py-2 rounded-md font-medium transition-colors ${
+              activeTab === "ongoing"
+                ? "bg-green-500 text-white"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            Ongoing
+          </button>
+          <button
+            onClick={() => setActiveTab("past")}
+            className={`px-6 py-2 rounded-md font-medium transition-colors ${
+              activeTab === "past"
+                ? "bg-slate-500 text-white"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            Past
+          </button>
         </div>
 
         {events.length === 0 ? (

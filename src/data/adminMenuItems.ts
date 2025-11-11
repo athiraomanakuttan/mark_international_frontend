@@ -79,6 +79,18 @@ export const menuItems = [
         icon: FileText,
       },
       {
+        title: "Designations",
+        url: "/admin/designations",
+        icon: Eye,
+      },
+    ],
+  },
+  {
+    title: "HR Actions",
+    icon: ClipboardList,
+    color: "bg-red-500",
+    items: [
+      {
         title: "Resignations",
         url: "/admin/resignations",
         icon: ClipboardList,
@@ -87,11 +99,6 @@ export const menuItems = [
         title: "Terminations",
         url: "/admin/terminations",
         icon: UserX,
-      },
-      {
-        title: "Designations",
-        url: "/admin/designations",
-        icon: Eye,
       },
     ],
   },

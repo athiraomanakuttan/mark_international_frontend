@@ -1,7 +1,8 @@
 export interface EventType {
   _id?: string
   name: string
-  date: string
+  startDate: string
+  endDate: string
   location?: string
   staffIds?: string[]
 }
@@ -9,7 +10,8 @@ export interface EventType {
 export interface IEventWithStaff {
   _id: string;
   name: string;
-  date: Date;
+  startDate: Date;
+  endDate: Date;
   location?: string;
   staffIds: {
     _id: string;

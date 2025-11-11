@@ -24,7 +24,8 @@ interface EventModalProps {
 export function EventModal({ isOpen, onClose, onSave, event, staff }: EventModalProps) {
   const [formData, setFormData] = useState({
     name: "",
-    date: "",
+    startDate: "",
+    endDate: "",
     location: "",
     staffIds: [] as string[],
   })
@@ -33,14 +34,16 @@ export function EventModal({ isOpen, onClose, onSave, event, staff }: EventModal
     if (event) {
       setFormData({
         name: event.name,
-        date: event.date,
+        startDate: event.startDate,
+        endDate: event.endDate,
         location: event.location || "",
         staffIds: event.staffIds || [],
       })
     } else {
       setFormData({
         name: "",
-        date: "",
+        startDate: "",
+        endDate: "",
         location: "",
         staffIds: [],
       })
@@ -87,15 +90,30 @@ export function EventModal({ isOpen, onClose, onSave, event, staff }: EventModal
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="date" className="text-slate-700">
-              Event Date
+            <Label htmlFor="startDate" className="text-slate-700">
+              Start Date
             </Label>
             <Input
-              id="date"
+              id="startDate"
               type="datetime-local"
-              value={formData.date}
-              onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+              value={formData.startDate}
+              onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
               required
+              className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="endDate" className="text-slate-700">
+              End Date
+            </Label>
+            <Input
+              id="endDate"
+              type="datetime-local"
+              value={formData.endDate}
+              onChange={(e) => setFormData((prev) => ({ ...prev, endDate: e.target.value }))}
+              required
+              min={formData.startDate}
               className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
             />
           </div>

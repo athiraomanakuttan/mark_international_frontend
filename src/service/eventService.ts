@@ -54,3 +54,39 @@ export const getStudentData = async (eventId: string, staffId?: string)=>{
         throw err
     }
 }
+
+export const getAllEvents = async()=>{
+    try{
+        const response = await axiosInstance.get('/events/all')
+        return response.data
+    }catch(err){
+        throw err
+    }
+}
+
+export const getUpcomingEventsByStatus = async()=>{
+    try{
+        const response = await axiosInstance.get('/events/status/upcoming')
+        return response.data
+    }catch(err){
+        throw err
+    }
+}
+
+export const getOngoingEventsByStatus = async()=>{
+    try{
+        const response = await axiosInstance.get('/events/status/ongoing')
+        return response.data
+    }catch(err){
+        throw err
+    }
+}
+
+export const getPastEventsByStatus = async()=>{
+    try{
+        const response = await axiosInstance.get('/events/status/past')
+        return response.data
+    }catch(err){
+        throw err
+    }
+}

@@ -35,6 +35,12 @@ export function EventCard({ event, staff }: EventCardProps) {
     })
   }
 
+  const formatDateRange = () => {
+    const start = formatDate(event.startDate);
+    const end = formatDate(event.endDate);
+    return `${start} - ${end}`;
+  }
+
   return (
     <Card
       className="relative transition-all duration-200 hover:shadow-lg cursor-pointer bg-white border-slate-200 hover:border-slate-300"
@@ -50,7 +56,7 @@ export function EventCard({ event, staff }: EventCardProps) {
       <CardContent className="space-y-3">
         <div className="flex items-center text-sm text-slate-600">
           <Calendar className="h-4 w-4 mr-2 text-blue-500" />
-          {formatDate(event.date)}
+          {formatDateRange()}
         </div>
 
         <div className="flex items-start text-sm text-slate-600">
