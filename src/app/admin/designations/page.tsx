@@ -39,6 +39,7 @@ import {
   DesignationFormData,
   DesignationFilterType,
 } from '@/types/designation-types';
+import { DATA_LIMIT } from '@/data/limitData';
 
 const DesignationPage: React.FC = () => {
   const router = useRouter();
@@ -52,7 +53,7 @@ const DesignationPage: React.FC = () => {
   const [paginationData, setPaginationData] = useState({
     currentPage: 1,
     totalPages: 1,
-    limit: 10,
+    limit: DATA_LIMIT[0],
     totalItems: 0,
   });
 
@@ -235,13 +236,13 @@ const DesignationPage: React.FC = () => {
                   value={paginationData.limit.toString()}
                   onValueChange={(value) => setPaginationData(prev => ({ ...prev, limit: Number(value) }))}
                 >
-                  <SelectTrigger className="w-[70px]">
-                    <SelectValue placeholder="10" />
+                  <SelectTrigger className="w-[90px]">
+                    <SelectValue placeholder={DATA_LIMIT[0].toString()} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
+                    {DATA_LIMIT.map((limit) => (
+                      <SelectItem key={limit} value={limit.toString()}>{limit}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">entries</span>

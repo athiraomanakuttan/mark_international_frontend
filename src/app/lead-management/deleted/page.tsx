@@ -19,6 +19,7 @@ import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS } from "@/data/L
 import { MultiSelect } from "@/components/ui/multi-select" // Import the new MultiSelect component
 import { toast } from "react-toastify"
 import Link from "next/link"
+import { DATA_LIMIT } from "@/data/limitData"
 
 export default function LeadsReportPage() {
   const yesterday = new Date();
@@ -33,7 +34,7 @@ yesterday.setDate(yesterday.getDate() - 1);
   const [staff, setStaff] = useState<(string | number)[]>([])
   const [createBy, setCreateBy] = useState<(string | number)[]>([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [entriesPerPage, setEntriesPerPage] = useState("10")
+  const [entriesPerPage, setEntriesPerPage] = useState(DATA_LIMIT[0].toString())
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isUpdateModelOpen, setIsUpdateModelOpen] = useState(false)
   const [selectedLead, setSelectedLead]= useState<LeadResponse>()
@@ -42,7 +43,7 @@ yesterday.setDate(yesterday.getDate() - 1);
   const [paginationData, setPaginationData] = useState({
     currentPage: 1,
     totalPages: 1,
-    limit: 10,
+    limit: DATA_LIMIT[0],
     totalItems: 0,
   })
   const handleLeadUpdate =async  (lead: string)=>{
@@ -222,12 +223,12 @@ yesterday.setDate(yesterday.getDate() - 1);
                   onValueChange={(value) => setPaginationData((prev) => ({ ...prev, limit: Number(value) }))}
                 >
                   <SelectTrigger className="w-[70px]">
-                    <SelectValue placeholder="10" />
+                    <SelectValue placeholder={DATA_LIMIT[0].toString()} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
+                    {DATA_LIMIT.map((limit) => (
+                      <SelectItem key={limit} value={limit.toString()}>{limit}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">entries</span>

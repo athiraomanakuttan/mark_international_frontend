@@ -1,0 +1,1 @@
+export const DATA_LIMIT = [10,50,100,150,200,250]

@@ -25,19 +25,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { DATA_LIMIT } from "@/data/limitData"
 
 export default function BranchManagementPage() {
   const [branches, setBranches] = useState<BranchType[]>([])
   const [loading, setLoading] = useState(true)
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [entriesPerPage, setEntriesPerPage] = useState("10")
+  const [entriesPerPage, setEntriesPerPage] = useState(DATA_LIMIT[0].toString())
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedBranch, setSelectedBranch] = useState<BranchType | null>(null)
   const [paginationData, setPaginationData] = useState({
     currentPage: 1,
     totalPages: 1,
-    limit: 10,
+    limit: DATA_LIMIT[0],
     totalItems: 0,
   })
 
@@ -135,12 +136,12 @@ export default function BranchManagementPage() {
                   }}
                 >
                   <SelectTrigger className="w-16 sm:w-[70px]">
-                    <SelectValue placeholder="10" />
+                    <SelectValue placeholder={DATA_LIMIT[0].toString()} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
+                    {DATA_LIMIT.map((limit) => (
+                      <SelectItem key={limit} value={limit.toString()}>{limit}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <span className="text-gray-700 dark:text-gray-300 whitespace-nowrap">entries</span>

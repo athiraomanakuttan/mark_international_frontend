@@ -20,6 +20,7 @@ import { MultiSelect } from "@/components/ui/multi-select"
 import { toast } from "react-toastify"
 import { TransferListType } from "@/types/transfer-lead-types"
 import { getTransferLeads } from "@/service/admin/transferLeadService"
+import { DATA_LIMIT } from "@/data/limitData"
 
 export default function LeadsReportPage() {
   const yesterday = new Date();
@@ -153,12 +154,12 @@ yesterday.setDate(yesterday.getDate() - 10);
                   onValueChange={(value) => setPaginationData((prev) => ({ ...prev, limit: Number(value) }))}
                 >
                   <SelectTrigger className="w-16 sm:w-[70px]">
-                    <SelectValue placeholder="10" />
+                    <SelectValue placeholder={DATA_LIMIT[0].toString()} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
+                    {DATA_LIMIT.map(limit =>(
+                      <SelectItem value={limit.toString()} key={limit}>{limit}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <span className="text-gray-700 dark:text-gray-300 whitespace-nowrap">entries</span>

@@ -85,23 +85,7 @@ export const menuItems = [
       },
     ],
   },
-  {
-    title: "HR Actions",
-    icon: ClipboardList,
-    color: "bg-red-500",
-    items: [
-      {
-        title: "Resignations",
-        url: "/admin/resignations",
-        icon: ClipboardList,
-      },
-      {
-        title: "Terminations",
-        url: "/admin/terminations",
-        icon: UserX,
-      },
-    ],
-  },
+  
   {
     title: "Employee",
     icon: Users,
@@ -133,6 +117,18 @@ export const menuItems = [
   },
   ,
   {
+    title: 'Branch',
+    icon: Blocks,
+    color: "bg-blue-500",
+    items: [
+      {
+        title: "View Branch",
+        url: "/branch-management/view",
+        icon: Eye,
+      },
+    ]
+    },
+  {
     title: "Reports",
     icon: BarChart3,
     color: "bg-orange-500",
@@ -154,17 +150,23 @@ export const menuItems = [
       },
     ],
   },
-  {
-    title: 'Branch',
-    icon: Blocks,
-    color: "bg-blue-500",
+  
+    {
+    title: "HR Actions",
+    icon: ClipboardList,
+    color: "bg-red-500",
     items: [
       {
-        title: "View Branch",
-        url: "/branch-management/view",
-        icon: Eye,
+        title: "Resignations",
+        url: "/admin/resignations",
+        icon: ClipboardList,
       },
-    ]
-    },
+      {
+        title: "Terminations",
+        url: "/admin/terminations",
+        icon: UserX,
+      },
+    ],
+  },
     
 ]

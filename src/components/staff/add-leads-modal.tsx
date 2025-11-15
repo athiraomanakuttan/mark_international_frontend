@@ -252,7 +252,7 @@ export default function AddLeadsModal({ open, setOpen }: AddLeadsModalProps) {
         </div>
         
         <DialogFooter>
-          <Button variant="outline">Cancel</Button>
+          <Button variant="outline" type="button" onClick={()=>setOpen(false)}>Cancel</Button>
           <Button type="submit">Save</Button>
         </DialogFooter>
         </form>

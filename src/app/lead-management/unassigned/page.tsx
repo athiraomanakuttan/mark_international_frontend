@@ -19,6 +19,7 @@ import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS } from "@/data/L
 import { MultiSelect } from "@/components/ui/multi-select" 
 import { toast } from "react-toastify"
 import AssignLeadModal from "@/components/admin/assign-staff-modal"
+import { DATA_LIMIT } from "@/data/limitData"
 
 export default function LeadsReportPage() {
   const from = new Date();
@@ -31,7 +32,7 @@ from.setDate(from.getDate() - 10);
   const [staff, setStaff] = useState<(string | number)[]>([])
   const [createBy, setCreateBy] = useState<(string | number)[]>([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [entriesPerPage, setEntriesPerPage] = useState("10")
+  const [entriesPerPage, setEntriesPerPage] = useState(DATA_LIMIT[0].toString())
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
   const [isUpdateModelOpen, setIsUpdateModelOpen] = useState(false)
   const [selectedLead, setSelectedLead]= useState<LeadResponse>()
@@ -202,12 +203,12 @@ const handleAssignBtn = ()=>{
                   onValueChange={(value) => setPaginationData((prev) => ({ ...prev, limit: Number(value) }))}
                 >
                   <SelectTrigger className="w-16 sm:w-[70px]">
-                    <SelectValue placeholder="10" />
+                    <SelectValue placeholder={DATA_LIMIT[0].toString()} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
+                    {DATA_LIMIT.map(limit =>(
+                      <SelectItem value={limit.toString()} key={limit}>{limit}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <span className="text-gray-700 dark:text-gray-300 whitespace-nowrap">entries</span>

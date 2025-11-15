@@ -62,6 +62,7 @@ import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux"
 import { AppDispatch, RootState } from "@/lib/redux/store"
 import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
+import { DATA_LIMIT } from "@/data/limitData";
 
 // Placeholder data for staff members/
 
@@ -507,14 +508,14 @@ const changeLimit = (value: string) => {
           <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
             <div className="flex items-center space-x-2">
               <span className="text-slate-700 font-medium">Show</span>
-              <Select defaultValue="10" onValueChange={(value) => changeLimit(value)}>
+              <Select defaultValue={DATA_LIMIT[0].toString()} onValueChange={(value) => changeLimit(value)}>
                 <SelectTrigger className="w-[70px]">
-                  <SelectValue placeholder="10" />
+                  <SelectValue placeholder={DATA_LIMIT[0].toString()} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="25">25</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
+                  {DATA_LIMIT.map(limit =>(
+                    <SelectItem value={limit.toString()} key={limit}>{limit}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <span className="text-slate-700 font-medium">entries</span>

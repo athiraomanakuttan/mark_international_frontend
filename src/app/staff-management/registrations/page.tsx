@@ -12,6 +12,7 @@ import { getRegistrations, getRegistrationById } from "@/service/registrationSer
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
+import { DATA_LIMIT } from "@/data/limitData"
 
 interface Registration {
   _id: string
@@ -194,10 +195,9 @@ export default function RegistrationsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="25">25</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                  <SelectItem value="100">100</SelectItem>
+                  {DATA_LIMIT.map(limit =>(
+                    <SelectItem value={limit.toString()} key={limit}>{limit}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <span className="text-slate-700 font-medium">entries</span>
