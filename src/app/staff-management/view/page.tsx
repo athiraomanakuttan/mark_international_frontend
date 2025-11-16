@@ -63,6 +63,9 @@ import { useDispatch, useSelector } from "react-redux"
 import { AppDispatch, RootState } from "@/lib/redux/store"
 import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
 import { DATA_LIMIT } from "@/data/limitData";
+import { DesignationResponse } from "@/types/designation-types";
+import { getDesignations } from "@/service/admin/designationService";
+import { set } from "date-fns";
 
 // Placeholder data for staff members/
 
@@ -82,6 +85,32 @@ export default function StaffManagementViewPage() {
   const [selectedUser, setSelectedUser] = useState<StaffDataType | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const [designations, setDesignations] = useState<DesignationResponse[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+  
+
+   const fetchDesignations = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getDesignations(1, 50,{status:[1]}
+        );
+        if (response.status) {
+          setDesignations(response.data.designations);
+        }
+        setIsLoading(false);
+      } catch (error) {
+        toast.error('Failed to fetch designations');
+        console.error('Error fetching designations:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    useEffect(() => {
+      fetchDesignations()
+    },[])
+
+
 
   const handleClickDelete = (staffId: string) => {
     setSelectedStaffId(staffId);
@@ -358,13 +387,11 @@ const changeLimit = (value: string) => {
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="education-consultant">
-                        Education Consultant
-                      </SelectItem>
-                      <SelectItem value="business-development-manager">
-                        Business Development Manager
-                      </SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                      {designations.map((designation) => (
+                            <SelectItem key={designation.id} value={designation.name}>
+                              {designation.name}
+                            </SelectItem>
+                          ))}
                     </SelectContent>
                   </Select>
                 </div>

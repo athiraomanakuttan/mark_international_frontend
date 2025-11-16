@@ -16,6 +16,9 @@ import {
   Award,
   Bell,
   User,
+  PowerOff,
+  Power,
+  Key,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -219,18 +222,17 @@ function DashboardHeader() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
+              
               <DropdownMenuItem>
                 <Link href="/settings" className="flex w-full"> 
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
+                <Key className="mr-2 h-4 w-4" />
+                Reset Password
                 </Link>
                 
               </DropdownMenuItem>
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem>
+                <Power className="mr-2 h-4 w-4" />
+                Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -17,7 +17,8 @@ import {
   Settings,
   Phone,
   Download,
-  ClipboardList
+  ClipboardList,
+  Power
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -203,23 +204,7 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
           ))}
         </nav>
 
-        {/* Bottom Section - Fixed at bottom */}
-        <div className="p-4 border-t border-slate-700 flex-shrink-0">
-          <Link
-            href="/settings"
-            className="block bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-4 hover:from-blue-500/20 hover:to-purple-500/20 transition-all duration-200"
-          >
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center">
-                <Settings className="h-4 w-4 text-slate-300" />
-              </div>
-              <div>
-                <p className="text-white text-sm font-medium">Settings</p>
-                <p className="text-slate-400 text-xs">Manage your account</p>
-              </div>
-            </div>
-          </Link>
-        </div>
+        
       </div>
     </>
   )
@@ -400,17 +385,10 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link href='/password-reset' className="flex w-full">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-                </Link>
-              </DropdownMenuItem>
+             
+              
               <DropdownMenuItem className="text-red-600" onClick={logoutUser}>
+                <Power className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
