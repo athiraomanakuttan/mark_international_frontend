@@ -4,11 +4,17 @@ import axiosInstance from "../axiosInstance"
 export const createStaff = async (data: StaffBasicType) => {
   try {
 
+    console.log("Creating staff with data ========== >>>>> :", data);
     const formData = new FormData();
     (Object.keys(data) as Array<keyof StaffBasicType>).forEach((key) => {
       const value = data[key];
       if (value !== undefined && value !== null) {
-        formData.append(key, value as any); 
+        // Always send the file as 'file' to match backend multer config
+        if (key === 'file' || key === 'profilePic') {
+          formData.append('file', value as any);
+        } else {
+          formData.append(key, value as any);
+        }
       }
     });
 

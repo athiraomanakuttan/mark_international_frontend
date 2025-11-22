@@ -18,7 +18,8 @@ import {
   Phone,
   Download,
   ClipboardList,
-  Power
+  Power,
+  Boxes
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -80,7 +81,7 @@ const menuItems = [
   },
   {
     title: "Lead Management",
-    icon: Users,
+    icon: Boxes,
     color: "bg-green-500",
     items: [
       {

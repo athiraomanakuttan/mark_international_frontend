@@ -3,24 +3,19 @@ import {
   ChevronDown,
   FileText,
   Home,
-  Search,
   Users,
   UserPlus,
   Download,
   ArrowRightLeft,
   Eye,
   Blocks,
-  Bell,
-  User,
-  Menu,
-  X,
-  Settings,
   Trash,
   Unlink,
   FileBox,
   ListMinus,
   ClipboardList,
-  UserX
+  UserX,
+  Boxes
 } from "lucide-react"
 
 export const menuItems = [
@@ -32,7 +27,7 @@ export const menuItems = [
   },
   {
     title: "Lead Management",
-    icon: Users,
+    icon: Boxes,
     color: "bg-green-500",
     items: [
       

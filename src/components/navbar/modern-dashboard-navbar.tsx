@@ -135,66 +135,49 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
   const { user } = useSelector((state: RootState) => state.user)
   const dispatch = useDispatch<AppDispatch>()
-  const router = useRouter()
-
-  const [selectedLeadReminders, setSelectedLeadReminders] = useState<string[]>([])
   const [leadReminders, setLeadReminders] = useState<LeadReminderNotification[]>([])
-
-  const getNotification = async () => {
-    try {
-      const response = await getFollowupData()
-      console.log("getNotification", response)
-      const transformedData = response.data.map((lead: LeadData, index: number) => ({
-        followupId: lead.id,
-        id: lead.leadId,
-        leadData: lead,
-        reminderType: "followup" as const,
-        reminderDate: lead.createdDate,
-        message: `Follow up by ${lead.assignedAgentName}`,
-      }))
-      setLeadReminders(transformedData)
-    } catch (error) {
-      console.error("Error fetching follow-up notifications:", error)
-    }
-  }
+  const [selectedLeadReminders, setSelectedLeadReminders] = useState<string[]>([])
+  const router = useRouter();
 
   useEffect(() => {
-    getNotification()
-  },[])
+    // Fetch lead reminders on mount
+    const fetchReminders = async () => {
+      try {
+        const data = await getFollowupData();
+        // Defensive: ensure always array
+        setLeadReminders(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setLeadReminders([]);
+        toast.error("Failed to fetch lead reminders");
+      }
+    };
+    fetchReminders();
+  }, []);
 
-  useEffect(() => {
-    console.log("user data", user)
-  }, [user])
-
-  const logoutUser = () => {
-    dispatch({ type: "user/clearUser" })
-    localStorage.clear()
-    document.cookie = ""
-    toast.success("Logged out")
-    router.push("/login")
-  }
-
-  const handleLeadReminderSelect = (notificationId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedLeadReminders((prev) => [...prev, notificationId])
-    } else {
-      setSelectedLeadReminders((prev) => prev.filter((id) => id !== notificationId))
-    }
-  }
+  const handleLeadReminderSelect = (followupId: string, checked: boolean) => {
+    setSelectedLeadReminders((prev) =>
+      checked ? [...prev, followupId] : prev.filter((id) => id !== followupId)
+    );
+  };
 
   const handleRemoveSelectedLeadReminders = async () => {
-    console.log("selectedLeadReminders", selectedLeadReminders)
     try {
-      const response = await deleteFollowup(selectedLeadReminders)
-      getNotification()
-    } catch (err) {
-      console.error("Error deleting follow-up notifications")
+      await deleteFollowup(selectedLeadReminders);
+      setLeadReminders((prev) => prev.filter((n) => !selectedLeadReminders.includes(n.followupId)));
+      setSelectedLeadReminders([]);
+      toast.success("Selected reminders removed");
+    } catch (error) {
+      toast.error("Failed to remove reminders");
     }
-    setLeadReminders((prev) => prev.filter((notification) => !selectedLeadReminders.includes(notification.id)))
-    setSelectedLeadReminders([])
-    toast.success(`Removed ${selectedLeadReminders.length} lead reminder(s)`)
-  }
+  };
 
+  const logoutUser = () => {
+    dispatch({ type: "user/clearUser" });
+    router.push("/login");
+  };
+
+  // Patch user.profilePic to allow string (URL) type
+  const profilePicUrl = (user && (user as any).profilePic) ? (user as any).profilePic : undefined;
   return (
     <header className="bg-white border-b border-slate-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -202,7 +185,6 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
           <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
             <Menu className="h-5 w-5" />
           </Button>
-
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
@@ -212,7 +194,6 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
             />
           </div>
         </div>
-
         <div className="flex items-center space-x-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -231,7 +212,6 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
                   <span className="text-sm">({leadReminders.length}) reminders</span>
                 </div>
               </div>
-
               <div className="max-h-80 overflow-y-auto">
                 {leadReminders.length === 0 ? (
                   <div className="flex flex-col items-center justify-center p-8 text-center">
@@ -296,9 +276,17 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-3 hover:bg-slate-50">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-white" />
-                </div>
+                {profilePicUrl ? (
+                  <img
+                    src={profilePicUrl}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full object-cover border border-slate-200"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                )}
                 <div className="hidden md:block text-left">
                   <p className="text-sm font-medium text-slate-900">Mark International</p>
                   <p className="text-xs text-slate-500">Company Admin</p>

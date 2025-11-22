@@ -11,6 +11,7 @@ import {
   UserCog,
   Eye,
   BarChart3,
+  Boxes,
 } from 'lucide-react';
 import { MenuItemType } from '@/types/types';
 
@@ -24,7 +25,7 @@ export const adminMenuItems: MenuItemType[] = [
   },
   {
     id: 'lead-management',
-    icon: Users,
+    icon: Boxes,
     label: 'Lead Management',
     type: 'dropdown',
     subItems: [
@@ -72,7 +73,7 @@ export const staffMenuItems: MenuItemType[] = [
   },
   {
     id: 'lead-management',
-    icon: Users,
+    icon: Boxes,
     label: 'Lead Management',
     type: 'dropdown',
     subItems: [

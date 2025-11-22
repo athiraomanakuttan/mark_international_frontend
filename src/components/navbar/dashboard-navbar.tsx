@@ -16,7 +16,7 @@ import {
   Award,
   Bell,
   User,
-  PowerOff,
+  Boxes,
   Power,
   Key,
 } from "lucide-react"
@@ -54,7 +54,7 @@ const menuItems = [
   },
   {
     title: "Lead Management",
-    icon: Users,
+    icon: Boxes,
     items: [
       {
         title: "Dashboard",

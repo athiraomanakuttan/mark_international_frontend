@@ -5,7 +5,7 @@ import { BranchType, CreateBranchType, UpdateBranchType, BranchResponseType, Bra
 export const getAllBranches = async (): Promise<BranchResponseType> => {
   try {
     const response = await axiosInstance.get('/admin/branches')
-    return response.data
+    return response?.data?.data
   } catch (error) {
     throw error
   }

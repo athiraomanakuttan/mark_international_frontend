@@ -20,9 +20,7 @@ export interface UpdateBranchType {
 }
 
 export interface BranchResponseType {
-  status: boolean
-  message: string
-  data?: BranchType | BranchType[]
+ branches: BranchType[],
 }
 
 export interface BranchPaginationResponseType {

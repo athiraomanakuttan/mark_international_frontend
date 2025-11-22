@@ -53,6 +53,7 @@ import { StaffBasicType } from "@/types/staff-type";
 import { phoneCodes } from "@/data/phoneCodeData";
 import { staffFormValidation } from "@/validation/staffValidation";
 import {createStaff, updateStatus} from "@/service/admin/staffService";
+import { getAllBranches } from "@/service/branchService";
 import { toast } from "react-toastify";
 import { getStaffList } from "@/service/admin/staffService";
 import { StaffDataType } from "@/types/staff-type";
@@ -65,10 +66,7 @@ import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
 import { DATA_LIMIT } from "@/data/limitData";
 import { DesignationResponse } from "@/types/designation-types";
 import { getDesignations } from "@/service/admin/designationService";
-import { set } from "date-fns";
-
-// Placeholder data for staff members/
-
+import { BranchType } from "@/types/branch-types";
 
 export default function StaffManagementViewPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,7 +84,24 @@ export default function StaffManagementViewPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [designations, setDesignations] = useState<DesignationResponse[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [branches, setBranches] = useState<BranchType[]>([]);
+  // Only store branchId for create/update
+  const [selectedBranch, setSelectedBranch] = useState<string>("");
+    // Fetch branches for dropdown
+    useEffect(() => {
+      const fetchBranches = async () => {
+        try {
+          const response = await getAllBranches();
+          if (response && Array.isArray(response?.branches)) {
+            setBranches(response?.branches || []);
+          }
+        } catch (error) {
+          toast.error("Failed to fetch branches");
+        }
+      };
+      fetchBranches();
+    }, []);
   
 
    const fetchDesignations = async () => {
@@ -196,43 +211,42 @@ const [paginationData, setPaginationData]= useState({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0]);
-      setForm("profilePic", event.target.files[0]);
+      setForm("file", event.target.files[0]); // Change to 'file' to match backend multer config
     } else {
       setSelectedFile(null);
     }
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-  event.preventDefault();
-
-  const isValidate = staffFormValidation(formData);
-
-  if (!isValidate.isValid) {
-    console.error("Form validation failed", isValidate.errors);
-    toast.error(isValidate.errors);
-    return;
-  }
-
-  // Merge phoneCode + phoneNumber without updating the original state
-  const finalFormData = {
-    ...formData,
-    phoneNumber: formData.phoneCode + formData.phoneNumber,
+    event.preventDefault();
+    const isValidate = staffFormValidation(formData);
+    if (!isValidate.isValid) {
+      console.error("Form validation failed", isValidate.errors);
+      toast.error(isValidate.errors);
+      return;
+    }
+    if (!selectedBranch) {
+      toast.error("Please select a branch");
+      return;
+    }
+    // Merge phoneCode + phoneNumber without updating the original state
+    const finalFormData = {
+      ...formData,
+      phoneNumber: formData.phoneCode + formData.phoneNumber,
+      branchId: selectedBranch, // Only branchId is sent
+    };
+    
+    try {
+      const response = await createStaff(finalFormData);
+      if (response.status) {
+        toast.success("Staff member added successfully!");
+        setIsModalOpen(false); // Close modal on submit
+        getData();
+      }
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to add staff member. Please try again.");
+    }
   };
-
-  try {
-    const response = await createStaff(finalFormData);
-
-  if (response.status) {
-    toast.success("Staff member added successfully!");
-    setIsModalOpen(false); // Close modal on submit
-    getData()
-  }
-  } catch (error :any) {
-    toast.error(error?.message ||"Failed to add staff member. Please try again.");
-  }
-  
-
-};
 
 const changeLimit = (value: string) => {
   console.log("Selected limit:", value);
@@ -373,6 +387,26 @@ const changeLimit = (value: string) => {
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="branch" className="text-slate-700 font-medium">
+                    Branch<span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    required
+                    onValueChange={(value) => setSelectedBranch(value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches.map((branch: BranchType) => (
+                        <SelectItem key={branch._id} value={branch._id!}>
+                          {branch.branchName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label
                     htmlFor="designation"
                     className="text-slate-700 font-medium"
@@ -388,10 +422,10 @@ const changeLimit = (value: string) => {
                     </SelectTrigger>
                     <SelectContent>
                       {designations.map((designation) => (
-                            <SelectItem key={designation.id} value={designation.name}>
-                              {designation.name}
-                            </SelectItem>
-                          ))}
+                        <SelectItem key={designation.id} value={designation.name}>
+                          {designation.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -451,7 +485,7 @@ const changeLimit = (value: string) => {
                     onValueChange={(value) =>
                       setForm("accessibleUsers", [
                         ...(formData.accessibleUsers || []),
-                        Number.parseInt(value),
+                        value,
                       ])
                     }
                   >
@@ -505,6 +539,8 @@ const changeLimit = (value: string) => {
               user={selectedUser}
               selectedFile={selectedFile}
               handleFileChange={handleFileChange}
+              designations={designations}
+              branches={branches}
             />
           )}
         </div>
@@ -567,6 +603,7 @@ const changeLimit = (value: string) => {
                 <TableHead>Name</TableHead>
                 <TableHead>Phone Number</TableHead>
                 <TableHead>Designation</TableHead>
+                <TableHead>Branch</TableHead>
                 <TableHead className="text-center">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -602,6 +639,9 @@ const changeLimit = (value: string) => {
                   </TableCell>
                   <TableCell>{staff?.phoneNumber}</TableCell>
                   <TableCell>{staff.designation}</TableCell>
+                  <TableCell>
+                    {staff.branchName ? `${staff.branchName}` : 'N/A'}
+                  </TableCell>
                   { staffStatus === 1 ? (
                     <TableCell className="flex justify-center space-x-2">
                     <Button

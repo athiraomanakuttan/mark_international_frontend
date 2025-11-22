@@ -39,12 +39,17 @@ import { updateStaff } from "@/service/admin/staffService";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/lib/redux/store";
+import { DesignationResponse } from "@/types/designation-types";
+import { BranchType } from "@/types/branch-types";
+import { branchData } from "@/types/staff-type";
 interface AddStaffModalProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   selectedFile: File | null;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  user: StaffDataType; 
+  user: StaffDataType;
+  designations: DesignationResponse[];
+  branches: BranchType[];
 }
 const UpdateStaffModal: React.FC<AddStaffModalProps> = ({
   isOpen,
@@ -52,25 +57,25 @@ const UpdateStaffModal: React.FC<AddStaffModalProps> = ({
   selectedFile,
   handleFileChange,
   user,
+  designations,
+  branches
 }) => {
   
-  console.log("user in update staff modal", user);
     const { setForm,formData } = useFetchFormData();
    
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
-  console.log("on submit ", formData,selectedFile);
   try {
     const updatedData = {
       ...formData,
-      profilePic: selectedFile,
-    }  as StaffUpdateType;
+      file: selectedFile, // Use 'file' to match Multer config
+    }  as StaffUpdateType; 
+    console.log("Updated Data: ===============>", updatedData);
     const response = await updateStaff(user.id, updatedData);
     if(response.status){
       toast.success("Staff member updated successfully.");
       setIsOpen(false); // Close the modal on success
     }
-    
   } catch (error) {
     toast.error("Failed to update staff member.");
     console.error("Error updating staff:", error);
@@ -152,6 +157,28 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             </div>
           </div>
 
+          {/* Branch */}
+          <div className="space-y-2">
+            <Label htmlFor="branch" className="text-slate-700 font-medium">
+              Branch<span className="text-red-500">*</span>
+            </Label>
+            <Select
+              onValueChange={(value) => setForm("branch", value)}
+              defaultValue={user.branchId}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Branch" />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((branch: BranchType) => (
+                  <SelectItem key={branch._id} value={branch._id!}>
+                    {branch.branchName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Designation */}
           <div className="space-y-2">
             <Label htmlFor="designation" className="text-slate-700 font-medium">
@@ -165,13 +192,9 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="education-consultant">
-                  Education Consultant
-                </SelectItem>
-                <SelectItem value="business-development-manager">
-                  Business Development Manager
-                </SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
+                {designations.map((designation) => (
+                  <SelectItem key={designation.id} value={designation.name}>{designation.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
