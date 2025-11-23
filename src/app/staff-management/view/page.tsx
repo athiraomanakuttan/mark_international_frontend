@@ -71,6 +71,16 @@ import { BranchType } from "@/types/branch-types";
 export default function StaffManagementViewPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  // Reset selectedFile when modal opens (create)
+  useEffect(() => {
+    if (isModalOpen) {
+      setSelectedFile(null);
+    }
+  }, [isModalOpen]);
+    // Reset selectedFile for update modal
+    const resetSelectedFile = () => {
+      setSelectedFile(null);
+    };
   const { formData, setForm } = useFetchFormData<StaffBasicType>();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPhoneCode, setSelectedPhoneCode] = useState({
@@ -474,53 +484,7 @@ const changeLimit = (value: string) => {
                     </span>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="accessible-users"
-                    className="text-slate-700 font-medium"
-                  >
-                    Accessible Users
-                  </Label>
-                  <Select
-                    onValueChange={(value) =>
-                      setForm("accessibleUsers", [
-                        ...(formData.accessibleUsers || []),
-                        value,
-                      ])
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {staffList.map((staff) => (
-                            <SelectItem key={staff.id} value={String(staff.id)}>
-                              {staff.name}
-                            </SelectItem>
-                          ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="opening-balance"
-                    className="text-slate-700 font-medium"
-                  >
-                    Opening Balance
-                  </Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                      id="opening-balance"
-                      type="number"
-                      placeholder="Enter Opening balance"
-                      className="pl-10"
-                      onChange={(e) =>
-                        setForm("openingBalance", Number(e.target.value))
-                      }
-                    />
-                  </div>
-                </div>
+                
                 <DialogFooter className="md:col-span-2 mt-6">
                   <Button
                     type="submit"
@@ -539,6 +503,7 @@ const changeLimit = (value: string) => {
               user={selectedUser}
               selectedFile={selectedFile}
               handleFileChange={handleFileChange}
+              resetSelectedFile={resetSelectedFile}
               designations={designations}
               branches={branches}
             />

@@ -47,6 +47,7 @@ interface AddStaffModalProps {
   setIsOpen: (open: boolean) => void;
   selectedFile: File | null;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  resetSelectedFile: () => void;
   user: StaffDataType;
   designations: DesignationResponse[];
   branches: BranchType[];
@@ -56,23 +57,39 @@ const UpdateStaffModal: React.FC<AddStaffModalProps> = ({
   setIsOpen,
   selectedFile,
   handleFileChange,
+  resetSelectedFile,
   user,
   designations,
   branches
 }) => {
   
     const { setForm,formData } = useFetchFormData();
+
+    // Only reset selectedFile when modal is closed
+    useEffect(() => {
+      if (!isOpen) {
+        resetSelectedFile();
+      }
+    }, [isOpen, resetSelectedFile]);
    
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   try {
-    const updatedData = {
-      ...formData,
-      file: selectedFile, // Use 'file' to match Multer config
-    }  as StaffUpdateType; 
-    console.log("Updated Data: ===============>", updatedData);
+    // Only include file if selectedFile is present
+    let updatedData: StaffUpdateType;
+    if (selectedFile) {
+      updatedData = {
+        ...formData,
+        file: selectedFile,
+      } as StaffUpdateType;
+    } else {
+      // Do not include file field at all
+      const { file, ...rest } = formData as any;
+      updatedData = { ...rest } as StaffUpdateType;
+    }
+
     const response = await updateStaff(user.id, updatedData);
-    if(response.status){
+    if (response.status) {
       toast.success("Staff member updated successfully.");
       setIsOpen(false); // Close the modal on success
     }
@@ -80,9 +97,8 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     toast.error("Failed to update staff member.");
     console.error("Error updating staff:", error);
   }
+  selectedFile = null;
 }
- const dispatch = useDispatch<AppDispatch>()
-  const { staffList } = useSelector((state: RootState) => state.staff);
   
 
   return (
@@ -163,7 +179,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               Branch<span className="text-red-500">*</span>
             </Label>
             <Select
-              onValueChange={(value) => setForm("branch", value)}
+              onValueChange={(value) => setForm("branchId", value)}
               defaultValue={user.branchId}
             >
               <SelectTrigger className="w-full">
@@ -249,57 +265,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             </div>
           </div>
 
-          {/* Accessible Users */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="accessible-users"
-              className="text-slate-700 font-medium"
-            >
-              Accessible Users
-            </Label>
-            <Select
-                                onValueChange={(value) =>
-                                  setForm("accessibleUsers", [
-                                    ...(formData.accessibleUsers || []),
-                                    Number.parseInt(value),
-                                  ])
-                                }
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Select" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {staffList.map((staff) => (
-                                        <SelectItem key={staff.id} value={String(staff.id)}>
-                                          {staff.name}
-                                        </SelectItem>
-                                      ))}
-                                </SelectContent>
-                              </Select>
-          </div>
-
-          {/* Opening Balance */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="opening-balance"
-              className="text-slate-700 font-medium"
-            >
-              Opening Balance
-            </Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                id="opening-balance"
-                type="number"
-                placeholder="Enter Opening balance"
-                className="pl-10"
-                value={formData?.openingBalance || user?.openingBalance || ""}
-                onChange={(e) =>
-                  setForm("openingBalance", Number(e.target.value))
-                }
-              />
-            </div>
-          </div>
+        
 
           {/* Submit */}
           <DialogFooter className="md:col-span-2 mt-6">
