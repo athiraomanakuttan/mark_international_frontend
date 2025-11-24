@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +14,8 @@ import { RegistrationFormData, DocumentUpload, RegistrationFormErrors } from "@/
 import { submitRegistration } from "@/service/registrationService"
 
 export default function RegistrationPage() {
+  const params = useParams();
+  const id = params?.id as string;
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<RegistrationFormData>({
     name: "",
@@ -198,47 +201,31 @@ export default function RegistrationPage() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
     if (!validateForm()) {
       toast.error("Please fix the errors in the form")
       return
     }
-
     try {
       setLoading(true)
-      
-      // Create FormData for file uploads
       const submitData = new FormData()
-      
-      // Add personal information
+      submitData.append('id', id) // Pass the MongoDB id
       submitData.append('name', formData.name)
       submitData.append('dateOfBirth', formData.dateOfBirth)
       submitData.append('contactNumber', formData.contactNumber)
       submitData.append('maritalStatus', formData.maritalStatus)
-      
-      // Add address information
       submitData.append('address', JSON.stringify(formData.address))
-      
-      // Add documents
       formData.documents.forEach((doc, index) => {
         if (doc.file) {
           submitData.append(`documents[${index}][file]`, doc.file)
           submitData.append(`documents[${index}][title]`, doc.title)
         }
       })
-
-      // Submit to API
       const response = await submitRegistration(submitData)
-
-      // Backend may return { status: boolean } or { success: boolean }
       const ok = (response as any).status ?? (response as any).success
       if (!ok) {
         throw new Error((response as any).message || "Registration failed")
       }
-
       toast.success("Registration submitted successfully!")
-      
-      // Reset form
       setFormData({
         name: "",
         dateOfBirth: "",
@@ -253,7 +240,6 @@ export default function RegistrationPage() {
         },
         documents: []
       })
-      
     } catch (error) {
       console.error("Registration error:", error)
       toast.error("Failed to submit registration. Please try again.")
