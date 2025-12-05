@@ -194,3 +194,12 @@ export interface AttendanceSummaryProps {
   year: number;
   className?: string;
 }
+
+// Attendance Request Interface
+export interface AttendanceRequestType {
+  id: string;
+  staffName: string;
+  date: string;
+  reason: string;
+  status: "pending" | "approved" | "rejected";
+}

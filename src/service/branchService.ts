@@ -37,7 +37,8 @@ export const getBranchById = async (branchId: string): Promise<BranchResponseTyp
 }
 
 // Create new branch
-export const createBranch = async (branchData: CreateBranchType): Promise<BranchResponseType> => {
+// Create new branch
+export const createBranch = async (branchData: CreateBranchType): Promise<BranchPaginationResponseType> => {
   try {
     const response = await axiosInstance.post('/admin/branches', branchData)
     return response.data
@@ -47,7 +48,7 @@ export const createBranch = async (branchData: CreateBranchType): Promise<Branch
 }
 
 // Update branch
-export const updateBranch = async (branchId: string, branchData: UpdateBranchType): Promise<BranchResponseType> => {
+export const updateBranch = async (branchId: string, branchData: UpdateBranchType): Promise<BranchPaginationResponseType> => {
   try {
     const response = await axiosInstance.put(`/admin/branches/${branchId}`, branchData)
     return response.data

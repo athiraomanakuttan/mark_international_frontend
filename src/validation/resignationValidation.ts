@@ -11,39 +11,7 @@ export class ResignationValidation {
   static validateResignationForm(data: ResignationFormData): ResignationValidationResult {
     const errors: ResignationFormErrors = {};
 
-    // Validate start date
-    if (!data.startDate) {
-      errors.startDate = 'Start date is required';
-    } else {
-      const startDate = new Date(data.startDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      if (startDate < today) {
-        errors.startDate = 'Start date cannot be in the past';
-      }
-    }
-
-    // Validate end date
-    if (!data.endDate) {
-      errors.endDate = 'End date is required';
-    } else if (data.startDate) {
-      const startDate = new Date(data.startDate);
-      const endDate = new Date(data.endDate);
-      
-      if (endDate <= startDate) {
-        errors.endDate = 'End date must be after start date';
-      }
-      
-      // Check if notice period is reasonable (at least 1 day, max 365 days)
-      const diffTime = endDate.getTime() - startDate.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays > 365) {
-        errors.endDate = 'Notice period cannot exceed 365 days';
-      }
-    }
-
+   
     // Validate reason
     if (!data.reason || !data.reason.trim()) {
       errors.reason = 'Reason for resignation is required';
@@ -83,39 +51,6 @@ export class ResignationValidation {
    */
   static validateField(field: keyof ResignationFormData, value: any, formData?: Partial<ResignationFormData>): string | undefined {
     switch (field) {
-      case 'startDate':
-        if (!value) {
-          return 'Start date is required';
-        }
-        const startDate = new Date(value);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        if (startDate < today) {
-          return 'Start date cannot be in the past';
-        }
-        break;
-
-      case 'endDate':
-        if (!value) {
-          return 'End date is required';
-        }
-        if (formData?.startDate) {
-          const startDate = new Date(formData.startDate);
-          const endDate = new Date(value);
-          
-          if (endDate <= startDate) {
-            return 'End date must be after start date';
-          }
-          
-          const diffTime = endDate.getTime() - startDate.getTime();
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          
-          if (diffDays > 365) {
-            return 'Notice period cannot exceed 365 days';
-          }
-        }
-        break;
 
       case 'reason':
         if (!value || !value.trim()) {

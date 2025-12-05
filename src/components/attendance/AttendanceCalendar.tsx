@@ -23,55 +23,52 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-export function AttendanceCalendar({
-  userId,
-  userJoiningDate,
-  month: initialMonth,
-  year: initialYear,
-  onDateClick,
-  onLeaveRequest,
-  colors = {},
-  className
-}: AttendanceCalendarProps) {
+interface AttendanceCalendarWithDeleteProps extends AttendanceCalendarProps {
+  onDeleteLeave?: (leaveId: string) => void;
+  refreshKey?: any;
+}
+
+export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
+  // Destructure props at the top so all variables are available
+  const {
+    userId,
+    userJoiningDate,
+    month: initialMonth,
+    year: initialYear,
+    onDateClick,
+    onLeaveRequest,
+    onDeleteLeave,
+    colors = {},
+    className
+  } = props;
+
+  // State and logic for calendar
   const [currentMonth, setCurrentMonth] = useState(initialMonth);
   const [currentYear, setCurrentYear] = useState(initialYear);
   const [calendar, setCalendar] = useState<MonthlyCalendar | null>(null);
   const [summary, setSummary] = useState<AttendanceSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Use provided colors or fallback to default
   const calendarColors = { ...DEFAULT_CALENDAR_COLORS, ...colors };
 
-  // Load calendar data
-  const loadCalendarData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const calendarData = await AttendanceService.generateMonthlyCalendar(
-        userId,
-        currentMonth,
-        currentYear,
-        userJoiningDate
-      );
-      
-      setCalendar(calendarData);
-      
-      const summaryData = AttendanceService.calculateAttendanceSummary(calendarData);
-      setSummary(summaryData);
-    } catch (err) {
-      console.error('Error loading calendar data:', err);
-      setError('Failed to load attendance data');
-    } finally {
-      setLoading(false);
-    }
+  // Handler to load calendar data (dummy for now, should be implemented)
+  const loadCalendarData = () => {
+    setLoading(true);
+    AttendanceService.generateMonthlyCalendar(userId, currentMonth, currentYear, userJoiningDate)
+      .then((calendarData) => {
+        setCalendar(calendarData);
+        setSummary(AttendanceService.calculateAttendanceSummary(calendarData));
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError('Failed to load calendar');
+        setLoading(false);
+      });
   };
 
-  useEffect(() => {
-    loadCalendarData();
-  }, [userId, currentMonth, currentYear, userJoiningDate]);
-
-  // Navigation handlers
+  // Handler for previous month navigation
   const goToPreviousMonth = () => {
     if (currentMonth === 1) {
       setCurrentMonth(12);
@@ -80,6 +77,27 @@ export function AttendanceCalendar({
       setCurrentMonth(currentMonth - 1);
     }
   };
+
+  // Load calendar data when relevant props change (must be after all variables are defined)
+  useEffect(() => {
+    if (!userId || !userJoiningDate) return;
+    setLoading(true);
+    setError(null);
+    AttendanceService.generateMonthlyCalendar(userId, currentMonth, currentYear, userJoiningDate)
+      .then((calendarData) => {
+        setCalendar(calendarData);
+        setSummary(AttendanceService.calculateAttendanceSummary(calendarData));
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError('Failed to load calendar');
+        setLoading(false);
+      });
+  }, [userId, userJoiningDate, currentMonth, currentYear, props.refreshKey]);
+
+  // ...existing code...
+
+  // ...existing hooks and logic for loading calendar data...
 
   const goToNextMonth = () => {
     if (currentMonth === 12) {
@@ -152,17 +170,39 @@ export function AttendanceCalendar({
               )}
             </div>
           </TooltipTrigger>
-          <TooltipContent>
-            <div className="text-center">
-              <p className="font-medium">{AttendanceService.formatDate(date.date)}</p>
-              <p className="text-sm text-gray-600">{statusText}</p>
-              {date.leaveRequest && (
-                <p className="text-xs text-orange-600 mt-1">
-                  Leave: {date.leaveRequest.reason.substring(0, 30)}...
-                </p>
-              )}
-            </div>
-          </TooltipContent>
+         <TooltipContent>
+  <div className="text-left max-w-xs">
+    <p className="font-medium">{AttendanceService.formatDate(date.date)}</p>
+    <p className="text-sm text-gray-600">{statusText}</p>
+    {date.leaveRequest && (
+      <>
+        <p className="text-xs text-orange-600 mt-1 break-words">
+          <strong>Reason:</strong> {date.leaveRequest.reason}
+        </p>
+        {date.leaveRequest.documents && date.leaveRequest.documents.length > 0 && (
+          <div className="mt-2">
+            <strong>Documents:</strong>
+            <ul className="list-disc list-inside">
+              {date.leaveRequest.documents.map((doc, idx) => (
+                <li key={idx}>
+                  <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                    {doc.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <button
+          className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+          onClick={() => onDeleteLeave?.(date.leaveRequest?._id!)}
+        >
+          Delete
+        </button>
+      </>
+    )}
+  </div>
+</TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );

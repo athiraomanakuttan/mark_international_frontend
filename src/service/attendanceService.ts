@@ -72,11 +72,11 @@ export class AttendanceService {
       // Add documents if provided
       if (leaveData.documents && leaveData.documents.length > 0) {
         leaveData.documents.forEach((file, index) => {
-          formData.append(`documents`, file);
+          formData.append(`files`, file);
         });
         console.log(`Added ${leaveData.documents.length} documents to form data`);
       }
-
+      
       console.log('Making POST request to:', this.ENDPOINTS.LEAVE);
       const response = await axiosInstance.post<LeaveResponse>(
         this.ENDPOINTS.LEAVE,
@@ -455,4 +455,21 @@ export class AttendanceService {
         return 'Unknown';
     }
   }
+
+    /**
+     * Delete a leave request by ID
+     */
+    static async deleteLeaveRequest(leaveId: string): Promise<LeaveResponse> {
+      try {
+        const response = await axiosInstance.delete<LeaveResponse>(`${this.ENDPOINTS.LEAVE}/${leaveId}`);
+        return response.data;
+      } catch (error: any) {
+        console.error('Error deleting leave request:', error);
+        return {
+          success: false,
+          message: error.response?.data?.message || error.message || 'Failed to delete leave request',
+          errors: error.response?.data?.errors
+        };
+      }
+    }
 }

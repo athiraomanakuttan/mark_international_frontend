@@ -41,18 +41,12 @@ export class ResignationService {
     try {
       const formData = new FormData();
 
-      formData.append('startDate', resignationData.startDate);
       formData.append('reason', resignationData.reason);
 
       if (resignationData.document) {
         formData.append('document', resignationData.document);
       }
 
-      console.log('📝 Creating resignation with data:', {
-        startDate: resignationData.startDate,
-        reason: resignationData.reason,
-        hasDocument: !!resignationData.document
-      });
 
       const response = await axiosInstance.post('/staff/resignation', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -73,7 +67,6 @@ export class ResignationService {
     try {
       const formData = new FormData();
 
-      if (resignationData.startDate !== undefined) formData.append('startDate', resignationData.startDate);
       if (resignationData.reason !== undefined) formData.append('reason', resignationData.reason);
       if (resignationData.document) formData.append('document', resignationData.document);
 

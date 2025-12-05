@@ -5,6 +5,7 @@ import { Calendar, Clock, FileText, Plus, AlertCircle, CheckCircle } from 'lucid
 import { ModernDashboardLayout } from '@/components/staff/modern-dashboard-navbar';
 import { AttendanceCalendar } from '@/components/attendance/AttendanceCalendar';
 import { LeaveRequestModal } from '@/components/attendance/LeaveRequestModal';
+import LeaveDetailsModal from '@/components/LeaveDetailsModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,8 +26,11 @@ export default function AttendancePage() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
+  // Remove editingLeave, only use selectedLeave for details modal
   const [recentLeaves, setRecentLeaves] = useState<LeaveRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedLeave, setSelectedLeave] = useState<LeaveRequest | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Get user data from Redux store
   const { user } = useSelector((state: RootState) => state.user);
@@ -97,10 +101,35 @@ export default function AttendancePage() {
       setSelectedDate(date.date);
       setIsLeaveModalOpen(true);
     } else if (date.leaveRequest) {
-      // Show leave request details
-      toast.info(`Leave request: ${date.leaveRequest.reason} (Status: ${date.leaveRequest.status})`);
+      setSelectedLeave(date.leaveRequest);
     }
   };
+
+  const handleDetailsModalClose = () => setSelectedLeave(null);
+
+  const handleLeaveDeleted = (leaveId: string) => {
+    setSelectedLeave(null);
+    loadRecentLeaves();
+  };
+
+  const handleLeaveDelete = async (leaveId: string) => {
+    if (!leaveId) return;
+    try {
+      const res = await AttendanceService.deleteLeaveRequest(leaveId);
+      if(res && res.success){
+        toast.dismiss();  
+        toast.success('Leave request deleted');
+        setRefreshKey((k) => k + 1);
+        loadRecentLeaves();
+      } else {
+        toast.error(res?.message || 'Failed to delete leave request');
+      }
+    } catch (error) {
+      console.error('Error deleting leave request:', error);
+      toast.dismiss();
+      toast.error('Failed to delete leave request');
+    }
+  }
 
   // Handle leave request submission
   const handleLeaveRequestSubmit = async (leaveData: CreateLeaveRequestDto) => {
@@ -111,6 +140,7 @@ export default function AttendancePage() {
       if (response.success) {
         toast.success('Leave request submitted successfully!');
         setIsLeaveModalOpen(false);
+        setRefreshKey((k) => k + 1);
         loadRecentLeaves(); // Refresh recent leaves
         // The calendar will be refreshed automatically when the modal closes
       } else {
@@ -152,7 +182,6 @@ export default function AttendancePage() {
         return <Clock className="w-3 h-3" />;
     }
   };
-
   const currentDate = new Date().toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "2-digit",
@@ -214,6 +243,8 @@ export default function AttendancePage() {
                 year={currentYear}
                 onDateClick={handleDateClick}
                 onLeaveRequest={handleLeaveRequestSubmit}
+                onDeleteLeave={handleLeaveDelete}
+                refreshKey={refreshKey}
               />
             ) : (
               <Card>
@@ -256,6 +287,8 @@ export default function AttendancePage() {
                       <div 
                         key={leave._id} 
                         className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        onClick={() => setSelectedLeave(leave)}
+                        style={{ cursor: 'pointer' }}
                       >
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
@@ -300,6 +333,13 @@ export default function AttendancePage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Leave Details Modal */}
+        <LeaveDetailsModal
+          leave={selectedLeave}
+          onClose={handleDetailsModalClose}
+          onDeleted={handleLeaveDeleted}
+        />
 
         {/* Leave Request Modal */}
         <LeaveRequestModal

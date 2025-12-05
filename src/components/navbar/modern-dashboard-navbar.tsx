@@ -94,17 +94,39 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 
                   {expandedItems.includes(item.title) && (
                     <div className="ml-11 mt-2 space-y-1">
-                      {item.items.map((subItem) => (
-                        <Link
-                          key={subItem.title}
-                          href={subItem.url}
-                          className="flex items-center space-x-3 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/30 transition-all duration-200"
-                          onClick={onClose}
-                        >
-                          <subItem.icon className="h-4 w-4" />
-                          <span className="text-sm">{subItem.title}</span>
-                        </Link>
-                      ))}
+                        {item.items.map((subItem) => (
+                          subItem.items ? (
+                            <div key={subItem.title}>
+                              <div className="flex items-center space-x-3 p-2 rounded-lg text-slate-400 font-semibold">
+                                <subItem.icon className="h-4 w-4" />
+                                <span className="text-sm">{subItem.title}</span>
+                              </div>
+                              <div className="ml-8 mt-1 space-y-1">
+                                {subItem.items.map((nestedItem) => (
+                                  <Link
+                                    key={nestedItem.title}
+                                    href={nestedItem.url}
+                                    className="flex items-center space-x-3 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/30 transition-all duration-200"
+                                    onClick={onClose}
+                                  >
+                                    <nestedItem.icon className="h-4 w-4" />
+                                    <span className="text-sm">{nestedItem.title}</span>
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <Link
+                              key={subItem.title}
+                              href={subItem.url}
+                              className="flex items-center space-x-3 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/30 transition-all duration-200"
+                              onClick={onClose}
+                            >
+                              <subItem.icon className="h-4 w-4" />
+                              <span className="text-sm">{subItem.title}</span>
+                            </Link>
+                          )
+                        ))}
                     </div>
                   )}
                 </div>

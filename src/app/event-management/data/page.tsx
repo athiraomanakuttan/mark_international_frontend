@@ -68,10 +68,11 @@ export default function DataViewPage() {
       try {
         const response = await getRecentEvents();
         if (response.status) {
-          // Convert date fields into real Date objects
+          // Convert startDate and endDate fields into real Date objects
           const eventsWithDate = response.data.map((event: any) => ({
             ...event,
-            date: new Date(event.date),
+            startDate: new Date(event.startDate),
+            endDate: new Date(event.endDate),
           }));
           setSampleEvents(eventsWithDate);
         }
@@ -227,8 +228,8 @@ export default function DataViewPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm text-slate-600">Date:</span>
-                      <span className="font-medium">{selectedEventData.date.toLocaleDateString()}</span>
+                      <span className="text-sm text-slate-600">Start Date:</span>
+                      <span className="font-medium">{selectedEventData.startDate instanceof Date ? selectedEventData.startDate.toLocaleDateString() : selectedEventData.startDate}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-red-600" />

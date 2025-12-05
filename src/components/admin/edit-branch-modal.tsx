@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Edit } from "lucide-react"
 import { toast } from "react-toastify"
 import { updateBranch } from "@/service/branchService"
-import { UpdateBranchType, BranchType } from "@/types/branch-types"
+import { UpdateBranchType, BranchType, BranchPaginationResponseType } from "@/types/branch-types"
 
 interface EditBranchModalProps {
   open: boolean
@@ -87,8 +87,7 @@ export default function EditBranchModal({
 
     try {
       setLoading(true)
-      const response = await updateBranch(branch._id, formData)
-      
+      const response: BranchPaginationResponseType = await updateBranch(branch._id, formData)
       if (response.status) {
         toast.success("Branch updated successfully!")
         onBranchUpdated()

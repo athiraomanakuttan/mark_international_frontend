@@ -68,8 +68,8 @@ export default function RegistrationsPage() {
   const fetchRegistrations = async (page: number, limit: number) => {
     try {
       setLoading(true)
-      // Pass role as 'staff'
-      const response = await getRegistrations("staff", page, limit) as RegistrationListResponse
+      // Pass role as 'employee'
+      const response = await getRegistrations("employee", page, limit) as RegistrationListResponse
       
       if (response.success) {
         setRegistrations(response.data)
@@ -89,13 +89,11 @@ export default function RegistrationsPage() {
     }
   }
 
-  // View registration details
   const viewRegistration = async (registrationId: string) => {
     try {
       setModalLoading(true)
       setShowModal(true)
-      // Pass role as 'staff'
-      const response = await getRegistrationById(registrationId, "staff")
+      const response = await getRegistrationById(registrationId, "employee")
       
       if ((response as any).success || (response as any).status) {
         setSelectedRegistration((response as any).data)
@@ -182,7 +180,7 @@ export default function RegistrationsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">
-            View Staff Registrations
+            View Employees Registrations
           </h1>
         </div>
 
@@ -473,7 +471,7 @@ export default function RegistrationsPage() {
                                 <div className="flex-1 min-w-0">
                                   <div className="space-y-2">
                                     <div>
-                                      <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Document Name</label>
+                                      <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Document Name {document.title}</label>
                                       <h4 className="font-semibold text-slate-900 truncate text-lg" title={document.title}>
                                         {document.title}
                                       </h4>

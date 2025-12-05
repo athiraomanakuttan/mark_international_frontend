@@ -23,11 +23,12 @@ export function LeaveRequestModal({
   onSubmit,
   selectedDate,
   userId,
-  isLoading = false
-}: LeaveRequestModalProps) {
+  isLoading = false,
+  editingLeave = null
+}: LeaveRequestModalProps & { editingLeave?: LeaveRequest | null }) {
   const [formData, setFormData] = useState<LeaveRequestFormData>({
-    leaveDate: selectedDate || '',
-    reason: '',
+    leaveDate: selectedDate || (editingLeave ? editingLeave.leaveDate : ''),
+    reason: editingLeave ? editingLeave.reason : '',
     documents: []
   });
   const [errors, setErrors] = useState<string[]>([]);
@@ -187,13 +188,21 @@ export function LeaveRequestModal({
 
   // Reset form when modal opens with new selected date
   React.useEffect(() => {
-    if (isOpen && selectedDate) {
-      setFormData(prev => ({
-        ...prev,
-        leaveDate: selectedDate
-      }));
+    if (isOpen) {
+      if (editingLeave) {
+        setFormData({
+          leaveDate: editingLeave.leaveDate,
+          reason: editingLeave.reason,
+          documents: [] // Documents are not editable in this modal
+        });
+      } else if (selectedDate) {
+        setFormData(prev => ({
+          ...prev,
+          leaveDate: selectedDate
+        }));
+      }
     }
-  }, [isOpen, selectedDate]);
+  }, [isOpen, selectedDate, editingLeave]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -206,6 +215,30 @@ export function LeaveRequestModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {editingLeave && (
+            <Alert variant="default">
+              <AlertDescription>
+                <div className="mb-2">
+                  <strong>Viewing Applied Leave</strong>
+                </div>
+                <div><strong>Date:</strong> {editingLeave.leaveDate}</div>
+                <div><strong>Reason:</strong> {editingLeave.reason}</div>
+                <div><strong>Status:</strong> {editingLeave.status}</div>
+                {editingLeave.documents && editingLeave.documents.length > 0 && (
+                  <div className="mt-2">
+                    <strong>Documents:</strong>
+                    <ul>
+                      {editingLeave.documents.map((doc, idx) => (
+                        <li key={idx}>
+                          <a href={doc.url} target="_blank" rel="noopener noreferrer">{doc.title}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
           {/* Error Messages */}
           {errors.length > 0 && (
             <Alert variant="destructive">

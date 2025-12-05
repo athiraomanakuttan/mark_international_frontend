@@ -69,7 +69,7 @@ export const menuItems = [
         icon: Eye,
       },
       {
-        title: "View Registration",
+        title: "Registrations",
         url: "/staff-management/registrations",
         icon: FileText,
       },
@@ -90,6 +90,11 @@ export const menuItems = [
         title: "View Employees",
         url: "/admin/employees",
         icon: Eye,
+      },
+      {
+        title: "Registrations",
+        url: "/admin/employees/registrations",
+        icon: FileText,
       },
     ],
   },
@@ -161,6 +166,22 @@ export const menuItems = [
         url: "/admin/terminations",
         icon: UserX,
       },
+        {
+          title: "Attendance",
+          icon: ClipboardList,
+          items: [
+            {
+              title: "Request",
+              url: "/admin/attendance/request",
+              icon: FileText,
+            },
+            {
+              title: "Attendance",
+              url: "/admin/attendance/view",
+              icon: Eye,
+            },
+          ],
+        },
     ],
   },
     
