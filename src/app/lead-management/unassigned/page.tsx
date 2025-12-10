@@ -45,7 +45,6 @@ from.setDate(from.getDate() - 10);
     totalItems: 0,
   })
   
-  useEffect(()=>{console.log("selectedLeadList", selectedLeadList)},[selectedLeadList]) // come
   
 
   const handleSelectLead = (leadId: string) => {
@@ -101,7 +100,6 @@ from.setDate(from.getDate() - 10);
       const statusParam = leadStatus.length > 0 ? leadStatus.join(",") : "7" // '7' for All, or empty string if backend expects that
       const response = await getUnassignedLeads(statusParam, paginationData.currentPage, paginationData.limit,{fromDate, createBy,leadCategory, leadStatus, staff, toDate} as LeadFilterType, searchQuery)
       if (response.status) {
-        console.log("lead response", response.data)
         setLeadData(response?.data?.lead)
         setPaginationData((prev) => ({
           ...prev,

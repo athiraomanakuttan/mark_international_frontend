@@ -59,7 +59,6 @@ yesterday.setDate(yesterday.getDate() - 10);
       const statusParam = leadStatus.length > 0 ? leadStatus.join(",") : "7" // '7' for All, or empty string if backend expects that
       const response = await getTransferLeads(statusParam, paginationData.currentPage, paginationData.limit,{fromDate,leadCategory, leadStatus, fromStaff,toStaff, toDate} as LeadFilterType, searchQuery)
       if (response.status) {
-        console.log("lead response", response.data.leads)
         setLeadData(response?.data?.leads)
         setPaginationData((prev) => ({
           ...prev,

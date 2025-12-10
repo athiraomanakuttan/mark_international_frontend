@@ -166,22 +166,22 @@ export const menuItems = [
         url: "/admin/terminations",
         icon: UserX,
       },
-        {
-          title: "Attendance",
-          icon: ClipboardList,
-          items: [
-            {
-              title: "Request",
-              url: "/admin/attendance/request",
-              icon: FileText,
-            },
-            {
-              title: "Attendance",
-              url: "/admin/attendance/view",
-              icon: Eye,
-            },
-          ],
-        },
+        // {
+        //   title: "Attendance",
+        //   icon: ClipboardList,
+        //   items: [
+        //     {
+        //       title: "Request",
+        //       url: "/admin/attendance/request",
+        //       icon: FileText,
+        //     },
+        //     {
+        //       title: "Attendance",
+        //       url: "/admin/attendance/view",
+        //       icon: Eye,
+        //     },
+        //   ],
+        // },
     ],
   },
     

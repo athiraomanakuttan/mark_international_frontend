@@ -29,7 +29,6 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
   const token = request.cookies.get('accessToken')?.value;
   const { pathname } = request.nextUrl;
 
-  console.log("🔥 MIDDLEWARE TRIGGERED:", pathname);
 
   // Allow public pages
   if (pathname === '/' || PUBLIC_ROUTES.some(path => pathname === path || pathname.startsWith(path + '/'))) {
@@ -37,17 +36,14 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
   }
 
   if (!token) {
-    console.log('❌ No token. Redirecting to /login');
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   let decoded: DecodedToken | null;
   try {
     decoded = jwt.decode(token) as DecodedToken | null;
-    console.log('✅ Token decoded:', decoded);
     if (!decoded) throw new Error('Invalid token');
   } catch (error) {
-    console.log('❌ Failed to decode token');
     const response = NextResponse.redirect(new URL('/login', request.url));
     response.cookies.delete('accessToken');
     return response;
@@ -56,7 +52,6 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
   const { role, exp } = decoded;
 
   if (exp < Date.now() / 1000) {
-    console.log('❌ Token expired');
     const response = NextResponse.redirect(new URL('/login', request.url));
     response.cookies.delete('accessToken');
     return response;
@@ -71,7 +66,6 @@ if (STAFF_ROUTES.some(path => pathname === path || pathname.startsWith(`${path}/
 }
 
 
-  console.log('✅ Access granted');
   return NextResponse.next();
 }
 

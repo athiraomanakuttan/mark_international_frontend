@@ -110,7 +110,6 @@ const LoginPage: React.FC = () => {
 
     try {
       const response = await loginUser(formData)
-      console.log("Response ==><== ", response?.data?.user?.role)
 
       if (response.status) {
         Cookies.set("accessToken", response?.data?.accessToken || "", { expires: 7 })
@@ -132,7 +131,6 @@ const LoginPage: React.FC = () => {
         toast.error(response.message || "Login failed. Please try again.")
       }
     } catch (error) {
-      console.error("Login error:", error)
       dispatch(setLoading(false))
       setIsLoading(false)
       toast.error("An unexpected error occurred. Please try again.")

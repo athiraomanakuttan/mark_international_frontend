@@ -43,7 +43,6 @@ export default function HomePage() {
       const response = await leadDashboardData(leadDateRange?.from || new Date(), leadDateRange?.to || new Date())
       if (response.status) setLeadData(response.data) 
     } catch (error) {
-      console.log("error fetching data", error)
     }
   }
 
@@ -75,7 +74,7 @@ export default function HomePage() {
       const response = await getStaffWiseReport(staffDateRange?.from || new Date(), staffDateRange?.to || new Date())
       setStaffData(response?.data?.staffData)
     } catch (error) {
-      console.log(error)
+
     }
   }
 
@@ -133,9 +132,8 @@ export default function HomePage() {
   const getMonthlyLead = async ()=>{
     try{
       const response = await monthlyWiseCount()
-      console.log("--------------", response.data)
       if(response.status) setMonthlyLeadCount(response.data)
-    }catch(err){ console.log(err)}
+    }catch(err){}
   }
   useEffect(()=>{ getMonthlyLead()},[])
   return (

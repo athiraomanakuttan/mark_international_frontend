@@ -360,12 +360,7 @@ export default function LeadImportForm() {
       }
     })
 
-    // Log summary
-    console.log(`Processing summary:`)
-    console.log(`- Total Excel rows: ${excelData.length}`)
-    console.log(`- Valid leads: ${processedLeads.length}`)
-    console.log(`- Errors: ${errors.length}`)
-    console.log(`- Skipped empty rows: ${skippedRows.length}`)
+ 
 
     if (errors.length > 0) {
       // Show only first 10 errors to avoid overwhelming the user

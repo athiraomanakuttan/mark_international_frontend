@@ -103,9 +103,7 @@ export default function LeadsReportPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { staffList } = useSelector((state: RootState) => state.staff);
 
-  useEffect(() => {
-    console.log(priority);
-  }, [priority]);
+ 
   useEffect(() => {
     if (selectedLead) setIsUpdateModelOpen(true);
   }, [selectedLead]);
@@ -134,7 +132,6 @@ export default function LeadsReportPage() {
         searchQuery
       );
       if (response.status) {
-        console.log("lead response", response.data);
         setLeadData(response?.data?.lead);
         setPaginationData((prev) => ({
           ...prev,

@@ -5,7 +5,7 @@ const BACKEND_URI = process.env.NEXT_PUBLIC_BACKEND_URI
 export async function loginUser(credentials: LoginType): Promise<LoginResponse> {
   try {
    const response  = await axios.post<LoginResponse>(`${BACKEND_URI}/auth/login`, credentials)
-   console.log("response",response.data)
+
     if (response.data.status) {
         // set the access token in local storage (only on client)
         try {

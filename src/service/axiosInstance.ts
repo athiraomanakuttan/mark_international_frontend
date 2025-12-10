@@ -6,7 +6,7 @@ import axios, {
 import { toast } from 'react-toastify';
 
 const BACKEND_URI = process.env.NEXT_PUBLIC_BACKEND_URI
-console.log("BACKEND_URI", BACKEND_URI);
+
 const axiosInstance = axios.create({
   baseURL: BACKEND_URI,
   

@@ -13,7 +13,8 @@ import { cn } from '@/lib/utils';
 import { 
   LeaveRequestModalProps, 
   CreateLeaveRequestDto,
-  LeaveRequestFormData 
+  LeaveRequestFormData, 
+  LeaveRequest
 } from '@/types/attendance-types';
 import { AttendanceService } from '@/service/attendanceService';
 
@@ -130,14 +131,6 @@ export function LeaveRequestModal({
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    
-    console.log('Submitting leave request with data:', {
-      userId,
-      leaveDate: formData.leaveDate,
-      reason: formData.reason.trim(),
-      documentsCount: formData.documents.length
-    });
-    
     if (!validateForm()) {
       return;
     }
@@ -152,8 +145,6 @@ export function LeaveRequestModal({
         reason: formData.reason.trim(),
         documents: formData.documents
       };
-
-      console.log('Calling onSubmit with:', leaveRequestData);
       await onSubmit(leaveRequestData);
       
       // Reset form on success
@@ -165,7 +156,6 @@ export function LeaveRequestModal({
       
       onClose();
     } catch (error) {
-      console.error('Error submitting leave request:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to submit leave request. Please try again.';
       setErrors([errorMessage]);
     } finally {

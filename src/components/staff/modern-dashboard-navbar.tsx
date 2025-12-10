@@ -61,12 +61,12 @@ const menuItems = [
     icon: Home,
     color: "bg-blue-500",
   },
-  {
-    title: "Attendance",
-    url: "/staff/attendance",
-    icon: Calendar,
-    color: "bg-purple-500",
-  },
+  // {
+  //   title: "Attendance",
+  //   url: "/staff/attendance",
+  //   icon: Calendar,
+  //   color: "bg-purple-500",
+  // },
   {
     title: "Applications",
     icon: ClipboardList,

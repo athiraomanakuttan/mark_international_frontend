@@ -231,9 +231,6 @@ export default function LeadImportForm() {
       })
       
       setColumnMapping(autoMapping)
-
-      console.log(`Processed ${excelDataFormatted.length} valid rows from ${jsonData.length - 1} total rows`)
-
     } catch (err) {
       setError("Error reading Excel file. Please try again.")
       console.error("File reading error:", err)
@@ -360,12 +357,7 @@ export default function LeadImportForm() {
       }
     })
 
-    // Log summary
-    console.log(`Processing summary:`)
-    console.log(`- Total Excel rows: ${excelData.length}`)
-    console.log(`- Valid leads: ${processedLeads.length}`)
-    console.log(`- Errors: ${errors.length}`)
-    console.log(`- Skipped empty rows: ${skippedRows.length}`)
+    
 
     if (errors.length > 0) {
       // Show only first 10 errors to avoid overwhelming the user

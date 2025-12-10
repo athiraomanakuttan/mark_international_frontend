@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { 
-  AttendanceCalendarProps, 
-  CalendarDate, 
-  AttendanceStatus, 
+import {
+  AttendanceCalendarProps,
+  CalendarDate,
+  AttendanceStatus,
   MonthlyCalendar,
   AttendanceSummary,
   DEFAULT_CALENDAR_COLORS
@@ -58,6 +58,7 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
     setLoading(true);
     AttendanceService.generateMonthlyCalendar(userId, currentMonth, currentYear, userJoiningDate)
       .then((calendarData) => {
+        console.log('Loaded calendar data:=========================', calendarData);
         setCalendar(calendarData);
         setSummary(AttendanceService.calculateAttendanceSummary(calendarData));
         setLoading(false);
@@ -117,7 +118,7 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
   // Handle date click
   const handleDateClick = (date: CalendarDate) => {
     if (!date.isClickable) return;
-    
+
     if (onDateClick) {
       onDateClick(date);
     }
@@ -137,7 +138,7 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
   const renderDateCell = (date: CalendarDate) => {
     const statusColor = getStatusColor(date.status);
     const statusText = getStatusText(date.status);
-    
+
     return (
       <TooltipProvider key={date.date}>
         <Tooltip>
@@ -157,52 +158,55 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
             >
               {/* Date number */}
               <span className="font-medium">{date.day}</span>
-              
+
               {/* Status indicator */}
               <div
                 className="w-2 h-2 rounded-full mt-1"
                 style={{ backgroundColor: statusColor }}
               />
-              
+
               {/* Leave request indicator */}
               {date.leaveRequest && (
                 <div className="absolute top-0 right-0 w-1 h-1 bg-orange-500 rounded-full" />
               )}
             </div>
           </TooltipTrigger>
-         <TooltipContent>
-  <div className="text-left max-w-xs">
-    <p className="font-medium">{AttendanceService.formatDate(date.date)}</p>
-    <p className="text-sm text-gray-600">{statusText}</p>
-    {date.leaveRequest && (
-      <>
-        <p className="text-xs text-orange-600 mt-1 break-words">
-          <strong>Reason:</strong> {date.leaveRequest.reason}
-        </p>
-        {date.leaveRequest.documents && date.leaveRequest.documents.length > 0 && (
-          <div className="mt-2">
-            <strong>Documents:</strong>
-            <ul className="list-disc list-inside">
-              {date.leaveRequest.documents.map((doc, idx) => (
-                <li key={idx}>
-                  <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                    {doc.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        <button
-          className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-          onClick={() => onDeleteLeave?.(date.leaveRequest?._id!)}
-        >
-          Delete
-        </button>
-      </>
-    )}
-  </div>
-</TooltipContent>
+          <TooltipContent>
+            <div className="text-left max-w-xs">
+              <p className="font-medium">{AttendanceService.formatDate(date.date)}</p>
+              <p className="text-sm text-white-600">{statusText}</p>
+              {date.leaveRequest && (
+                <>
+                  <p className="text-xs text-orange-600 mt-1 break-words">
+                    <strong>Reason:</strong> {date.leaveRequest.reason}
+                  </p>
+                  {date.leaveRequest.documents && date.leaveRequest.documents.length > 0 && (
+                    <div className="mt-2">
+                      <strong>Documents:</strong>
+                      <ul className="list-disc list-inside">
+                        {date.leaveRequest.documents.map((doc, idx) => (
+                          <li key={idx}>
+                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                              {doc.title}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {date.leaveRequest.status === 'pending' && onDeleteLeave && (
+                    <button
+                      className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                      onClick={() => onDeleteLeave?.(date.leaveRequest?._id!)}
+                    >
+                      Delete
+                    </button>
+                  )}
+
+                </>
+              )}
+            </div>
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );
@@ -244,7 +248,7 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
     <div className={cn('w-full space-y-4', className)}>
       {/* Summary Cards */}
       {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="text-center">
@@ -266,6 +270,14 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
               <div className="text-center">
                 <p className="text-2xl font-bold text-yellow-600">{summary.leavesPending}</p>
                 <p className="text-sm text-gray-600">Pending Leaves</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-600">{summary.leavesApproved}</p>
+                <p className="text-sm text-gray-600">Approved Leaves</p>
               </div>
             </CardContent>
           </Card>
@@ -326,36 +338,36 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
           {/* Legend */}
           <div className="mt-6 flex flex-wrap gap-4 justify-center text-sm">
             <div className="flex items-center space-x-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
+              <div
+                className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: calendarColors.present }}
               />
               <span>Present</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
+              <div
+                className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: calendarColors.absent }}
               />
               <span>Absent/Leave</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
+              <div
+                className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: calendarColors.leavePending }}
               />
               <span>Leave Pending</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
+              <div
+                className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: calendarColors.leaveRejected }}
               />
               <span>Leave Rejected</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
+              <div
+                className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: calendarColors.future }}
               />
               <span>Future/Unavailable</span>

@@ -16,9 +16,9 @@ export class ResignationService {
    */
   static async getUserResignation(): Promise<ResignationResponse> {
     try {
-      console.log('🔍 Fetching user resignation...');
+
       const response = await axiosInstance.get('/staff/resignation');
-      console.log('✅ User resignation fetched:', response.data);
+
       return response.data;
     } catch (error: any) {
       console.error('❌ Error fetching user resignation:', error);
@@ -52,7 +52,7 @@ export class ResignationService {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      console.log('✅ Resignation created successfully:', response.data);
+
       return response.data;
     } catch (error) {
       console.error('❌ Error creating resignation:', error);

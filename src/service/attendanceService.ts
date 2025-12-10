@@ -297,22 +297,22 @@ export class AttendanceService {
       date.status === AttendanceStatus.PRESENT
     ).length;
 
+    // Approved leaves count as absent
     const absentDays = relevantDates.filter(date => 
-      date.status === AttendanceStatus.ABSENT
+      date.status === AttendanceStatus.ABSENT || date.status === AttendanceStatus.LEAVE_APPROVED
     ).length;
 
-    const leavesApproved = relevantDates.filter(date => 
-      date.status === AttendanceStatus.LEAVE_APPROVED
-    ).length;
-
-    const leavesPending = relevantDates.filter(date => 
+    // Pending leaves - Count ALL pending leaves for the month, including future ones
+    const leavesPending = currentMonthDates.filter(date => 
       date.status === AttendanceStatus.LEAVE_PENDING
     ).length;
 
+    // Rejected leaves
     const leavesRejected = relevantDates.filter(date => 
       date.status === AttendanceStatus.LEAVE_REJECTED
     ).length;
 
+    // Attendance percentage: only present days count as attended
     const attendancePercentage = totalWorkingDays > 0 
       ? Math.round((presentDays / totalWorkingDays) * 100) 
       : 0;
@@ -320,8 +320,8 @@ export class AttendanceService {
     return {
       totalWorkingDays,
       presentDays,
-      absentDays: absentDays + leavesApproved, // Include approved leaves as absent days
-      leavesApproved,
+      absentDays,
+      leavesApproved: currentMonthDates.filter(date => date.status === AttendanceStatus.LEAVE_APPROVED).length,
       leavesPending,
       leavesRejected,
       attendancePercentage
@@ -427,6 +427,8 @@ export class AttendanceService {
         return '#9CA3AF'; // Gray
       case AttendanceStatus.BEFORE_JOINING:
         return '#9CA3AF'; // Gray
+      case AttendanceStatus.WEEKEND:
+        return '#E5E7EB'; // Gray-200
       default:
         return '#9CA3AF'; // Gray
     }
@@ -451,6 +453,8 @@ export class AttendanceService {
         return 'Future Date';
       case AttendanceStatus.BEFORE_JOINING:
         return 'Before Joining';
+      case AttendanceStatus.WEEKEND:
+        return 'Weekend';
       default:
         return 'Unknown';
     }

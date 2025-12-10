@@ -26,13 +26,13 @@ export class TerminationService {
         requestParams.type = type;
       }
 
-      console.log('📋 Fetching terminations with params:', requestParams);
+
 
       const response = await axiosInstance.get('/admin/terminations', {
         params: requestParams,
       });
 
-      console.log('✅ Terminations fetched successfully:', response.data);
+
       return response.data;
     } catch (error) {
       console.error('❌ Error fetching terminations:', error);
@@ -45,9 +45,9 @@ export class TerminationService {
    */
   static async getTerminationById(id: string): Promise<TerminationResponse> {
     try {
-      console.log('🔍 Fetching termination by ID:', id);
+
       const response = await axiosInstance.get(`/admin/terminations/${id}`);
-      console.log('✅ Termination fetched:', response.data);
+
       return response.data;
     } catch (error) {
       console.error('❌ Error fetching termination:', error);
@@ -60,11 +60,11 @@ export class TerminationService {
    */
   static async createTermination(terminationData: CreateTerminationRequest): Promise<TerminationResponse> {
     try {
-      console.log('📝 Creating termination with data:', terminationData);
+
 
       const response = await axiosInstance.post('/admin/terminations', terminationData);
 
-      console.log('✅ Termination created successfully:', response.data);
+
       return response.data;
     } catch (error) {
       console.error('❌ Error creating termination:', error);
@@ -77,9 +77,9 @@ export class TerminationService {
    */
   static async getActiveStaff(): Promise<StaffEmployeeListResponse> {
     try {
-      console.log('👥 Fetching active staff list...');
+
       const response = await axiosInstance.get('/admin/terminations/active-staff');
-      console.log('✅ Active staff fetched:', response.data);
+
       return response.data;
     } catch (error) {
       console.error('❌ Error fetching active staff:', error);
@@ -92,9 +92,9 @@ export class TerminationService {
    */
   static async getActiveEmployees(): Promise<StaffEmployeeListResponse> {
     try {
-      console.log('👷 Fetching active employees list...');
+
       const response = await axiosInstance.get('/admin/terminations/active-employees');
-      console.log('✅ Active employees fetched:', response.data);
+
       return response.data;
     } catch (error) {
       console.error('❌ Error fetching active employees:', error);

@@ -56,7 +56,6 @@ useEffect(() => {
   } 
 
   const handleSaveEvent = async (eventData: Omit<EventType, "id"> | EventType) => {
-    console.log("eventData", eventData)
     if ("_id" in eventData) {
       try{
         const response = await updateEvent(eventData._id || "", eventData)
@@ -106,7 +105,6 @@ useEffect(() => {
         setEvents(response.data)
       }
     }catch(err){
-      console.log("error while getting data", err)
     }
   }
 useEffect(()=>{

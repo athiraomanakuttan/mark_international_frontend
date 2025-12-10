@@ -62,7 +62,8 @@ export enum AttendanceStatus {
   LEAVE_APPROVED = 'leave_approved',
   LEAVE_REJECTED = 'leave_rejected',
   FUTURE = 'future',
-  BEFORE_JOINING = 'before_joining'
+  BEFORE_JOINING = 'before_joining',
+  WEEKEND = 'weekend'
 }
 
 // Calendar Date Info
@@ -152,6 +153,7 @@ export interface CalendarColors {
   beforeJoining: string;
   today: string;
   hover: string;
+  weekend: string;
 }
 
 // Default color scheme
@@ -164,7 +166,8 @@ export const DEFAULT_CALENDAR_COLORS: CalendarColors = {
   future: '#9CA3AF', // Gray
   beforeJoining: '#9CA3AF', // Gray
   today: '#8B5CF6', // Purple border
-  hover: '#F3F4F6' // Light gray
+  hover: '#F3F4F6', // Light gray
+  weekend: '#E5E7EB' // Gray-200 for weekends
 };
 
 // Component Props Interfaces

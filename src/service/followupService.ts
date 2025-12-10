@@ -10,9 +10,9 @@ export const updatedFollowupType = async (id: string, formData: LeadBasicType & 
             finalData["remarks"] = remarks
         if(Number(status)>1 && Number(status)<5)
             finalData["status"] = status
-        console.log("final data", finalData)
+
         const updateData = await updateLead(id, finalData);
-        console.log("updateData", updateData)
+
         // if a fllowup added
         if(status === 3){
             const newfollowup =  createFollowup( {leadId: id, followup_date, assignedAgentId, remarks} as FollowUpType)

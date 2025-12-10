@@ -32,15 +32,11 @@ export class EmployeeService {
         filter: JSON.stringify(cleanedFilter),
       };
 
-      console.log('⚠️ Sending request: GET /api/admin/employees with params:', requestParams);
-      console.log('Filter object before stringifying:', cleanedFilter);
-      console.log('Filter string:', requestParams.filter);
 
       const response = await axiosInstance.get('/admin/employees', {
         params: requestParams,
       });
 
-      console.log('✅ Employees fetched successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error('❌ Error fetching employees:', error);

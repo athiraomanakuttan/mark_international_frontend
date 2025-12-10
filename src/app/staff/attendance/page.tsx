@@ -5,18 +5,17 @@ import { Calendar, Clock, FileText, Plus, AlertCircle, CheckCircle } from 'lucid
 import { ModernDashboardLayout } from '@/components/staff/modern-dashboard-navbar';
 import { AttendanceCalendar } from '@/components/attendance/AttendanceCalendar';
 import { LeaveRequestModal } from '@/components/attendance/LeaveRequestModal';
-import LeaveDetailsModal from '@/components/LeaveDetailsModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'react-toastify';
 import { useSelector } from 'react-redux';
-import { 
-  CalendarDate, 
-  CreateLeaveRequestDto, 
+import {
+  CalendarDate,
+  CreateLeaveRequestDto,
   LeaveRequest,
-  LeaveStatus 
+  LeaveStatus
 } from '@/types/attendance-types';
 import { AttendanceService } from '@/service/attendanceService';
 import { RootState } from '@/lib/redux/store';
@@ -46,11 +45,11 @@ export default function AttendancePage() {
     try {
       const response = await AttendanceService.getUserLeaves(user.id, {
         page: 1,
-        limit: 10
+        limit: 20 // Increased limit to show more history
       });
-      
+
       if (response.success && Array.isArray(response.data)) {
-        setRecentLeaves(response.data.slice(0, 5)); // Show only 5 recent
+        setRecentLeaves(response.data); // Show all fetched leaves
       }
     } catch (error) {
       console.error('Error loading recent leaves:', error);
@@ -58,42 +57,14 @@ export default function AttendancePage() {
     }
   };
 
-  // Remove this duplicate call - it's now handled in the debugging useEffect below
-
   // Add debugging for user data
   useEffect(() => {
-    console.log('Current user:', user);
-    console.log('localStorage accessToken:', localStorage.getItem('accessToken'));
-    console.log('localStorage userData:', localStorage.getItem('userData'));
-    
     if (!user) {
       console.warn('User not authenticated');
     } else {
-      console.log('User authenticated, loading attendance data...');
       loadRecentLeaves();
     }
   }, [user]);
-
-  // Add debugging for date issues
-  useEffect(() => {
-    const today = new Date();
-    console.log('Today (local):', today.toLocaleDateString());
-    console.log('Today (ISO):', today.toISOString().split('T')[0]);
-    console.log('Current month/year:', currentMonth, currentYear);
-  }, [currentMonth, currentYear]);
-
-  // Test API connectivity
-  const testAPI = async () => {
-    try {
-      console.log('Testing API connectivity...');
-      const response = await AttendanceService.getLeaveStats();
-      console.log('API test successful:', response);
-      toast.success('Backend connection successful!');
-    } catch (error) {
-      console.error('API test failed:', error);
-      toast.error('Backend connection failed. Please check if the server is running.');
-    }
-  };
 
   // Handle date click from calendar
   const handleDateClick = (date: CalendarDate) => {
@@ -116,8 +87,8 @@ export default function AttendancePage() {
     if (!leaveId) return;
     try {
       const res = await AttendanceService.deleteLeaveRequest(leaveId);
-      if(res && res.success){
-        toast.dismiss();  
+      if (res && res.success) {
+        toast.dismiss();
         toast.success('Leave request deleted');
         setRefreshKey((k) => k + 1);
         loadRecentLeaves();
@@ -136,7 +107,7 @@ export default function AttendancePage() {
     setIsLoading(true);
     try {
       const response = await AttendanceService.createLeaveRequest(leaveData);
-      
+
       if (response.success) {
         toast.success('Leave request submitted successfully!');
         setIsLeaveModalOpen(false);
@@ -208,14 +179,8 @@ export default function AttendancePage() {
               <span className="text-sm">{currentDate}</span>
             </div>
             <div className="flex gap-2">
-              <Button 
-                onClick={testAPI}
-                variant="outline"
-                size="sm"
-              >
-                Test API
-              </Button>
-              <Button 
+
+              <Button
                 onClick={() => setIsLeaveModalOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
@@ -259,87 +224,196 @@ export default function AttendancePage() {
           </TabsContent>
 
           <TabsContent value="requests" className="space-y-6">
-            {/* Recent Leave Requests */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileText className="w-5 h-5" />
-                  <span>Recent Leave Requests</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {recentLeaves.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No leave requests found</p>
-                    <Button 
-                      onClick={() => setIsLeaveModalOpen(true)}
-                      variant="outline" 
-                      className="mt-4"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create First Request
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {recentLeaves.map((leave) => (
-                      <div 
-                        key={leave._id} 
-                        className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                        onClick={() => setSelectedLeave(leave)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <p className="font-medium text-gray-900">
-                              {AttendanceService.formatDate(leave.leaveDate)}
-                            </p>
-                            <Badge 
-                              variant={getStatusBadgeVariant(leave.status)}
-                              className="flex items-center space-x-1"
-                            >
-                              {getStatusIcon(leave.status)}
-                              <span className="capitalize">{leave.status}</span>
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 line-clamp-2">
-                            {leave.reason}
-                          </p>
-                          {leave.documents && leave.documents.length > 0 && (
-                            <p className="text-xs text-blue-600 mt-1">
-                              {leave.documents.length} document(s) attached
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">
-                            Submitted: {new Date(leave.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {recentLeaves.length === 5 && (
-                      <div className="text-center pt-4">
-                        <Button variant="outline" size="sm">
-                          View All Requests
+            <Tabs defaultValue="pending" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="pending">Pending Requests</TabsTrigger>
+                <TabsTrigger value="history">Leave History</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pending" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Clock className="w-5 h-5" />
+                      <span>Pending Requests</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {recentLeaves.filter(l => l.status === 'pending').length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-gray-600">No pending leave requests</p>
+                        <Button
+                          onClick={() => setIsLeaveModalOpen(true)}
+                          variant="outline"
+                          className="mt-4"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create New Request
                         </Button>
                       </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {recentLeaves.filter(l => l.status === 'pending').map((leave) => (
+                          <div
+                            key={leave._id}
+                            className="group bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all duration-200"
+                          >
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
+                                  {getStatusIcon(leave.status)}
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-gray-900">
+                                    {AttendanceService.formatDate(leave.leaveDate)}
+                                  </h3>
+                                  <p className="text-sm text-gray-500">
+                                    Applied on {new Date(leave.createdAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                              <Badge variant="secondary" className="capitalize px-3 py-1">
+                                {leave.status}
+                              </Badge>
+                            </div>
+
+                            <div className="pl-12">
+                              <p className="text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg text-sm">
+                                {leave.reason}
+                              </p>
+
+                              {leave.documents && leave.documents.length > 0 && (
+                                <div className="space-y-2">
+                                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Attachments ({leave.documents.length})
+                                  </p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {leave.documents.map((doc: any, index: number) => (
+                                      <a
+                                        key={index}
+                                        href={doc.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center p-2 rounded-lg border border-gray-200 bg-gray-50 hover:bg-blue-50 hover:border-blue-200 transition-colors group/doc"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <div className="p-2 bg-white rounded-md border border-gray-100 mr-3 group-hover/doc:border-blue-100">
+                                          <FileText className="w-4 h-4 text-blue-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm font-medium text-gray-700 truncate group-hover/doc:text-blue-700">
+                                            {doc.title || `Document ${index + 1}`}
+                                          </p>
+                                          <p className="text-xs text-gray-500">Click to view</p>
+                                        </div>
+                                      </a>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className="mt-4 flex justify-end gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedLeave(leave)}
+                                  className="text-gray-500 hover:text-gray-900"
+                                >
+                                  View Details
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (confirm('Are you sure you want to delete this request?')) {
+                                      handleLeaveDelete(leave._id);
+                                    }
+                                  }}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                >
+                                  Delete Request
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="history" className="space-y-6">
+                {/* Upcoming Approved Leaves */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2 text-green-700">
+                      <CheckCircle className="w-5 h-5" />
+                      <span>Upcoming Approved Leaves</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {recentLeaves.filter(l => l.status === 'approved' && new Date(l.leaveDate) >= new Date()).length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">No upcoming approved leaves</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {recentLeaves.filter(l => l.status === 'approved' && new Date(l.leaveDate) >= new Date()).map((leave) => (
+                          <div key={leave._id} className="flex items-center justify-between p-4 border border-green-100 bg-green-50 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="p-2 bg-green-100 rounded-full text-green-600">
+                                <Calendar className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">{AttendanceService.formatDate(leave.leaveDate)}</p>
+                                <p className="text-sm text-gray-500">{leave.reason}</p>
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="sm" onClick={() => setSelectedLeave(leave)}>View</Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Past/History Leaves */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2 text-gray-700">
+                      <FileText className="w-5 h-5" />
+                      <span>Leave History</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {recentLeaves.filter(l => l.status !== 'pending' && (l.status !== 'approved' || new Date(l.leaveDate) < new Date())).length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">No leave history</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {recentLeaves.filter(l => l.status !== 'pending' && (l.status !== 'approved' || new Date(l.leaveDate) < new Date())).map((leave) => (
+                          <div key={leave._id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-lg ${leave.status === 'approved' ? 'bg-green-100 text-green-600' :
+                                  leave.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                {getStatusIcon(leave.status)}
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">{AttendanceService.formatDate(leave.leaveDate)}</p>
+                                <Badge variant={getStatusBadgeVariant(leave.status)} className="mt-1">{leave.status}</Badge>
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="sm" onClick={() => setSelectedLeave(leave)}>View</Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
-
-        {/* Leave Details Modal */}
-        <LeaveDetailsModal
-          leave={selectedLeave}
-          onClose={handleDetailsModalClose}
-          onDeleted={handleLeaveDeleted}
-        />
 
         {/* Leave Request Modal */}
         <LeaveRequestModal

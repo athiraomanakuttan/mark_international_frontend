@@ -107,7 +107,6 @@ export default function LeadsReportPage() {
     }
   }
 
-  useEffect(()=>{console.log("selectedLeadList", selectedLeadList)},[selectedLeadList])
   
   // Clear selection when data changes
   useEffect(() => {
@@ -150,9 +149,7 @@ export default function LeadsReportPage() {
   const dispatch = useDispatch<AppDispatch>()
   const { staffList } = useSelector((state: RootState) => state.staff)
   
-  useEffect(()=>{
-    console.log(priority)
-  },[priority])
+  
   useEffect(()=>{
     if(selectedLead)
       setIsUpdateModelOpen(true)
@@ -167,12 +164,10 @@ export default function LeadsReportPage() {
   }
   
   const getLeadList = async () => {
-    console.log("ffffffffffffffffffff")
     try {
       const statusParam = leadStatus.length > 0 ? leadStatus.join(",") : "7"
       const response = await getLeads(statusParam, paginationData.currentPage, paginationData.limit,{fromDate, createBy,leadCategory, leadSource, leadStatus, priority, staff, toDate} as LeadFilterType, searchQuery)
       if (response.status) {
-        console.log("lead response", response.data)
         setLeadData(response?.data?.lead)
         setPaginationData((prev) => ({
           ...prev,
@@ -180,7 +175,6 @@ export default function LeadsReportPage() {
         }))
       }
     } catch (error) {
-      console.log("Error fetching leads:", error)
     }
   }
 
