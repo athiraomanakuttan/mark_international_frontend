@@ -94,15 +94,15 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 
                   {expandedItems.includes(item.title) && (
                     <div className="ml-11 mt-2 space-y-1">
-                        {item.items.map((subItem) => (
-                          subItem.items ? (
+                        {item.items?.map((subItem) => (
+                          "items" in subItem && subItem.items ? (
                             <div key={subItem.title}>
                               <div className="flex items-center space-x-3 p-2 rounded-lg text-slate-400 font-semibold">
                                 <subItem.icon className="h-4 w-4" />
                                 <span className="text-sm">{subItem.title}</span>
                               </div>
                               <div className="ml-8 mt-1 space-y-1">
-                                {subItem.items.map((nestedItem) => (
+                                {(subItem.items as any[])?.map((nestedItem) => (
                                   <Link
                                     key={nestedItem.title}
                                     href={nestedItem.url}

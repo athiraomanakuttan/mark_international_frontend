@@ -302,9 +302,14 @@ export class AttendanceService {
       date.status === AttendanceStatus.ABSENT || date.status === AttendanceStatus.LEAVE_APPROVED
     ).length;
 
-    // Pending leaves - Count ALL pending leaves for the month, including future ones
-    const leavesPending = currentMonthDates.filter(date => 
+    // Pending leaves - Only count up to today for current month
+    const leavesPending = relevantDates.filter(date => 
       date.status === AttendanceStatus.LEAVE_PENDING
+    ).length;
+
+    // Approved leaves - Only count up to today for current month
+    const leavesApproved = relevantDates.filter(date => 
+      date.status === AttendanceStatus.LEAVE_APPROVED
     ).length;
 
     // Rejected leaves
@@ -321,7 +326,7 @@ export class AttendanceService {
       totalWorkingDays,
       presentDays,
       absentDays,
-      leavesApproved: currentMonthDates.filter(date => date.status === AttendanceStatus.LEAVE_APPROVED).length,
+      leavesApproved,
       leavesPending,
       leavesRejected,
       attendancePercentage
