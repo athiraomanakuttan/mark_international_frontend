@@ -4,12 +4,29 @@ import axios, {
   InternalAxiosRequestConfig
 } from 'axios';
 import { toast } from 'react-toastify';
+import { logger } from '@/lib/logger';
+import { productionErrorReporter } from '@/lib/productionErrorReporter';
+
+// Global error handler for user notifications
+let globalErrorHandler: ((error: {
+  type: 'network' | 'timeout' | 'server' | 'general';
+  message: string;
+  page?: string;
+  component?: string;
+}) => void) | null = null;
+
+export const setGlobalErrorHandler = (handler: typeof globalErrorHandler) => {
+  globalErrorHandler = handler;
+};
 
 const BACKEND_URI = process.env.NEXT_PUBLIC_BACKEND_URI
 
 const axiosInstance = axios.create({
   baseURL: BACKEND_URI,
-  
+  timeout: 30000, // 30 seconds timeout
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 let isRefreshing = false;
@@ -65,14 +82,106 @@ axiosInstance.interceptors.request.use(
     if (token && config.headers) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
+
+    // Log request start and store requestId in config
+    const requestId = logger.logRequestStart(config, {
+      page: typeof window !== 'undefined' ? window.location.pathname : 'server',
+      component: (config as any).metadata?.component || 'unknown',
+    });
+    
+    // Store requestId in config for later use
+    (config as any).requestId = requestId;
+    
     return config;
   },
-  (error: AxiosError) => Promise.reject(error)
+  (error: AxiosError) => {
+    logger.error('❌ Request Interceptor Error', {
+      error: error.message,
+      code: error.code,
+      page: typeof window !== 'undefined' ? window.location.pathname : 'server',
+    });
+    return Promise.reject(error);
+  }
 );
 
 axiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response: AxiosResponse) => {
+    // Log successful response
+    const requestId = (response.config as any).requestId;
+    if (requestId) {
+      logger.logRequestSuccess(requestId, response);
+    }
+    return response;
+  },
   async (error: AxiosError) => {
+    // Log the error with full context
+    const requestId = (error.config as any)?.requestId;
+    if (requestId) {
+      logger.logRequestError(requestId, error);
+    } else {
+      logger.error('❌ Response Error (No Request ID)', {
+        url: error.config?.url,
+        method: error.config?.method,
+        error: error.message,
+        code: error.code,
+        status: error.response?.status,
+      });
+    }
+
+    // Report to production error tracking
+    if (typeof window !== 'undefined') {
+      const errorType = error.code === 'UND_ERR_CONNECT_TIMEOUT' || error.code === 'ECONNABORTED' 
+        ? 'timeout' 
+        : !error.response 
+        ? 'network' 
+        : error.response.status >= 500 
+        ? 'server' 
+        : 'general';
+
+      productionErrorReporter.reportError({
+        type: errorType,
+        message: error.message,
+        requestUrl: error.config?.url,
+        requestMethod: error.config?.method?.toUpperCase(),
+        responseStatus: error.response?.status,
+        responseTime: (error.config as any)?.metadata?.responseTime,
+        stackTrace: error.stack,
+      });
+    }
+
+    // Handle network/timeout errors with user-friendly notifications
+    if (!error.response) {
+      const currentPage = typeof window !== 'undefined' ? window.location.pathname : 'server';
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        // Show user-friendly timeout error
+        if (globalErrorHandler) {
+          globalErrorHandler({
+            type: 'timeout',
+            message: 'Request is taking longer than expected. Please try again.',
+            page: currentPage,
+          });
+        } else if (typeof window !== 'undefined') {
+          toast.error('Request timeout. Please check your connection and try again.');
+        }
+        return Promise.reject(new Error('Connection timeout'));
+      }
+      
+      if (error.message.includes('Network Error') || error.code === 'UND_ERR_CONNECT_TIMEOUT') {
+        // Show user-friendly network error
+        if (globalErrorHandler) {
+          globalErrorHandler({
+            type: 'network',
+            message: 'Unable to connect to the server. Please check your internet connection.',
+            page: currentPage,
+          });
+        } else if (typeof window !== 'undefined') {
+          toast.error('Network error. Please check your connection.');
+        }
+        return Promise.reject(new Error('Network connection failed'));
+      }
+    }
+
     const originalRequest = error.config as any;
 
     if (
