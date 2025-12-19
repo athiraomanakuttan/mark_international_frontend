@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Plus } from "lucide-react"
 import { toast } from "react-toastify"
 import { createBranch } from "@/service/branchService"
-import { CreateBranchType, BranchType, BranchPaginationResponseType } from "@/types/branch-types"
+import { CreateBranchType, BranchType, BranchCreateResponseType } from "@/types/branch-types"
 
 interface AddBranchModalProps {
   onBranchAdded: (branch: BranchType) => void
@@ -69,10 +69,10 @@ export default function AddBranchModal({ onBranchAdded }: AddBranchModalProps) {
 
     try {
       setLoading(true)
-      const response: BranchPaginationResponseType = await createBranch(formData)
-      if (response.status && response.data && response.data.branches && response.data.branches.length > 0) {
+      const response: BranchCreateResponseType = await createBranch(formData)
+      if (response.status && response.data) {
         toast.success("Branch created successfully!")
-        onBranchAdded(response.data.branches[0])
+        onBranchAdded(response.data)
         setOpen(false)
         // Reset form
         setFormData({

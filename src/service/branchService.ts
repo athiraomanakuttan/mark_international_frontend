@@ -1,5 +1,5 @@
 import axiosInstance from "./axiosInstance"
-import { BranchType, CreateBranchType, UpdateBranchType, BranchResponseType, BranchPaginationResponseType } from "@/types/branch-types"
+import { BranchType, CreateBranchType, UpdateBranchType, BranchResponseType, BranchPaginationResponseType, BranchDeleteResponseType, BranchCreateResponseType } from "@/types/branch-types"
 
 // Get all branches
 export const getAllBranches = async (): Promise<BranchResponseType> => {
@@ -38,7 +38,7 @@ export const getBranchById = async (branchId: string): Promise<BranchResponseTyp
 
 // Create new branch
 // Create new branch
-export const createBranch = async (branchData: CreateBranchType): Promise<BranchPaginationResponseType> => {
+export const createBranch = async (branchData: CreateBranchType): Promise<BranchCreateResponseType> => {
   try {
     const response = await axiosInstance.post('/admin/branches', branchData)
     return response.data
@@ -58,7 +58,7 @@ export const updateBranch = async (branchId: string, branchData: UpdateBranchTyp
 }
 
 // Delete branch
-export const deleteBranch = async (branchId: string): Promise<BranchResponseType> => {
+export const deleteBranch = async (branchId: string): Promise<BranchDeleteResponseType> => {
   try {
     const response = await axiosInstance.delete(`/admin/branches/${branchId}`)
     return response.data

@@ -86,7 +86,7 @@ const EmployeeTable: React.FC = () => {
       // Clean filters to remove undefined/null/empty values
       const cleanedFilters = Object.entries(filters).reduce((acc, [key, value]) => {
         if (value !== undefined && value !== null && value !== '' && value !== 'all') {
-          acc[key as keyof EmployeeFilter] = value;
+          (acc as any)[key] = value;
         }
         return acc;
       }, {} as EmployeeFilter);

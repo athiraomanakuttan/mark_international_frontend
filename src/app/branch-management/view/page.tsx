@@ -72,11 +72,11 @@ export default function BranchManagementPage() {
     try {
       setDeleteLoading(branchId)
       const response = await deleteBranch(branchId)
-      if (response) {
+      if (response.status) {
         toast.success("Branch deleted successfully")
         fetchBranches()
       } else {
-        toast.error(response || "Failed to delete branch")
+        toast.error(response.message || "Failed to delete branch")
       }
     } catch (error) {
       console.error("Error deleting branch:", error)

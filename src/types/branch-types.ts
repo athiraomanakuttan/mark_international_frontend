@@ -23,6 +23,17 @@ export interface BranchResponseType {
  branches: BranchType[],
 }
 
+export interface BranchCreateResponseType {
+  status: boolean
+  message: string
+  data?: BranchType
+}
+
+export interface BranchDeleteResponseType {
+  status: boolean
+  message: string
+}
+
 export interface BranchPaginationResponseType {
   status: boolean
   message: string
