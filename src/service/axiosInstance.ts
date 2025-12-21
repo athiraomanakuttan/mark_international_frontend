@@ -6,6 +6,8 @@ import axios, {
 import { toast } from 'react-toastify';
 import { logger } from '@/lib/logger';
 import { productionErrorReporter } from '@/lib/productionErrorReporter';
+import { getTimeoutForUrl } from '@/lib/apiConfig';
+import { timeoutLogger } from '@/lib/timeoutLogger';
 
 // Global error handler for user notifications
 let globalErrorHandler: ((error: {
@@ -83,6 +85,11 @@ axiosInstance.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`;
     }
 
+    // Set dynamic timeout based on URL
+    if (config.url) {
+      config.timeout = getTimeoutForUrl(config.url);
+    }
+
     // Log request start and store requestId in config
     const requestId = logger.logRequestStart(config, {
       page: typeof window !== 'undefined' ? window.location.pathname : 'server',
@@ -154,6 +161,15 @@ axiosInstance.interceptors.response.use(
       const currentPage = typeof window !== 'undefined' ? window.location.pathname : 'server';
       
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        // Log timeout for analysis
+        timeoutLogger.logTimeout(
+          currentPage,
+          (error.config as any)?.metadata?.component || 'unknown',
+          error.config?.url || 'unknown',
+          error.config?.timeout || 30000,
+          error.stack
+        );
+
         // Show user-friendly timeout error
         if (globalErrorHandler) {
           globalErrorHandler({

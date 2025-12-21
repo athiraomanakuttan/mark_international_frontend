@@ -5,6 +5,8 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { ToastProvider } from "@/components/toast-provider"
 import  StoreProvider  from "@/lib/redux/StoreProvider"
+import { ApiCallMonitor } from "@/components/debug/ApiCallMonitor"
+import { PagePerformanceMonitor } from "@/components/debug/PagePerformanceMonitor"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,6 +26,12 @@ export default function RootLayout({
       <StoreProvider>
         {children}
         <ToastProvider />
+        {process.env.NODE_ENV === 'development' && (
+          <>
+            <ApiCallMonitor />
+            <PagePerformanceMonitor />
+          </>
+        )}
        </StoreProvider> 
       </body>
     </html>

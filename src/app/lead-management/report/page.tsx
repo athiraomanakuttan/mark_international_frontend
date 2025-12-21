@@ -15,6 +15,8 @@ import AddLeadsModal from "@/components/admin/add-leads-modal"
 import { useDispatch, useSelector } from "react-redux"
 import type { AppDispatch, RootState } from "@/lib/redux/store"
 import { fetchAllStaffs } from "@/lib/redux/thunk/staffThunk"
+import { useStaffList } from "@/hooks/useStaffList"
+import { useDebouncedSafeAsync } from "@/hooks/useSafeAsync"
 import { deletelead, getExportLeads, getLeads } from "@/service/admin/leadService"
 import { LEAD_TYPES, LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUS, statusColors, priorityColors } from "@/data/Lead-data"
 import { MultiSelect } from "@/components/ui/multi-select"
@@ -147,7 +149,8 @@ export default function LeadsReportPage() {
   };
 
   const dispatch = useDispatch<AppDispatch>()
-  const { staffList } = useSelector((state: RootState) => state.staff)
+  // Use optimized staff list hook
+  const { staffList, loading: staffLoading } = useStaffList()
   
   
   useEffect(()=>{
@@ -155,14 +158,6 @@ export default function LeadsReportPage() {
       setIsUpdateModelOpen(true)
   },[selectedLead])
 
-  useEffect(() => {
-    dispatch(fetchAllStaffs())
-  }, [dispatch])
-
-  const pageRefresh = async ()=>{
-    await getLeadList()
-  }
-  
   const getLeadList = async () => {
     try {
       const statusParam = leadStatus.length > 0 ? leadStatus.join(",") : "7"
@@ -175,12 +170,30 @@ export default function LeadsReportPage() {
         }))
       }
     } catch (error) {
+      console.error("Error fetching leads:", error)
     }
   }
 
-  useEffect(() => {
-    getLeadList()
-  }, [leadStatus, paginationData.currentPage, paginationData.limit,fromDate,toDate,leadCategory,leadStatus,priority,leadSource,staff,createBy,searchQuery, isAddModalOpen,isUpdateModelOpen])
+  // Use debounced safe async for lead list fetching
+  useDebouncedSafeAsync(
+    getLeadList,
+    [leadStatus, paginationData.currentPage, paginationData.limit, fromDate, toDate, leadCategory, leadSource, priority, staff, createBy, searchQuery],
+    750, // 750ms debounce
+    {
+      timeout: 25000,
+      retries: 1,
+      onError: (error) => console.error("Lead list fetch failed:", error)
+    }
+  )
+
+  const pageRefresh = async ()=>{
+    await getLeadList()
+  }
+
+  // Remove this useEffect as it's now handled by useDebouncedSafeAsync
+  // useEffect(() => {
+  //   getLeadList()
+  // }, [leadStatus, paginationData.currentPage, paginationData.limit,fromDate,toDate,leadCategory,leadStatus,priority,leadSource,staff,createBy,searchQuery, isAddModalOpen,isUpdateModelOpen])
 
   useEffect(()=>{
     setPaginationData((prev)=>({...prev,currentPage:1}))

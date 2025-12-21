@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
     // even if your project has ESLint errors
     ignoreDuringBuilds: true,
   },
+  // Fix workspace root detection warning
+  outputFileTracingRoot: __dirname,
 };
 
 export default nextConfig;
