@@ -80,9 +80,14 @@ const safeRedirectToLogin = () => {
 
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const token = safeGet('accessToken');
-    if (token && config.headers) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    // Don't send auth header for login/auth endpoints
+    const isAuthEndpoint = config.url?.includes('/auth/') || config.url?.includes('/login');
+    
+    if (!isAuthEndpoint) {
+      const token = safeGet('accessToken');
+      if (token && config.headers) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
     }
 
     // Set dynamic timeout based on URL

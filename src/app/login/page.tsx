@@ -11,6 +11,7 @@ import { toast } from "react-toastify"
 import { useAppDispatch } from "@/lib/redux/hook"
 import { setUser, setLoading } from "@/lib/redux/features/userSlice"
 import Cookies from "js-cookie"
+import AuthDebug from "@/components/debug/AuthDebug"
 
 interface FloatingElement {
   id: number
@@ -109,15 +110,21 @@ const LoginPage: React.FC = () => {
     dispatch(setLoading(true))
 
     try {
+      // Clear any existing tokens before login
+      Cookies.remove("accessToken")
+      localStorage.removeItem("accessToken")
+      localStorage.removeItem("refreshToken")
+      
       const response = await loginUser(formData)
       console.log("Response ==><== ", response?.data?.user?.role)
 
       if (response.status) {
-        Cookies.set("accessToken", response?.data?.accessToken || "", { expires: 7 })
+        const accessToken = response?.data?.accessToken || response?.token || "";
+        Cookies.set("accessToken", accessToken, { expires: 7 })
         dispatch(
           setUser({
             user: response?.data?.user,
-            token: response?.data?.accessToken || "",
+            token: accessToken,
           }),
         )
 
@@ -157,6 +164,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 md:p-6 lg:p-8 relative overflow-hidden">
+      <AuthDebug />
       {/* Decorative background */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-20 w-72 h-72 rounded-full bg-gradient-to-br from-blue-200/40 to-indigo-200/40 blur-3xl animate-pulse"></div>

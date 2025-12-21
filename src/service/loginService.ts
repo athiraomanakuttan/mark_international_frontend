@@ -15,7 +15,7 @@ export async function loginUser(credentials: LoginType): Promise<LoginResponse> 
         // set the access token in local storage (only on client)
         try {
           if (typeof window !== 'undefined' && typeof localStorage?.setItem === 'function') {
-            localStorage.setItem("accessToken", response.data.token || "")
+            localStorage.setItem("accessToken", response.data.data?.accessToken || response.data.token || "")
           }
         } catch (e) {
           // ignore server/runtime environments where localStorage isn't available

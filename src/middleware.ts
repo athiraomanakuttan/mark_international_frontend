@@ -44,6 +44,7 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
     decoded = jwt.decode(token) as DecodedToken | null;
     if (!decoded) throw new Error('Invalid token');
   } catch (error) {
+    console.log('Token decode error in middleware:', error);
     const response = NextResponse.redirect(new URL('/login', request.url));
     response.cookies.delete('accessToken');
     return response;
@@ -51,7 +52,9 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
 
   const { role, exp } = decoded;
 
-  if (exp < Date.now() / 1000) {
+  // Check if token is expired
+  if (exp && exp < Date.now() / 1000) {
+    console.log('Token expired in middleware');
     const response = NextResponse.redirect(new URL('/login', request.url));
     response.cookies.delete('accessToken');
     return response;
