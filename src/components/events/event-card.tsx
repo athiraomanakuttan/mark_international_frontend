@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Edit, Trash2, Calendar, MapPin, Users } from "lucide-react"
 import type { EventType } from "@/types/event-types"
 import { StaffBasicType } from "@/types/staff-type"
@@ -17,12 +18,89 @@ interface EventCardProps {
 
 export function EventCard({ event, staff, onEdit, onDelete }: EventCardProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const [showAllStaff, setShowAllStaff] = useState(false)
+
+  const getAssignedStaff = () => {
+    return staff.filter((s) => event.staffIds?.includes(s.id!))
+  }
 
   const getStaffNames = () => {
-    return staff
-      .filter((s) => event.staffIds?.includes(s.id!))
-      .map((s) => s.name)
-      .join(", ")
+    const assignedStaff = getAssignedStaff()
+    return assignedStaff.map((s) => s.name).join(", ")
+  }
+
+  const renderStaffSection = () => {
+    const assignedStaff = getAssignedStaff()
+    
+    if (!assignedStaff.length) {
+      return <span className="text-slate-500">No staff assigned</span>
+    }
+
+    const maxDisplayedStaff = 2
+    const displayedStaff = showAllStaff ? assignedStaff : assignedStaff.slice(0, maxDisplayedStaff)
+    const remainingCount = assignedStaff.length - maxDisplayedStaff
+
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap gap-1">
+          {displayedStaff.map((staffMember, index) => (
+            <TooltipProvider key={staffMember.id || index}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge 
+                    variant="outline" 
+                    className="text-xs bg-blue-50 text-blue-700 border-blue-200 cursor-help"
+                    style={{ 
+                      maxWidth: '120px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {staffMember.name}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{staffMember.name}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
+          
+          {!showAllStaff && remainingCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowAllStaff(true)
+              }}
+              className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+            >
+              +{remainingCount} more
+            </Button>
+          )}
+          
+          {showAllStaff && assignedStaff.length > maxDisplayedStaff && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowAllStaff(false)
+              }}
+              className="h-6 px-2 text-xs text-slate-600 hover:text-slate-800 hover:bg-slate-100"
+            >
+              Show less
+            </Button>
+          )}
+        </div>
+        
+        <Badge variant="secondary" className="text-xs bg-purple-50 text-purple-700 border-purple-200 w-fit">
+          {assignedStaff.length} staff total
+        </Badge>
+      </div>
+    )
   }
 
   const formatDate = (dateString: string) => {
@@ -77,7 +155,18 @@ export function EventCard({ event, staff, onEdit, onDelete }: EventCardProps) {
       )}
 
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold pr-20 text-slate-900">{event.name}</CardTitle>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <CardTitle className="text-lg font-semibold pr-20 text-slate-900 line-clamp-2 cursor-help">
+                {event.name}
+              </CardTitle>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-xs whitespace-normal">{event.name}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </CardHeader>
 
       <CardContent className="space-y-3">
@@ -88,23 +177,24 @@ export function EventCard({ event, staff, onEdit, onDelete }: EventCardProps) {
 
         <div className="flex items-start text-sm text-slate-600">
           <MapPin className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0 text-green-500" />
-          <span className="line-clamp-2">{event.location}</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="line-clamp-2 cursor-help">{event.location}</span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs whitespace-normal">{event.location}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         <div className="flex items-start text-sm text-slate-600">
           <Users className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0 text-purple-500" />
-          <div className="flex flex-wrap gap-1">
-            {event?.staffIds && event?.staffIds?.length > 0 ? (
-              <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                {event?.staffIds?.length} staff assigned
-              </Badge>
-            ) : (
-              <span className="text-slate-500">No staff assigned</span>
-            )}
+          <div className="flex-1 min-w-0">
+            {renderStaffSection()}
           </div>
         </div>
-
-        {getStaffNames() && <div className="text-xs text-slate-500 mt-2 line-clamp-2">Staff: {getStaffNames()}</div>}
       </CardContent>
     </Card>
   )
