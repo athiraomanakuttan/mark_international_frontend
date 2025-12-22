@@ -73,7 +73,13 @@ const safeRemove = (key: string) => {
 };
 const safeRedirectToLogin = () => {
   if (typeof window !== 'undefined') {
-    window.location.href = '/login';
+    // Use try-catch to prevent any potential header issues during redirect
+    try {
+      window.location.href = '/login';
+    } catch (error) {
+      console.warn('Safe redirect failed, falling back to replace:', error);
+      window.location.replace('/login');
+    }
   }
 };
 

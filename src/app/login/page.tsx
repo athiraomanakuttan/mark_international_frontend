@@ -129,10 +129,9 @@ const LoginPage: React.FC = () => {
         )
 
         toast.success(response.message || "Welcome to Mark International!")
-        setTimeout(() => {
-          if (response?.data?.user?.role === "admin") router.push("/dashboard")
-          else router.push("/staff/dashboard")
-        }, 100)
+        // Use immediate navigation to avoid potential race conditions
+        const targetPath = response?.data?.user?.role === "admin" ? "/dashboard" : "/staff/dashboard"
+        router.push(targetPath)
       } else {
         dispatch(setLoading(false))
         setIsLoading(false)
