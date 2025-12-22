@@ -13,6 +13,7 @@ import {
   Resignation 
 } from '@/types/resignation-types';
 import ResignationService from '@/service/resignationService';
+import { handleSafeFormSubmit } from '@/lib/formHelpers';
 
 interface ResignationFormProps {
   onSuccess: () => void;
@@ -114,46 +115,53 @@ const ResignationForm: React.FC<ResignationFormProps> = ({ onSuccess, onCancel, 
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      toast.error('Please fix the errors in the form');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      if (isEditMode && initialData) {
-        // Update existing resignation
-        const updateData: any = {
-          reason: formData.reason.trim(),
-        };
-
-        // Only include document if a new file was selected
-        if (selectedFile) {
-          updateData.document = selectedFile;
+    await handleSafeFormSubmit(
+      e,
+      async () => {
+        if (!validateForm()) {
+          toast.error('Please fix the errors in the form');
+          return;
         }
 
-        await ResignationService.updateResignation(initialData.id, updateData);
-      } else {
-        // Create new resignation
-        const requestData: CreateResignationRequest = {
-          reason: formData.reason.trim(),
-          document: selectedFile || undefined
-        };
+        if (isEditMode && initialData) {
+          // Update existing resignation
+          const updateData: any = {
+            reason: formData.reason.trim(),
+          };
 
-        await ResignationService.createResignation(requestData);
+          // Only include document if a new file was selected
+          if (selectedFile) {
+            updateData.document = selectedFile;
+          }
+
+          await ResignationService.updateResignation(initialData.id, updateData);
+        } else {
+          // Create new resignation
+          const requestData: CreateResignationRequest = {
+            reason: formData.reason.trim(),
+            document: selectedFile || undefined
+          };
+
+          await ResignationService.createResignation(requestData);
+        }
+        
+        onSuccess();
+      },
+      {
+        onStart: () => setIsSubmitting(true),
+        onError: (error: any) => {
+          console.error('Error submitting resignation:', error);
+          const errorMessage = error?.response?.data?.message || error?.message || 'Failed to submit resignation';
+          toast.error(errorMessage);
+        },
+        onSuccess: () => {
+          // Success handling is done in the main handler
+        },
+        preventRedirectHeaders: true
       }
-      
-      onSuccess();
-    } catch (error: any) {
-      console.error('Error submitting resignation:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to submit resignation';
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
+    );
+
+    setIsSubmitting(false);
   };
 
   return (

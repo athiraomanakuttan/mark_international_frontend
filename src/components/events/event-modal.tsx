@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { EventType } from "@/types/event-types"
 import { StaffBasicType } from "@/types/staff-type"
+import { handleSafeFormSubmit } from "@/lib/formHelpers"
 
 interface EventModalProps {
   isOpen: boolean

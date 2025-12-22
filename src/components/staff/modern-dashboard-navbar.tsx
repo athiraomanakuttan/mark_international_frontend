@@ -34,6 +34,7 @@ import type { AppDispatch, RootState } from "@/lib/redux/store"
 import { useRouter } from "next/navigation"
 import { toast } from "react-toastify"
 import { deleteFollowup, getFollowupData } from "@/service/followupService" // Added service imports
+import { safeRedirect } from "@/lib/formHelpers"
 
 interface LeadData {
   id: string
@@ -271,7 +272,7 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
     localStorage.clear()
     document.cookie = ""
     toast.success("Logged out")
-    router.push("/login")
+    safeRedirect("/login", 'href')
   }
 
   return (

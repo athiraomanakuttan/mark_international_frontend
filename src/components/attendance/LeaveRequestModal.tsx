@@ -17,6 +17,7 @@ import {
   LeaveRequest
 } from '@/types/attendance-types';
 import { AttendanceService } from '@/service/attendanceService';
+import { handleSafeFormSubmit } from '@/lib/formHelpers';
 
 export function LeaveRequestModal({
   isOpen,

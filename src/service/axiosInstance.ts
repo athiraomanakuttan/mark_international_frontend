@@ -75,10 +75,20 @@ const safeRedirectToLogin = () => {
   if (typeof window !== 'undefined') {
     // Use try-catch to prevent any potential header issues during redirect
     try {
+      // Clear any problematic headers or state before redirect
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem('x-action-redirect');
+      }
       window.location.href = '/login';
     } catch (error) {
       console.warn('Safe redirect failed, falling back to replace:', error);
-      window.location.replace('/login');
+      try {
+        window.location.replace('/login');
+      } catch (fallbackError) {
+        console.error('All redirect methods failed:', fallbackError);
+        // Last resort - force page reload to login
+        window.location.assign('/login');
+      }
     }
   }
 };

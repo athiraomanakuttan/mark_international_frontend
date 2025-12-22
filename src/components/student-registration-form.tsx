@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { User, Phone, Mail, MapPin, Search, X } from "lucide-react"
 import { toast } from "react-toastify"
 import { createStudent } from "@/service/studentService"
+import { handleSafeFormSubmit } from "@/lib/formHelpers"
 
 export interface StudentData {
   name: string
@@ -89,45 +90,43 @@ export function StudentRegistrationForm({ eventId}:{eventId:string}) {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    await handleSafeFormSubmit(
+      e,
+      async () => {
+        if (!formData.name.trim()) {
+          toast.error("Name is required")
+          return
+        }
 
-    if (!formData.name.trim()) {
-      toast.error("Name is required")
-      return
-    }
-
-    if (!formData.phoneNumber.trim()) {
-      toast.error("Phone number is required")
+        if (!formData.phoneNumber.trim()) {
+          toast.error("Phone number is required")
+          return
+        }
         
-      return
-    }
-
-    setIsSubmitting(true)
-
-    try {
-      
-      const response = await createStudent(formData)
-      if(response.status){
-        toast.success("Student registration completed successfully")
-
-      setFormData({
-        name: "",
-        phoneNumber: "",
-        preferredCountry: [],
-        address: "",
-        email: "",
-        eventId
-      })
-      setCountrySearch("")
-      if (nameInputRef.current) {
-        nameInputRef.current.focus()
+        const response = await createStudent(formData)
+        if(response.status){
+          toast.success("Student registration completed successfully")
+          setFormData({
+            name: "",
+            phoneNumber: "",
+            preferredCountry: [],
+            address: "",
+            email: "",
+            eventId
+          })
+        }
+      },
+      {
+        onStart: () => setIsSubmitting(true),
+        onError: (error) => {
+          console.error("Student registration error:", error)
+          toast.error("Registration failed. Please try again.")
+        },
+        onSuccess: () => setIsSubmitting(false),
+        preventRedirectHeaders: true
       }
-      }
-    } catch (error) {
-      toast.error("Failed to register student. Please try again.")
-    } finally {
-      setIsSubmitting(false)
-    }
+    )
+    setIsSubmitting(false)
   }
 
   return (

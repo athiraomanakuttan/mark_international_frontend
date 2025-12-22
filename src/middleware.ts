@@ -36,8 +36,16 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
     }
 
     if (!token) {
-      const loginUrl = new URL('/login', request.url);
-      return NextResponse.redirect(loginUrl, { status: 307 });
+      try {
+        const loginUrl = new URL('/login', request.url);
+        // Ensure URL is properly constructed
+        loginUrl.searchParams.delete('x-action-redirect');
+        return NextResponse.redirect(loginUrl, { status: 307 });
+      } catch (urlError) {
+        console.error('[Middleware] URL construction error:', urlError);
+        // Fallback to basic redirect
+        return NextResponse.redirect(new URL('/login', request.nextUrl.origin), { status: 307 });
+      }
     }
 
     let decoded: DecodedToken | null;
@@ -48,10 +56,19 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
       if (process.env.NODE_ENV === 'production') {
         console.error('[Middleware] Token decode error:', error);
       }
-      const loginUrl = new URL('/login', request.url);
-      const response = NextResponse.redirect(loginUrl, { status: 307 });
-      response.cookies.delete('accessToken');
-      return response;
+      try {
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.delete('x-action-redirect');
+        const response = NextResponse.redirect(loginUrl, { status: 307 });
+        response.cookies.delete('accessToken');
+        return response;
+      } catch (redirectError) {
+        console.error('[Middleware] Redirect error:', redirectError);
+        const fallbackUrl = new URL('/login', request.nextUrl.origin);
+        const response = NextResponse.redirect(fallbackUrl, { status: 307 });
+        response.cookies.delete('accessToken');
+        return response;
+      }
     }
 
     const { role, exp } = decoded;
@@ -61,20 +78,41 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
       if (process.env.NODE_ENV === 'production') {
         console.error('[Middleware] Token expired');
       }
-      const loginUrl = new URL('/login', request.url);
-      const response = NextResponse.redirect(loginUrl, { status: 307 });
-      response.cookies.delete('accessToken');
-      return response;
+      try {
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.delete('x-action-redirect');
+        const response = NextResponse.redirect(loginUrl, { status: 307 });
+        response.cookies.delete('accessToken');
+        return response;
+      } catch (redirectError) {
+        console.error('[Middleware] Redirect error (expired):', redirectError);
+        const fallbackUrl = new URL('/login', request.nextUrl.origin);
+        const response = NextResponse.redirect(fallbackUrl, { status: 307 });
+        response.cookies.delete('accessToken');
+        return response;
+      }
     }
 
     if (ADMIN_ROUTES.some(path => pathname === path || pathname.startsWith(`${path}/`)) && role.toLowerCase() !== 'admin') {
-      const unauthorizedUrl = new URL('/unauthorized', request.url);
-      return NextResponse.redirect(unauthorizedUrl, { status: 307 });
+      try {
+        const unauthorizedUrl = new URL('/unauthorized', request.url);
+        unauthorizedUrl.searchParams.delete('x-action-redirect');
+        return NextResponse.redirect(unauthorizedUrl, { status: 307 });
+      } catch (redirectError) {
+        console.error('[Middleware] Admin redirect error:', redirectError);
+        return NextResponse.redirect(new URL('/unauthorized', request.nextUrl.origin), { status: 307 });
+      }
     }
 
     if (STAFF_ROUTES.some(path => pathname === path || pathname.startsWith(`${path}/`)) && role.toLowerCase() !== 'staff') {
-      const unauthorizedUrl = new URL('/unauthorized', request.url);
-      return NextResponse.redirect(unauthorizedUrl, { status: 307 });
+      try {
+        const unauthorizedUrl = new URL('/unauthorized', request.url);
+        unauthorizedUrl.searchParams.delete('x-action-redirect');
+        return NextResponse.redirect(unauthorizedUrl, { status: 307 });
+      } catch (redirectError) {
+        console.error('[Middleware] Staff redirect error:', redirectError);
+        return NextResponse.redirect(new URL('/unauthorized', request.nextUrl.origin), { status: 307 });
+      }
     }
 
     return NextResponse.next();

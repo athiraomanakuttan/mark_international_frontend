@@ -2,6 +2,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { safeRedirect } from '@/lib/formHelpers';
 
 const QuickErrorAccess: React.FC = () => {
   const [clickCount, setClickCount] = useState(0);
@@ -12,7 +13,7 @@ const QuickErrorAccess: React.FC = () => {
     
     // Triple click to access error dashboard
     if (clickCount >= 2) {
-      router.push('/error-dashboard');
+      safeRedirect('/error-dashboard', 'href');
       setClickCount(0);
     }
     

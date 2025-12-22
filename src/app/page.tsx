@@ -11,6 +11,7 @@ import { toast } from "react-toastify"
 import { useAppDispatch } from "@/lib/redux/hook"
 import { setUser, setLoading } from "@/lib/redux/features/userSlice"
 import Cookies from "js-cookie"
+import { handleSafeFormSubmit, safeRedirect } from "@/lib/formHelpers"
 
 interface FloatingElement {
   id: number
@@ -101,40 +102,53 @@ const LoginPage: React.FC = () => {
   }, [])
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault()
+    await handleSafeFormSubmit(
+      e,
+      async () => {
+        if (isLoading) return
 
-    if (isLoading) return
+        const response = await loginUser(formData)
 
-    setIsLoading(true)
-    dispatch(setLoading(true))
+        if (response.status) {
+          Cookies.set("accessToken", response?.data?.accessToken || "", { expires: 7 })
+          dispatch(
+            setUser({
+              user: response?.data?.user,
+              token: response?.data?.accessToken || "",
+            }),
+          )
 
-    try {
-      const response = await loginUser(formData)
-
-      if (response.status) {
-        Cookies.set("accessToken", response?.data?.accessToken || "", { expires: 7 })
-        dispatch(
-          setUser({
-            user: response?.data?.user,
-            token: response?.data?.accessToken || "",
-          }),
-        )
-
-        toast.success(response.message || "Welcome to Mark International!")
-        setTimeout(() => {
-          if (response?.data?.user?.role === "admin") router.push("/dashboard")
-          else router.push("/staff/dashboard")
-        }, 100)
-      } else {
-        dispatch(setLoading(false))
-        setIsLoading(false)
-        toast.error(response.message || "Login failed. Please try again.")
+          toast.success(response.message || "Welcome to Mark International!")
+          
+          // Use safe redirect instead of router.push
+          setTimeout(() => {
+            if (response?.data?.user?.role === "admin") {
+              safeRedirect("/dashboard", 'href')
+            } else {
+              safeRedirect("/staff/dashboard", 'href')
+            }
+          }, 100)
+        } else {
+          toast.error(response.message || "Login failed. Please try again.")
+        }
+      },
+      {
+        onStart: () => {
+          setIsLoading(true)
+          dispatch(setLoading(true))
+        },
+        onError: (error) => {
+          toast.error("An unexpected error occurred. Please try again.")
+        },
+        onSuccess: () => {
+          // Success handling is done in the main handler
+        },
+        preventRedirectHeaders: true
       }
-    } catch (error) {
-      dispatch(setLoading(false))
-      setIsLoading(false)
-      toast.error("An unexpected error occurred. Please try again.")
-    }
+    )
+
+    setIsLoading(false)
+    dispatch(setLoading(false))
   }
 
   const getFloatingIcon = (type: string, size: number) => {

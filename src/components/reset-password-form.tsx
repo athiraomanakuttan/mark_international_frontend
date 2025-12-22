@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import  {changePassword}  from "@/service/admin/profileService"
 import { toast } from "react-toastify"
+import { handleSafeFormSubmit } from "@/lib/formHelpers"
 
 export default function ResetPasswordForm() {
   const [password, setPassword] = React.useState("")
@@ -15,33 +16,42 @@ export default function ResetPasswordForm() {
   const [error, setError] = React.useState<string | null>(null)
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError(null)
+    await handleSafeFormSubmit(
+      e,
+      async () => {
+        setError(null)
 
-    if (!password || !confirmPassword) {
-      setError("Please fill out both fields.")
-      return
-    }
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.")
-      return
-    }
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.")
-      return
-    }
-    try {
-      setSubmitting(true)
-      const data = await changePassword(password)
-      if(data)
-        toast.success("Password reset successfully")
-      setPassword("")
-      setConfirmPassword("")
-    } catch (_err) {
-      setError("Something went wrong. Please try again.")
-    } finally {
-      setSubmitting(false)
-    }
+        if (!password || !confirmPassword) {
+          setError("Please fill out both fields.")
+          return
+        }
+        if (password.length < 8) {
+          setError("Password must be at least 8 characters long.")
+          return
+        }
+        if (password !== confirmPassword) {
+          setError("Passwords do not match.")
+          return
+        }
+        
+        const data = await changePassword(password)
+        if(data) {
+          toast.success("Password reset successfully")
+          setPassword("")
+          setConfirmPassword("")
+        }
+      },
+      {
+        onStart: () => setSubmitting(true),
+        onError: (error) => {
+          console.error('Password reset error:', error)
+          setError("Something went wrong. Please try again.")
+        },
+        onSuccess: () => setSubmitting(false),
+        preventRedirectHeaders: true
+      }
+    )
+    setSubmitting(false)
   }
 
   return (

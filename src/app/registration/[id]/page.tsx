@@ -12,6 +12,7 @@ import { Plus, X, Upload, User, Calendar, Phone, MapPin, FileText } from "lucide
 import { toast } from "react-toastify"
 import { RegistrationFormData, DocumentUpload, RegistrationFormErrors } from "@/types/registration-types"
 import { submitRegistration } from "@/service/registrationService"
+import { handleSafeFormSubmit } from "@/lib/formHelpers"
 
 export default function RegistrationPage() {
   const params = useParams();
@@ -200,52 +201,61 @@ export default function RegistrationPage() {
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateForm()) {
-      toast.error("Please fix the errors in the form")
-      return
-    }
-    try {
-      setLoading(true)
-      const submitData = new FormData()
-      submitData.append('id', id) // Pass the MongoDB id
-      submitData.append('name', formData.name)
-      submitData.append('dateOfBirth', formData.dateOfBirth)
-      submitData.append('contactNumber', formData.contactNumber)
-      submitData.append('maritalStatus', formData.maritalStatus)
-      submitData.append('address', JSON.stringify(formData.address))
-      formData.documents.forEach((doc, index) => {
-        if (doc.file) {
-          submitData.append(`documents[${index}][file]`, doc.file)
-          submitData.append(`documents[${index}][title]`, doc.title)
+    await handleSafeFormSubmit(
+      e,
+      async () => {
+        if (!validateForm()) {
+          toast.error("Please fix the errors in the form")
+          return
         }
-      })
-      const response = await submitRegistration(submitData)
-      const ok = (response as any).status ?? (response as any).success
-      if (!ok) {
-        throw new Error((response as any).message || "Registration failed")
-      }
-      toast.success("Registration submitted successfully!")
-      setFormData({
-        name: "",
-        dateOfBirth: "",
-        contactNumber: "",
-        maritalStatus: "",
-        address: {
-          street: "",
-          city: "",
-          state: "",
-          pincode: "",
-          country: "India"
+        
+        const submitData = new FormData()
+        submitData.append('id', id) // Pass the MongoDB id
+        submitData.append('name', formData.name)
+        submitData.append('dateOfBirth', formData.dateOfBirth)
+        submitData.append('contactNumber', formData.contactNumber)
+        submitData.append('maritalStatus', formData.maritalStatus)
+        submitData.append('address', JSON.stringify(formData.address))
+        formData.documents.forEach((doc, index) => {
+          if (doc.file) {
+            submitData.append(`documents[${index}][file]`, doc.file)
+            submitData.append(`documents[${index}][title]`, doc.title)
+          }
+        })
+        
+        const response = await submitRegistration(submitData)
+        const ok = (response as any).status ?? (response as any).success
+        if (!ok) {
+          throw new Error((response as any).message || "Registration failed")
+        }
+        
+        toast.success("Registration submitted successfully!")
+        setFormData({
+          name: "",
+          dateOfBirth: "",
+          contactNumber: "",
+          maritalStatus: "",
+          address: {
+            street: "",
+            city: "",
+            state: "",
+            pincode: "",
+            country: "India"
+          },
+          documents: []
+        })
+      },
+      {
+        onStart: () => setLoading(true),
+        onError: (error) => {
+          console.error("Registration error:", error)
+          toast.error("Failed to submit registration. Please try again.")
         },
-        documents: []
-      })
-    } catch (error) {
-      console.error("Registration error:", error)
-      toast.error("Failed to submit registration. Please try again.")
-    } finally {
-      setLoading(false)
-    }
+        onSuccess: () => setLoading(false),
+        preventRedirectHeaders: true
+      }
+    )
+    setLoading(false)
   }
 
   return (

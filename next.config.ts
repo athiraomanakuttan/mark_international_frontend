@@ -14,8 +14,13 @@ const nextConfig: NextConfig = {
     // Disable problematic features in production
     serverActions: {
       bodySizeLimit: '2mb',
+      // Prevent x-action-redirect header issues
+      allowedOrigins: [],
     },
   },
+
+  // External packages configuration
+  serverExternalPackages: [],
   
   // Disable powered by header
   poweredByHeader: false,
@@ -37,9 +42,42 @@ const nextConfig: NextConfig = {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN'
           },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          // Explicitly prevent problematic headers
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate'
+          },
         ],
       },
     ];
+  },
+
+  // Add custom webpack configuration to handle form submissions
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      // Production client-side optimizations
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          ...config.optimization.splitChunks,
+          cacheGroups: {
+            ...config.optimization.splitChunks.cacheGroups,
+            // Separate chunk for forms to prevent header issues
+            forms: {
+              name: 'forms',
+              test: /[\\/]components[\\/].*form.*\.tsx?$/i,
+              chunks: 'all',
+              priority: 10,
+            },
+          },
+        },
+      };
+    }
+    return config;
   },
 };
 

@@ -4,6 +4,7 @@ import type * as React from "react"
 import { ChevronDown, Search, Bell, User, Menu, X, Settings, Phone, Power, Key } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -13,7 +14,7 @@ import { menuItems } from "@/data/adminMenuItems"
 import { useSelector, useDispatch } from "react-redux"
 import type { AppDispatch, RootState } from "@/lib/redux/store"
 import { toast } from "react-toastify"
-import { useRouter } from "next/navigation"
+import { safeRedirect } from "@/lib/formHelpers"
 import { deleteFollowup, getFollowupData } from "@/service/followupService"
 
 interface LeadData {
@@ -195,7 +196,7 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
 
   const logoutUser = () => {
     dispatch({ type: "user/clearUser" });
-    router.push("/login");
+    safeRedirect("/login", 'href');
   };
 
   // Patch user.profilePic to allow string (URL) type

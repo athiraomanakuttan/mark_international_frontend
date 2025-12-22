@@ -12,6 +12,7 @@ import { useAppDispatch } from "@/lib/redux/hook"
 import { setUser, setLoading } from "@/lib/redux/features/userSlice"
 import Cookies from "js-cookie"
 import AuthDebug from "@/components/debug/AuthDebug"
+import { handleSafeFormSubmit, safeRedirect } from "@/lib/formHelpers"
 
 interface FloatingElement {
   id: number
@@ -131,7 +132,7 @@ const LoginPage: React.FC = () => {
         toast.success(response.message || "Welcome to Mark International!")
         // Use immediate navigation to avoid potential race conditions
         const targetPath = response?.data?.user?.role === "admin" ? "/dashboard" : "/staff/dashboard"
-        router.push(targetPath)
+        safeRedirect(targetPath, 'href')
       } else {
         dispatch(setLoading(false))
         setIsLoading(false)
