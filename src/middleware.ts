@@ -5,10 +5,13 @@ import type { NextFetchEvent } from 'next/server';
 import jwt from 'jsonwebtoken';
 
 /**
- * IMPORTANT:
- * - Never modify or delete Next.js internal headers
- * - Always skip Server Actions
- * - Use NextResponse.redirect only
+ * =====================================================
+ * ✅ NEXT.JS 15 SAFE MIDDLEWARE
+ * - No request.url usage in redirects
+ * - No header mutation
+ * - No Server Action crashes
+ * - Production & PM2 safe
+ * =====================================================
  */
 
 /* ===================== ROUTES ===================== */
@@ -42,9 +45,14 @@ interface DecodedToken {
 
 /* ===================== HELPERS ===================== */
 
-const redirectTo = (path: string, request: NextRequest) => {
+/**
+ * 🚨 CRITICAL
+ * Never use request.url for redirects
+ * This avoids x-action-redirect crashes
+ */
+const redirectTo = (path: string) => {
   return NextResponse.redirect(
-    new URL(path, request.url),
+    new URL(path, process.env.NEXT_PUBLIC_APP_URL),
     { status: 307 }
   );
 };
@@ -57,9 +65,8 @@ export function middleware(
 ) {
   try {
     /**
-     * 🚨 CRITICAL FIX
-     * Skip Server Actions completely
-     * This prevents x-action-redirect crashes
+     * ✅ Skip Server Actions completely
+     * Prevents Next.js internal redirect crashes
      */
     if (request.headers.get('x-action')) {
       return NextResponse.next();
@@ -80,7 +87,7 @@ export function middleware(
 
     /* ===== No token ===== */
     if (!token) {
-      return redirectTo('/login', request);
+      return redirectTo('/login');
     }
 
     /* ===== Decode token (NO verify in middleware) ===== */
@@ -90,7 +97,7 @@ export function middleware(
       decoded = jwt.decode(token) as DecodedToken | null;
       if (!decoded) throw new Error('Invalid token');
     } catch {
-      const res = redirectTo('/login', request);
+      const res = redirectTo('/login');
       res.cookies.delete('accessToken');
       return res;
     }
@@ -99,35 +106,36 @@ export function middleware(
 
     /* ===== Token expired ===== */
     if (exp && exp < Date.now() / 1000) {
-      const res = redirectTo('/login', request);
+      const res = redirectTo('/login');
       res.cookies.delete('accessToken');
       return res;
     }
 
-    /* ===== Role protection ===== */
+    /* ===== Admin route protection ===== */
     if (
       ADMIN_ROUTES.some(
         (route) => pathname === route || pathname.startsWith(route + '/')
       ) &&
       role?.toLowerCase() !== 'admin'
     ) {
-      return redirectTo('/unauthorized', request);
+      return redirectTo('/unauthorized');
     }
 
+    /* ===== Staff route protection ===== */
     if (
       STAFF_ROUTES.some(
         (route) => pathname === route || pathname.startsWith(route + '/')
       ) &&
       role?.toLowerCase() !== 'staff'
     ) {
-      return redirectTo('/unauthorized', request);
+      return redirectTo('/unauthorized');
     }
 
     return NextResponse.next();
   } catch (error) {
     /**
-     * LAST-RESORT SAFETY NET
-     * Never crash the process
+     * 🛡 LAST-RESORT SAFETY NET
+     * Middleware must NEVER crash
      */
     console.error('[Middleware] Unexpected error:', error);
     return NextResponse.next();
