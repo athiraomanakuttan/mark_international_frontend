@@ -1,160 +1,99 @@
 // middleware.ts
-import './lib/localStorageShim';
-import { NextResponse, NextRequest } from 'next/server';
-import type { NextFetchEvent } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { NextResponse, NextRequest } from 'next/server'
+import type { NextFetchEvent } from 'next/server'
+import jwt from 'jsonwebtoken'
 
-/**
- * =====================================================
- * ✅ NEXT.JS 15 SAFE MIDDLEWARE
- * - No request.url usage in redirects
- * - No header mutation
- * - No Server Action crashes
- * - Production & PM2 safe
- * =====================================================
- */
-
-/* ===================== ROUTES ===================== */
-
-const PUBLIC_ROUTES = ['/login', '/signup', '/registration'];
+const PUBLIC_ROUTES = ['/login', '/signup', '/registration']
 
 const ADMIN_ROUTES = [
   '/dashboard',
   '/staff-management',
-  '/staff-management/view',
   '/lead-management',
   '/settings',
-  '/reports/transfer-lead',
-  '/lead-management/unassigned',
-  '/lead-management/deleted',
-  '/lead-management/transfer',
-  '/lead-management/report',
-  '/lead-management/import',
-];
+  '/reports',
+]
 
 const STAFF_ROUTES = [
   '/staff/dashboard',
   '/staff/report',
-];
+]
 
 interface DecodedToken {
-  role: string;
-  exp?: number;
-  [key: string]: any;
+  role?: string
+  exp?: number
 }
 
-/* ===================== HELPERS ===================== */
-
-/**
- * 🚨 CRITICAL
- * Never use request.url for redirects
- * This avoids x-action-redirect crashes
- */
-const redirectTo = (path: string) => {
-  return NextResponse.redirect(
-    new URL(path, process.env.NEXT_PUBLIC_APP_URL),
-    { status: 307 }
-  );
-};
-
-/* ===================== MIDDLEWARE ===================== */
-
-export function middleware(
-  request: NextRequest,
-  _event: NextFetchEvent
-) {
+export function middleware(request: NextRequest, _event: NextFetchEvent) {
   try {
-    /**
-     * ✅ Skip Server Actions completely
-     * Prevents Next.js internal redirect crashes
-     */
-    if (request.headers.get('x-action')) {
-      return NextResponse.next();
+    /** 🔥 CRITICAL: Skip ALL Server Actions completely */
+    if (
+      request.headers.has('x-action') ||
+      request.headers.has('x-action-redirect')
+    ) {
+      return NextResponse.next()
     }
 
-    const { pathname } = request.nextUrl;
-    const token = request.cookies.get('accessToken')?.value;
+    const { pathname } = request.nextUrl
+    const token = request.cookies.get('accessToken')?.value
 
-    /* ===== Allow public routes ===== */
+    /** Allow public routes */
     if (
       pathname === '/' ||
       PUBLIC_ROUTES.some(
-        (route) => pathname === route || pathname.startsWith(route + '/')
+        (r) => pathname === r || pathname.startsWith(r + '/')
       )
     ) {
-      return NextResponse.next();
+      return NextResponse.next()
     }
 
-    /* ===== No token ===== */
+    /** No token → login */
     if (!token) {
-      return redirectTo('/login');
+      return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    /* ===== Decode token (NO verify in middleware) ===== */
-    let decoded: DecodedToken | null = null;
-
-    try {
-      decoded = jwt.decode(token) as DecodedToken | null;
-      if (!decoded) throw new Error('Invalid token');
-    } catch {
-      const res = redirectTo('/login');
-      res.cookies.delete('accessToken');
-      return res;
+    /** Decode only (NEVER verify in middleware) */
+    const decoded = jwt.decode(token) as DecodedToken | null
+    if (!decoded) {
+      const res = NextResponse.redirect(new URL('/login', request.url))
+      res.cookies.delete('accessToken')
+      return res
     }
 
-    const { role, exp } = decoded;
-
-    /* ===== Token expired ===== */
-    if (exp && exp < Date.now() / 1000) {
-      const res = redirectTo('/login');
-      res.cookies.delete('accessToken');
-      return res;
+    /** Expired token */
+    if (decoded.exp && decoded.exp < Date.now() / 1000) {
+      const res = NextResponse.redirect(new URL('/login', request.url))
+      res.cookies.delete('accessToken')
+      return res
     }
 
-    /* ===== Admin route protection ===== */
+    /** Role protection */
     if (
       ADMIN_ROUTES.some(
-        (route) => pathname === route || pathname.startsWith(route + '/')
+        (r) => pathname === r || pathname.startsWith(r + '/')
       ) &&
-      role?.toLowerCase() !== 'admin'
+      decoded.role !== 'admin'
     ) {
-      return redirectTo('/unauthorized');
+      return NextResponse.redirect(new URL('/unauthorized', request.url))
     }
 
-    /* ===== Staff route protection ===== */
     if (
       STAFF_ROUTES.some(
-        (route) => pathname === route || pathname.startsWith(route + '/')
+        (r) => pathname === r || pathname.startsWith(r + '/')
       ) &&
-      role?.toLowerCase() !== 'staff'
+      decoded.role !== 'staff'
     ) {
-      return redirectTo('/unauthorized');
+      return NextResponse.redirect(new URL('/unauthorized', request.url))
     }
 
-    return NextResponse.next();
-  } catch (error) {
-    /**
-     * 🛡 LAST-RESORT SAFETY NET
-     * Middleware must NEVER crash
-     */
-    console.error('[Middleware] Unexpected error:', error);
-    return NextResponse.next();
+    return NextResponse.next()
+  } catch (err) {
+    console.error('[middleware] error:', err)
+    return NextResponse.next()
   }
 }
 
-/* ===================== CONFIG ===================== */
-
 export const config = {
   matcher: [
-    /**
-     * Match everything EXCEPT:
-     * - _next static files
-     * - images
-     * - favicon
-     * - api routes
-     * - webhooks
-     * - files with extensions
-     */
-    '/((?!_next/static|_next/image|favicon.ico|api/|webhook/|.*\\.[a-zA-Z0-9]+$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/|webhook/|.*\\..*).*)',
   ],
-};
+}
