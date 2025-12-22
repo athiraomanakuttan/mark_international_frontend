@@ -8,6 +8,7 @@ import  StoreProvider  from "@/lib/redux/StoreProvider"
 import { ApiCallMonitor } from "@/components/debug/ApiCallMonitor"
 import { PagePerformanceMonitor } from "@/components/debug/PagePerformanceMonitor"
 import HeaderErrorBoundary from "@/components/HeaderErrorBoundary"
+import { GlobalErrorHandler } from "@/components/GlobalErrorHandler"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body className={inter.className}>
       <StoreProvider>
         <HeaderErrorBoundary>
+          <GlobalErrorHandler />
           {children}
           <ToastProvider />
           {process.env.NODE_ENV === 'development' && (

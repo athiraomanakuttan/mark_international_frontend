@@ -106,6 +106,24 @@ axiosInstance.interceptors.request.use(
       }
     }
 
+    // Remove any problematic headers that might cause x-action-redirect issues
+    if (config.headers) {
+      // Clean headers to prevent invalid characters
+      const headersToRemove = ['x-action-redirect', 'x-action', 'redirect'];
+      headersToRemove.forEach(headerName => {
+        delete config.headers[headerName];
+      });
+      
+      // Ensure all header values are properly encoded
+      Object.keys(config.headers).forEach(key => {
+        const value = config.headers[key];
+        if (typeof value === 'string') {
+          // Remove any non-ASCII characters that might cause header issues
+          config.headers[key] = value.replace(/[^\x20-\x7E]/g, '');
+        }
+      });
+    }
+
     // Set dynamic timeout based on URL
     if (config.url) {
       config.timeout = getTimeoutForUrl(config.url);

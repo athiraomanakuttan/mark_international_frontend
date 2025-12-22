@@ -11,12 +11,8 @@ const nextConfig: NextConfig = {
   
   // Production optimizations for Next.js 15
   experimental: {
-    // Disable problematic features in production
-    serverActions: {
-      bodySizeLimit: '2mb',
-      // Prevent x-action-redirect header issues
-      allowedOrigins: [],
-    },
+    // Disable server actions to prevent x-action-redirect issues
+    // Set bodySizeLimit to 0 effectively disables server actions
   },
 
   // External packages configuration
