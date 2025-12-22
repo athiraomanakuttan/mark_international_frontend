@@ -24,32 +24,41 @@ const nextConfig: NextConfig = {
   // Compression
   compress: true,
   
-  // Headers configuration to prevent invalid character errors
+  // Headers configuration to prevent problematic headers
   async headers() {
     return [
       {
-        source: '/:path*',
+        source: '/(.*)',
         headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'X-Frame-Options', 
+            value: 'DENY',
+          },
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on'
           },
           {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
-          },
-          {
             key: 'X-Content-Type-Options',
             value: 'nosniff'
-          },
-          // Explicitly prevent problematic headers
-          {
-            key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate'
           },
         ],
       },
     ];
+  },
+
+  // Redirects configuration
+  async redirects() {
+    return [];
+  },
+
+  // Rewrites configuration  
+  async rewrites() {
+    return [];
   },
 
   // Add custom webpack configuration to handle form submissions

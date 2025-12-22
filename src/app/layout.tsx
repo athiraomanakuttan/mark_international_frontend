@@ -9,6 +9,7 @@ import { ApiCallMonitor } from "@/components/debug/ApiCallMonitor"
 import { PagePerformanceMonitor } from "@/components/debug/PagePerformanceMonitor"
 import HeaderErrorBoundary from "@/components/HeaderErrorBoundary"
 import { GlobalErrorHandler } from "@/components/GlobalErrorHandler"
+import { GlobalFormInterceptor } from "@/components/GlobalFormInterceptor"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -28,6 +29,7 @@ export default function RootLayout({
       <StoreProvider>
         <HeaderErrorBoundary>
           <GlobalErrorHandler />
+          <GlobalFormInterceptor />
           {children}
           <ToastProvider />
           {process.env.NODE_ENV === 'development' && (

@@ -4,6 +4,30 @@ import { NextResponse, NextRequest } from 'next/server'
 import type { NextFetchEvent } from 'next/server'
 import jwt from 'jsonwebtoken'
 
+// Helper function to create safe redirect response
+const createSafeRedirect = (url: string, request: NextRequest): NextResponse => {
+  try {
+    const redirectUrl = new URL(url, request.url)
+    // Remove any problematic search parameters
+    redirectUrl.searchParams.delete('x-action-redirect')
+    redirectUrl.searchParams.delete('x-action')
+    redirectUrl.searchParams.delete('redirect')
+    
+    const response = NextResponse.redirect(redirectUrl, { status: 307 })
+    
+    // Ensure no problematic headers are set
+    response.headers.delete('x-action-redirect')
+    response.headers.delete('x-action')
+    
+    return response
+  } catch (error) {
+    console.error('[Middleware] Error creating redirect:', error)
+    // Fallback to origin-based URL
+    const fallbackUrl = new URL(url, request.nextUrl.origin)
+    return NextResponse.redirect(fallbackUrl, { status: 307 })
+  }
+}
+
 const PUBLIC_ROUTES = ['/login', '/signup','/registration'];
 const ADMIN_ROUTES = [
   '/dashboard',
@@ -36,16 +60,7 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
     }
 
     if (!token) {
-      try {
-        const loginUrl = new URL('/login', request.url);
-        // Ensure URL is properly constructed
-        loginUrl.searchParams.delete('x-action-redirect');
-        return NextResponse.redirect(loginUrl, { status: 307 });
-      } catch (urlError) {
-        console.error('[Middleware] URL construction error:', urlError);
-        // Fallback to basic redirect
-        return NextResponse.redirect(new URL('/login', request.nextUrl.origin), { status: 307 });
-      }
+      return createSafeRedirect('/login', request)
     }
 
     let decoded: DecodedToken | null;
@@ -56,19 +71,9 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
       if (process.env.NODE_ENV === 'production') {
         console.error('[Middleware] Token decode error:', error);
       }
-      try {
-        const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.delete('x-action-redirect');
-        const response = NextResponse.redirect(loginUrl, { status: 307 });
-        response.cookies.delete('accessToken');
-        return response;
-      } catch (redirectError) {
-        console.error('[Middleware] Redirect error:', redirectError);
-        const fallbackUrl = new URL('/login', request.nextUrl.origin);
-        const response = NextResponse.redirect(fallbackUrl, { status: 307 });
-        response.cookies.delete('accessToken');
-        return response;
-      }
+      const response = createSafeRedirect('/login', request)
+      response.cookies.delete('accessToken');
+      return response
     }
 
     const { role, exp } = decoded;
@@ -78,41 +83,17 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
       if (process.env.NODE_ENV === 'production') {
         console.error('[Middleware] Token expired');
       }
-      try {
-        const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.delete('x-action-redirect');
-        const response = NextResponse.redirect(loginUrl, { status: 307 });
-        response.cookies.delete('accessToken');
-        return response;
-      } catch (redirectError) {
-        console.error('[Middleware] Redirect error (expired):', redirectError);
-        const fallbackUrl = new URL('/login', request.nextUrl.origin);
-        const response = NextResponse.redirect(fallbackUrl, { status: 307 });
-        response.cookies.delete('accessToken');
-        return response;
-      }
+      const response = createSafeRedirect('/login', request)
+      response.cookies.delete('accessToken');
+      return response
     }
 
     if (ADMIN_ROUTES.some(path => pathname === path || pathname.startsWith(`${path}/`)) && role.toLowerCase() !== 'admin') {
-      try {
-        const unauthorizedUrl = new URL('/unauthorized', request.url);
-        unauthorizedUrl.searchParams.delete('x-action-redirect');
-        return NextResponse.redirect(unauthorizedUrl, { status: 307 });
-      } catch (redirectError) {
-        console.error('[Middleware] Admin redirect error:', redirectError);
-        return NextResponse.redirect(new URL('/unauthorized', request.nextUrl.origin), { status: 307 });
-      }
+      return createSafeRedirect('/unauthorized', request)
     }
 
     if (STAFF_ROUTES.some(path => pathname === path || pathname.startsWith(`${path}/`)) && role.toLowerCase() !== 'staff') {
-      try {
-        const unauthorizedUrl = new URL('/unauthorized', request.url);
-        unauthorizedUrl.searchParams.delete('x-action-redirect');
-        return NextResponse.redirect(unauthorizedUrl, { status: 307 });
-      } catch (redirectError) {
-        console.error('[Middleware] Staff redirect error:', redirectError);
-        return NextResponse.redirect(new URL('/unauthorized', request.nextUrl.origin), { status: 307 });
-      }
+      return createSafeRedirect('/unauthorized', request)
     }
 
     return NextResponse.next();
@@ -124,17 +105,19 @@ export function middleware(request: NextRequest, _next: NextFetchEvent) {
   }
 }
 
-// ✅ Match all routes except static files and API
+// ✅ Match all routes except static files, API routes, and other excluded paths
 export const config = {
   matcher: [
     /*
      * Match all request paths except:
      * - _next/static (static files)
-     * - _next/image (image optimization files)
+     * - _next/image (image optimization files) 
      * - favicon.ico (favicon file)
      * - public folder
      * - api routes
+     * - webhook routes
+     * - any file with extension
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/|webhook/|.*\\.[a-zA-Z0-9]+$).*)',
   ],
 };

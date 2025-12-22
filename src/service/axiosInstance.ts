@@ -157,6 +157,15 @@ axiosInstance.interceptors.response.use(
     if (requestId) {
       logger.logRequestSuccess(requestId, response);
     }
+    
+    // Sanitize response headers to remove any problematic ones
+    if (response.headers) {
+      const problematicHeaders = ['x-action-redirect', 'x-action', 'action-redirect', 'redirect'];
+      problematicHeaders.forEach(header => {
+        delete response.headers[header];
+      });
+    }
+    
     return response;
   },
   async (error: AxiosError) => {
