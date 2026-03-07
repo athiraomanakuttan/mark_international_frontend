@@ -1,0 +1,57 @@
+.modalBoxCustom {
+  background: var(--color-card, #fff);
+  border-radius: var(--radius-lg, 10px);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  border: 1px solid var(--color-border, #e5e7eb);
+}
+
+.modalHeaderCustom {
+  background:  #10B981;
+  color: var(--color-primary-foreground, #fff);
+  border-radius: var(--radius-lg, 10px) 10px 0 0;
+  padding: 1rem 1.5rem;
+}
+
+.modalTitleCustom {
+  color: var(--color-primary-foreground, #fff);
+  font-weight: 600;
+}
+
+.modalFormCustom {
+  background: var(--color-card, #fff);
+  padding: 1.5rem;
+  border-radius: 0 0 var(--radius-lg, 10px) 10px;
+}
+
+.inputCustom {
+  background: var(--color-input, #f3f4f6);
+  border: 1px solid var(--color-border, #e5e7eb);
+  color: var(--color-foreground, #111827);
+}
+
+.textareaCustom {
+  background: var(--color-input, #f3f4f6);
+  border: 1px solid var(--color-border, #e5e7eb);
+  color: var(--color-foreground, #111827);
+}
+
+.uploadedFileCustom {
+  background: var(--color-muted, #f9fafb);
+  border: 1px solid var(--color-border, #e5e7eb);
+}
+
+.buttonPrimaryCustom {
+  background: var(--color-primary, #4F46E5);
+  color: var(--color-primary-foreground, #fff);
+}
+
+.buttonOutlineCustom {
+  background: var(--color-background, #fff);
+  color: var(--color-primary, #4F46E5);
+  border: 1px solid var(--color-primary, #4F46E5);
+}
+
+.buttonDestructiveCustom {
+  background: var(--color-destructive, #EF4444);
+  color: #fff;
+}

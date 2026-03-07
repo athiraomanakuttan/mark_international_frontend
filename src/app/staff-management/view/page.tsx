@@ -281,18 +281,18 @@ const changeLimit = (value: string) => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">
-            Staff Management
+            User Management
           </h1>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}> 
             <DialogTrigger asChild>
               <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="mr-2 h-4 w-4" /> Add Staff
+                <Plus className="mr-2 h-4 w-4" /> Add User
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px] p-6">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-bold text-slate-900">
-                  Add New Staff
+                  Add New User
                 </DialogTitle>
                 <DialogDescription className="text-slate-600">
                   Fill in the details to add a new staff member.

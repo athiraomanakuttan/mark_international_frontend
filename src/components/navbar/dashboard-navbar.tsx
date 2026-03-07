@@ -79,7 +79,7 @@ const menuItems = [
     ],
   },
   {
-    title: "Staff Management",
+    title: "User Management",
     icon: UserPlus,
     items: [
       {

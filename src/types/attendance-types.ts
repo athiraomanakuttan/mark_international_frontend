@@ -5,22 +5,78 @@ export enum LeaveStatus {
   REJECTED = 'rejected'
 }
 
+// Leave Type Enum (per-month quotas, same for all staff)
+export enum LeaveType {
+  CASUAL = 'casual',
+  SICK = 'sick',
+  LOP = 'lop',
+}
+
 // Leave Document Interface
 export interface LeaveDocument {
   title: string;
   url: string;
 }
 
+// User Info in Leave Request (from backend)
+export interface LeaveRequestUserInfo {
+  _id: string;
+  name: string;
+  email: string;
+  joiningDate: string;
+}
+
 // Leave Request Interface
 export interface LeaveRequest {
   _id: string;
-  userId: string;
+  userId: string | LeaveRequestUserInfo; // Can be string or populated user object
   leaveDate: string; // ISO date string
   reason: string;
   documents?: LeaveDocument[];
   status: LeaveStatus;
+   // New: leave category used for quotas and reporting
+  leaveType?: LeaveType;
+  adminComments?: string; // Optional reason when admin rejects
   createdAt: string;
   updatedAt: string;
+  // Optional fields from backend response
+  formattedLeaveDate?: string;
+  daysUntilLeave?: number;
+  id?: string;
+}
+
+// Response from getLeavesByDateRange API
+export interface LeavesByDateRangeResponse {
+  leaves: LeaveRequest[];
+  total: number;
+  presentDays: number;
+  absentDays: number;
+  pendingLeaves: number;
+  approvedLeaves: number;
+  attendanceRate: number;
+  totalWorkingDays: number;
+  pastDays: number;
+  upcomingDays: number;
+  manualAbsentDates?: string[]; // Admin-marked absent dates (YYYY-MM-DD)
+  // Per-type approved leave counts in the queried range (backend summary)
+  casualLeaves?: number;
+  sickLeaves?: number;
+  lopLeaves?: number;
+}
+
+// Monthly leave configuration (same for all staff)
+export interface MonthlyLeaveConfig {
+  year: number;
+  month: number;
+  casualLimit: number;
+  sickLimit: number;
+}
+
+// Per-user monthly leave usage (approved counts by type)
+export interface MonthlyLeaveUsage {
+  casualApproved: number;
+  sickApproved: number;
+  lopApproved: number;
 }
 
 // Create Leave Request DTO
@@ -28,6 +84,7 @@ export interface CreateLeaveRequestDto {
   userId: string;
   leaveDate: string; // ISO date string (YYYY-MM-DD)
   reason: string;
+  leaveType: LeaveType;
   documents?: File[];
 }
 
@@ -85,6 +142,8 @@ export interface MonthlyCalendar {
   year: number;
   dates: CalendarDate[];
   monthName: string;
+  // Optional: backend-provided summary can be stored here
+  summary?: AttendanceSummary;
 }
 
 // User Attendance Summary
@@ -131,6 +190,7 @@ export interface LeaveRequestFormData {
   leaveDate: string;
   reason: string;
   documents: File[];
+  leaveType: LeaveType | '';
 }
 
 // Calendar Configuration
@@ -189,6 +249,8 @@ export interface LeaveRequestModalProps {
   selectedDate?: string;
   userId: string;
   isLoading?: boolean;
+  monthlyConfig?: MonthlyLeaveConfig;
+  monthlyUsage?: MonthlyLeaveUsage;
 }
 
 export interface AttendanceSummaryProps {
@@ -205,4 +267,6 @@ export interface AttendanceRequestType {
   date: string;
   reason: string;
   status: "pending" | "approved" | "rejected";
+  documents?: LeaveDocument[];
+  leaveType?: LeaveType;
 }

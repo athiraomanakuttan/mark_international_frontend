@@ -8,7 +8,9 @@ import {
   MonthlyCalendar,
   CalendarDate,
   AttendanceStatus,
-  LeaveStatus
+  LeaveStatus,
+  LeavesByDateRangeResponse,
+  MonthlyLeaveConfig,
 } from '../types/attendance-types';
 import { UserInfo } from '../types/attendance-types';
 
@@ -19,8 +21,19 @@ export class AttendanceService {
     LEAVE: '/leave',
     USER_LEAVES: '/leaves/user',
     LEAVE_STATS: '/leaves/stats',
-    MONTHLY_SUMMARY: '/leaves/summary/monthly'
+  MONTHLY_SUMMARY: '/leaves/summary/monthly',
+  MONTHLY_CONFIG: '/leaves/config/monthly',
   } as const;
+
+  /**
+   * Parse a date string as local date (YYYY-MM-DD) to avoid timezone shifts.
+   * Handles both "2024-03-15" and "2024-03-15T00:00:00.000Z" formats.
+   */
+  private static parseLocalDate(dateStr: string): Date {
+    const dateOnly = dateStr.split('T')[0]; // Get YYYY-MM-DD part
+    const [year, month, day] = dateOnly.split('-').map(Number);
+    return new Date(year, month - 1, day); // Local midnight, no timezone shift
+  }
 
   /**
    * Convert Date object to local date string (YYYY-MM-DD) without timezone conversion
@@ -68,6 +81,7 @@ export class AttendanceService {
       formData.append('userId', leaveData.userId);
       formData.append('leaveDate', leaveData.leaveDate);
       formData.append('reason', leaveData.reason);
+      formData.append('leaveType', leaveData.leaveType);
 
       // Add documents if provided
       if (leaveData.documents && leaveData.documents.length > 0) {
@@ -91,11 +105,6 @@ export class AttendanceService {
       console.log('Leave request response:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('Error creating leave request:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      console.error('Error headers:', error.response?.headers);
-      
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to create leave request',
@@ -106,12 +115,13 @@ export class AttendanceService {
 
   /**
    * Get leave requests within a date range
+   * Returns the new backend response format with leaves array and summary statistics
    */
   static async getLeavesByDateRange(
     userId: string, 
     dateFrom: string, 
     dateTo: string
-  ): Promise<LeaveResponse> {
+  ): Promise<LeavesByDateRangeResponse> {
     try {
       const params = new URLSearchParams({
         userId,
@@ -119,15 +129,24 @@ export class AttendanceService {
         dateTo
       });
 
-      const response = await axiosInstance.get<LeaveResponse>(
+      const response = await axiosInstance.get<LeavesByDateRangeResponse>(
         `${this.ENDPOINTS.LEAVES}/date-range?${params.toString()}`
       );
       return response.data;
     } catch (error: any) {
       console.error('Error fetching leaves by date range:', error);
+      // Return empty structure if error occurs
       return {
-        success: false,
-        message: error.response?.data?.message || 'Failed to fetch leave requests'
+        leaves: [],
+        total: 0,
+        presentDays: 0,
+        absentDays: 0,
+        pendingLeaves: 0,
+        approvedLeaves: 0,
+        attendanceRate: 0,
+        totalWorkingDays: 0,
+        pastDays: 0,
+        upcomingDays: 0,
       };
     }
   }
@@ -151,9 +170,8 @@ export class AttendanceService {
       const dateTo = `${year}-${String(month).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
       
       const leaveResponse = await this.getLeavesByDateRange(userId, dateFrom, dateTo);
-      const leaveRequests = leaveResponse.success && Array.isArray(leaveResponse.data) 
-        ? leaveResponse.data as LeaveRequest[] 
-        : [];
+      const leaveRequests = leaveResponse.leaves || [];
+      const manualAbsentSet = new Set<string>(leaveResponse.manualAbsentDates ?? []);
 
       // Create a map of leave requests by date (use consistent local date format)
       const leaveMap = new Map<string, LeaveRequest>();
@@ -164,9 +182,9 @@ export class AttendanceService {
         leaveMap.set(dateKey, leave);
       });
 
-      // Generate calendar dates
+      // Generate calendar dates - parse joining date as local to avoid timezone shifts
       const dates: CalendarDate[] = [];
-      const joiningDate = new Date(userJoiningDate);
+      const joiningDate = AttendanceService.parseLocalDate(userJoiningDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -175,28 +193,31 @@ export class AttendanceService {
       for (let i = firstDayOfWeek - 1; i >= 0; i--) {
         const date = new Date(firstDay);
         date.setDate(date.getDate() - (i + 1));
-        dates.push(this.createCalendarDate(date, month, leaveMap, joiningDate, today, false));
+        dates.push(this.createCalendarDate(date, month, leaveMap, joiningDate, today, manualAbsentSet, false));
       }
 
       // Add current month dates
       for (let day = 1; day <= lastDay.getDate(); day++) {
         const date = new Date(year, month - 1, day);
-        dates.push(this.createCalendarDate(date, month, leaveMap, joiningDate, today, true));
+        dates.push(this.createCalendarDate(date, month, leaveMap, joiningDate, today, manualAbsentSet, true));
       }
 
       // Add next month dates to fill the last week
       const remainingDays = 42 - dates.length; // 6 weeks * 7 days
       for (let day = 1; day <= remainingDays; day++) {
         const date = new Date(year, month, day);
-        dates.push(this.createCalendarDate(date, month, leaveMap, joiningDate, today, false));
+        dates.push(this.createCalendarDate(date, month, leaveMap, joiningDate, today, manualAbsentSet, false));
       }
 
-      return {
+      const result: MonthlyCalendar = {
         month,
         year,
         dates,
         monthName: firstDay.toLocaleString('default', { month: 'long' })
       };
+      // Use frontend-calculated summary to respect BEFORE_JOINING (backend may not exclude pre-joining days)
+      result.summary = this.calculateAttendanceSummary(result);
+      return result;
     } catch (error) {
       console.error('Error generating monthly calendar:', error);
       throw error;
@@ -212,11 +233,13 @@ export class AttendanceService {
     leaveMap: Map<string, LeaveRequest>,
     joiningDate: Date,
     today: Date,
+    manualAbsentSet: Set<string>,
     isCurrentMonth: boolean
   ): CalendarDate {
     // Create date string in local timezone (YYYY-MM-DD format)
     const dateString = AttendanceService.toLocalDateString(date);
     const leaveRequest = leaveMap.get(dateString);
+    const isManualAbsent = manualAbsentSet.has(dateString);
     
     let status: AttendanceStatus;
     let isClickable = false;
@@ -225,8 +248,7 @@ export class AttendanceService {
     const dateOnly = new Date(date);
     dateOnly.setHours(0, 0, 0, 0);
     
-    const joiningDateOnly = new Date(joiningDate);
-    joiningDateOnly.setHours(0, 0, 0, 0);
+    const joiningDateOnly = new Date(joiningDate.getFullYear(), joiningDate.getMonth(), joiningDate.getDate());
 
     // Determine status based on various conditions
     if (dateOnly < joiningDateOnly) {
@@ -246,15 +268,16 @@ export class AttendanceService {
         default:
           status = AttendanceStatus.FUTURE;
       }
+    } else if (isManualAbsent) {
+      // Admin marked absent (no leave request)
+      status = AttendanceStatus.ABSENT;
     } else if (dateOnly > today) {
       // Future date - clickable for leave requests
       status = AttendanceStatus.FUTURE;
       isClickable = true;
     } else if (dateOnly.getTime() === today.getTime()) {
-      // Today - for now, we'll mark as present (this could be enhanced with actual attendance data)
       status = AttendanceStatus.PRESENT;
     } else {
-      // Past date - for now, we'll mark as present (this could be enhanced with actual attendance data)
       status = AttendanceStatus.PRESENT;
     }
 
@@ -297,23 +320,21 @@ export class AttendanceService {
       date.status === AttendanceStatus.PRESENT
     ).length;
 
-    // Approved leaves count as absent
+    // Absent = only admin-marked absent (no leave request). Approved leaves are shown separately.
     const absentDays = relevantDates.filter(date => 
-      date.status === AttendanceStatus.ABSENT || date.status === AttendanceStatus.LEAVE_APPROVED
+      date.status === AttendanceStatus.ABSENT
     ).length;
 
-    // Pending leaves - Only count up to today for current month
-    const leavesPending = relevantDates.filter(date => 
+    // Count leave stats from the full month so future approved/pending leaves in the month are included
+    const leavesPending = currentMonthDates.filter(date => 
       date.status === AttendanceStatus.LEAVE_PENDING
     ).length;
 
-    // Approved leaves - Only count up to today for current month
-    const leavesApproved = relevantDates.filter(date => 
+    const leavesApproved = currentMonthDates.filter(date => 
       date.status === AttendanceStatus.LEAVE_APPROVED
     ).length;
 
-    // Rejected leaves
-    const leavesRejected = relevantDates.filter(date => 
+    const leavesRejected = currentMonthDates.filter(date => 
       date.status === AttendanceStatus.LEAVE_REJECTED
     ).length;
 
@@ -347,6 +368,21 @@ export class AttendanceService {
   }
 
   /**
+   * Get global monthly leave configuration (same for all staff)
+   */
+  static async getMonthlyLeaveConfig(year: number, month: number): Promise<MonthlyLeaveConfig> {
+    const params = new URLSearchParams({
+      year: year.toString(),
+      month: month.toString(),
+    });
+    const response = await axiosInstance.get<{ success: boolean; message?: string; data: MonthlyLeaveConfig }>(
+      `${this.ENDPOINTS.MONTHLY_CONFIG}?${params.toString()}`
+    );
+    // Backend returns { success, message, data: config }; use data for the config
+    return response.data.data;
+  }
+
+  /**
    * Validate leave request data before submission
    */
   static validateLeaveRequest(leaveData: CreateLeaveRequestDto, userJoiningDate: string): string[] {
@@ -357,11 +393,10 @@ export class AttendanceService {
     } else {
       const leaveDate = new Date(leaveData.leaveDate);
       const today = new Date();
-      const joiningDate = new Date(userJoiningDate);
+      const joiningDate = AttendanceService.parseLocalDate(userJoiningDate);
       
       today.setHours(0, 0, 0, 0);
       leaveDate.setHours(0, 0, 0, 0);
-      joiningDate.setHours(0, 0, 0, 0);
       
       if (leaveDate <= today) {
         errors.push('Leave date must be in the future');

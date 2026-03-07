@@ -10,11 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';  
 import { cn } from '@/lib/utils';
+import styles from './LeaveRequestModal.module.css';
 import { 
   LeaveRequestModalProps, 
   CreateLeaveRequestDto,
   LeaveRequestFormData, 
-  LeaveRequest
+  LeaveRequest,
+  LeaveType,
 } from '@/types/attendance-types';
 import { AttendanceService } from '@/service/attendanceService';
 import { handleSafeFormSubmit } from '@/lib/formHelpers';
@@ -26,12 +28,15 @@ export function LeaveRequestModal({
   selectedDate,
   userId,
   isLoading = false,
-  editingLeave = null
+  editingLeave = null,
+  monthlyConfig,
+  monthlyUsage,
 }: LeaveRequestModalProps & { editingLeave?: LeaveRequest | null }) {
   const [formData, setFormData] = useState<LeaveRequestFormData>({
     leaveDate: selectedDate || (editingLeave ? editingLeave.leaveDate : ''),
     reason: editingLeave ? editingLeave.reason : '',
-    documents: []
+    documents: [],
+    leaveType: '',
   });
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,10 +121,16 @@ export function LeaveRequestModal({
         userId,
         leaveDate: formData.leaveDate,
         reason: formData.reason,
-        documents: formData.documents
+        documents: formData.documents,
+        // Cast is safe because we enforce selection below
+        leaveType: formData.leaveType as LeaveType,
       },
       userJoiningDate
     );
+
+    if (!formData.leaveType) {
+      validationErrors.push('Leave type is required');
+    }
 
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
@@ -144,6 +155,7 @@ export function LeaveRequestModal({
         userId,
         leaveDate: formData.leaveDate,
         reason: formData.reason.trim(),
+        leaveType: formData.leaveType as LeaveType,
         documents: formData.documents
       };
       await onSubmit(leaveRequestData);
@@ -152,7 +164,8 @@ export function LeaveRequestModal({
       setFormData({
         leaveDate: '',
         reason: '',
-        documents: []
+        documents: [],
+        leaveType: '',
       });
       
       onClose();
@@ -170,7 +183,8 @@ export function LeaveRequestModal({
       setFormData({
         leaveDate: selectedDate || '',
         reason: '',
-        documents: []
+        documents: [],
+        leaveType: '',
       });
       setErrors([]);
       onClose();
@@ -184,7 +198,8 @@ export function LeaveRequestModal({
         setFormData({
           leaveDate: editingLeave.leaveDate,
           reason: editingLeave.reason,
-          documents: [] // Documents are not editable in this modal
+          documents: [], // Documents are not editable in this modal
+          leaveType: (editingLeave as any).leaveType || '',
         });
       } else if (selectedDate) {
         setFormData(prev => ({
@@ -195,17 +210,29 @@ export function LeaveRequestModal({
     }
   }, [isOpen, selectedDate, editingLeave]);
 
+  const casualLimit = monthlyConfig?.casualLimit ?? null;
+  const sickLimit = monthlyConfig?.sickLimit ?? null;
+  const casualApproved = monthlyUsage?.casualApproved ?? 0;
+  const sickApproved = monthlyUsage?.sickApproved ?? 0;
+
+  const canUseCasual =
+    casualLimit === null || casualLimit === undefined || casualApproved < casualLimit;
+  const canUseSick =
+    sickLimit === null || sickLimit === undefined || sickApproved < sickLimit;
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5" />
-            <span>Request Leave</span>
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className={`sm:max-w-[500px] max-h-[90vh] overflow-y-auto ${styles.modalBoxCustom}`}>  
+        <div className={styles.modalHeaderCustom}>
+          <DialogHeader>
+            <DialogTitle className={`flex items-center space-x-2 ${styles.modalTitleCustom}`}>
+              <Calendar className="w-5 h-5" />
+              <span>Request Leave</span>
+            </DialogTitle>
+          </DialogHeader>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className={`space-y-6 ${styles.modalFormCustom}`}>
           {editingLeave && (
             <Alert variant="default">
               <AlertDescription>
@@ -215,6 +242,12 @@ export function LeaveRequestModal({
                 <div><strong>Date:</strong> {editingLeave.leaveDate}</div>
                 <div><strong>Reason:</strong> {editingLeave.reason}</div>
                 <div><strong>Status:</strong> {editingLeave.status}</div>
+                {editingLeave.status === 'rejected' && editingLeave.adminComments && (
+                  <div className="mt-2 p-2 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                    <strong className="text-red-800 dark:text-red-200">Rejection reason:</strong>
+                    <p className="text-sm text-red-700 dark:text-red-300 mt-1">{editingLeave.adminComments}</p>
+                  </div>
+                )}
                 {editingLeave.documents && editingLeave.documents.length > 0 && (
                   <div className="mt-2">
                     <strong>Documents:</strong>
@@ -255,7 +288,39 @@ export function LeaveRequestModal({
               min={new Date().toISOString().split('T')[0]}
               required
               disabled={isSubmitting || isLoading}
+              className={styles.inputCustom}
             />
+          </div>
+
+          {/* Leave Type */}
+          <div className="space-y-2">
+            <Label htmlFor="leaveType">Leave Type</Label>
+            <select
+              id="leaveType"
+              value={formData.leaveType}
+              onChange={(e) => handleInputChange('leaveType', e.target.value as LeaveType | '')}
+              disabled={isSubmitting || isLoading}
+              className={cn(
+                'w-full rounded-md border px-3 py-2 text-sm',
+                'border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+                styles.inputCustom
+              )}
+            >
+              <option value="">Select leave type</option>
+              <option value={LeaveType.CASUAL} disabled={!canUseCasual}>
+                Casual Leave
+                {casualLimit != null
+                  ? ` (${Math.max(casualLimit - casualApproved, 0)} remaining this month)`
+                  : ''}
+              </option>
+              <option value={LeaveType.SICK} disabled={!canUseSick}>
+                Sick Leave
+                {sickLimit != null
+                  ? ` (${Math.max(sickLimit - sickApproved, 0)} remaining this month)`
+                  : ''}
+              </option>
+              <option value={LeaveType.LOP}>LOP</option>
+            </select>
           </div>
 
           {/* Reason */}
@@ -263,7 +328,6 @@ export function LeaveRequestModal({
             <Label htmlFor="reason">Reason for Leave</Label>
             <Textarea
               id="reason"
-              placeholder="Please provide a detailed reason for your leave request (minimum 10 characters)"
               value={formData.reason}
               onChange={(e) => handleInputChange('reason', e.target.value)}
               rows={4}
@@ -271,7 +335,7 @@ export function LeaveRequestModal({
               maxLength={500}
               required
               disabled={isSubmitting || isLoading}
-              className="resize-none"
+              className={`resize-none ${styles.textareaCustom}`}
             />
             <div className="flex justify-between text-sm text-gray-500">
               <span>{formData.reason.length}/500 characters</span>
@@ -291,7 +355,7 @@ export function LeaveRequestModal({
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isSubmitting || isLoading || formData.documents.length >= 5}
-                  className="flex items-center space-x-2"
+                  className={`flex items-center space-x-2 ${styles.buttonOutlineCustom}`}
                 >
                   <Upload className="w-4 h-4" />
                   <span>Upload Files</span>
@@ -316,7 +380,7 @@ export function LeaveRequestModal({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Uploaded Files:</Label>
                   {formData.documents.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                    <div key={index} className={`flex items-center justify-between p-2 rounded-md ${styles.uploadedFileCustom}`}>
                       <div className="flex items-center space-x-2 flex-1 min-w-0">
                         <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
                         <div className="min-w-0 flex-1">
@@ -330,7 +394,7 @@ export function LeaveRequestModal({
                         size="sm"
                         onClick={() => removeFile(index)}
                         disabled={isSubmitting || isLoading}
-                        className="flex-shrink-0 text-red-600 hover:text-red-700"
+                        className={`flex-shrink-0 ${styles.buttonDestructiveCustom}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -348,13 +412,20 @@ export function LeaveRequestModal({
               variant="outline"
               onClick={handleClose}
               disabled={isSubmitting || isLoading}
+              className={styles.buttonOutlineCustom}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || isLoading || !formData.leaveDate || !formData.reason.trim()}
-              className="min-w-[120px]"
+              disabled={
+                isSubmitting ||
+                isLoading ||
+                !formData.leaveDate ||
+                !formData.reason.trim() ||
+                !formData.leaveType
+              }
+              className={`min-w-[120px] ${styles.buttonPrimaryCustom}`}
             >
               {isSubmitting || isLoading ? (
                 <div className="flex items-center space-x-2">

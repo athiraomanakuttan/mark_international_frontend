@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeftIcon, ChevronRightIcon, CalendarDays, Clock } from 'lucide-react';
+import { ChevronLeftIcon, ChevronRightIcon, CalendarDays, Clock, FileText, ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import {
   AttendanceStatus,
   MonthlyCalendar,
   AttendanceSummary,
-  DEFAULT_CALENDAR_COLORS
+  DEFAULT_CALENDAR_COLORS,
 } from '@/types/attendance-types';
 import { AttendanceService } from '@/service/attendanceService';
 
@@ -29,7 +29,6 @@ interface AttendanceCalendarWithDeleteProps extends AttendanceCalendarProps {
 }
 
 export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
-  // Destructure props at the top so all variables are available
   const {
     userId,
     userJoiningDate,
@@ -60,7 +59,8 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
       .then((calendarData) => {
         console.log('Loaded calendar data:=========================', calendarData);
         setCalendar(calendarData);
-        setSummary(AttendanceService.calculateAttendanceSummary(calendarData));
+        // Use backend-provided summary if available, otherwise fallback to calculated summary
+        setSummary(calendarData.summary || AttendanceService.calculateAttendanceSummary(calendarData));
         setLoading(false);
       })
       .catch((err) => {
@@ -87,7 +87,8 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
     AttendanceService.generateMonthlyCalendar(userId, currentMonth, currentYear, userJoiningDate)
       .then((calendarData) => {
         setCalendar(calendarData);
-        setSummary(AttendanceService.calculateAttendanceSummary(calendarData));
+        // Use backend-provided summary if available, otherwise fallback to calculated summary
+        setSummary(calendarData.summary || AttendanceService.calculateAttendanceSummary(calendarData));
         setLoading(false);
       })
       .catch((err) => {
@@ -134,6 +135,20 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
     return AttendanceService.getStatusText(status);
   };
 
+  const getLeaveTypeLabel = (leaveType?: string): string | null => {
+    if (!leaveType) return null;
+    switch (leaveType) {
+      case 'casual':
+        return 'Casual Leave';
+      case 'sick':
+        return 'Sick Leave';
+      case 'lop':
+        return 'LOP (Loss of Pay)';
+      default:
+        return leaveType;
+    }
+  };
+
   // Render date cell
   const renderDateCell = (date: CalendarDate) => {
     const statusColor = getStatusColor(date.status);
@@ -171,39 +186,111 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
               )}
             </div>
           </TooltipTrigger>
-          <TooltipContent>
-            <div className="text-left max-w-xs">
-              <p className="font-medium">{AttendanceService.formatDate(date.date)}</p>
-              <p className="text-sm text-white-600">{statusText}</p>
+          <TooltipContent 
+            className="p-0 max-w-sm border border-gray-200 shadow-md bg-white text-gray-900 rounded-md z-50 [&>svg]:fill-white [&>svg]:border-gray-200" 
+            sideOffset={8}
+          >
+            <div className="bg-white text-gray-900 rounded-md overflow-hidden">
+              {/* Header */}
+              <div className="px-4 py-3 border-b border-gray-200">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 mb-1.5">
+                      {AttendanceService.formatDate(date.date)}
+                    </p>
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "text-xs font-medium h-5",
+                        date.status === 'present' && "border-green-200 text-green-700 bg-green-50",
+                        date.status === 'absent' && "border-red-200 text-red-700 bg-red-50",
+                        date.status === 'leave_approved' && "border-green-200 text-green-700 bg-green-50",
+                        date.status === 'leave_pending' && "border-amber-200 text-amber-700 bg-amber-50",
+                        date.status === 'leave_rejected' && "border-blue-200 text-blue-700 bg-blue-50",
+                        date.status === 'future' && "border-gray-200 text-gray-600 bg-gray-50",
+                        date.status === 'before_joining' && "border-gray-200 text-gray-600 bg-gray-50"
+                      )}
+                    >
+                      {statusText}
+                    </Badge>
+                    {date.leaveRequest?.leaveType && (
+                      <p className="mt-1 text-xs text-gray-500">
+                        {getLeaveTypeLabel(date.leaveRequest.leaveType)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
               {date.leaveRequest && (
-                <>
-                  <p className="text-xs text-orange-600 mt-1 break-words">
-                    <strong>Reason:</strong> {date.leaveRequest.reason}
-                  </p>
-                  {date.leaveRequest.documents && date.leaveRequest.documents.length > 0 && (
-                    <div className="mt-2">
-                      <strong>Documents:</strong>
-                      <ul className="list-disc list-inside">
-                        {date.leaveRequest.documents.map((doc, idx) => (
-                          <li key={idx}>
-                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                              {doc.title}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
+                <div className="px-4 py-3 space-y-4">
+                  {/* Reason */}
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 mb-1.5">
+                      Reason
+                    </p>
+                    <p className="text-sm text-gray-900 leading-snug break-words">
+                      {date.leaveRequest.reason}
+                    </p>
+                  </div>
+
+                  {/* Rejection reason (when rejected) */}
+                  {date.leaveRequest.status === 'rejected' && date.leaveRequest.adminComments && (
+                    <div className="p-2 rounded bg-red-50 border border-red-200">
+                      <p className="text-xs font-medium text-red-800 mb-1">
+                        Rejection reason
+                      </p>
+                      <p className="text-xs text-red-700 leading-snug">
+                        {date.leaveRequest.adminComments}
+                      </p>
                     </div>
                   )}
-                  {date.leaveRequest.status === 'pending' && onDeleteLeave && (
-                    <button
-                      className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-                      onClick={() => onDeleteLeave?.(date.leaveRequest?._id!)}
-                    >
-                      Delete
-                    </button>
+
+                  {/* Documents */}
+                  {date.leaveRequest.documents && date.leaveRequest.documents.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-2">
+                        Documents
+                      </p>
+                      <div className="space-y-1">
+                        {date.leaveRequest.documents.map((doc, idx) => (
+                          <a
+                            key={idx}
+                            href={doc.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-2 py-1.5 rounded border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
+                            <span className="text-xs text-gray-700 group-hover:text-blue-700 truncate flex-1">
+                              {doc.title}
+                            </span>
+                            <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-blue-600 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
                   )}
 
-                </>
+                  {/* Delete Button for Pending Leaves */}
+                  {date.leaveRequest.status === 'pending' && onDeleteLeave && (
+                    <div className="pt-2 border-t border-gray-200">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="w-full h-8 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteLeave?.(date.leaveRequest?._id!);
+                        }}
+                      >
+                        <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                        Delete Leave Request
+                      </Button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </TooltipContent>
@@ -370,7 +457,7 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: calendarColors.future }}
               />
-              <span>Future/Unavailable</span>
+              <span>Future/Before Joining</span>
             </div>
           </div>
         </CardContent>

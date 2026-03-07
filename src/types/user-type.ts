@@ -6,6 +6,7 @@ export interface UserType {
     isAdmin: boolean
     role: string
     joiningDate?: string
+    createdAt?: string
 }
 
 

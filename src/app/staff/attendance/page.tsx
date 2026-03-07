@@ -5,6 +5,7 @@ import { Calendar, Clock, FileText, Plus, AlertCircle, CheckCircle } from 'lucid
 import { ModernDashboardLayout } from '@/components/staff/modern-dashboard-navbar';
 import { AttendanceCalendar } from '@/components/attendance/AttendanceCalendar';
 import { LeaveRequestModal } from '@/components/attendance/LeaveRequestModal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +16,10 @@ import {
   CalendarDate,
   CreateLeaveRequestDto,
   LeaveRequest,
-  LeaveStatus
+  LeaveStatus,
+  MonthlyLeaveConfig,
+  MonthlyLeaveUsage,
+  LeaveType,
 } from '@/types/attendance-types';
 import { AttendanceService } from '@/service/attendanceService';
 import { RootState } from '@/lib/redux/store';
@@ -30,6 +34,8 @@ export default function AttendancePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState<LeaveRequest | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [monthlyConfig, setMonthlyConfig] = useState<MonthlyLeaveConfig | null>(null);
+  const [monthlyUsage, setMonthlyUsage] = useState<MonthlyLeaveUsage | null>(null);
 
   // Get user data from Redux store
   const { user } = useSelector((state: RootState) => state.user);
@@ -126,6 +132,71 @@ export default function AttendancePage() {
     }
   };
 
+  // Load monthly leave config and usage for a given date
+  const loadMonthlyLeaveContext = async (userId: string, isoDate: string) => {
+    try {
+      const [year, month] = (() => {
+        const d = new Date(isoDate);
+        return [d.getFullYear(), d.getMonth() + 1] as const;
+      })();
+
+      const [config, leavesByRange] = await Promise.all([
+        AttendanceService.getMonthlyLeaveConfig(year, month),
+        (() => {
+          const first = new Date(year, month - 1, 1);
+          const last = new Date(year, month, 0);
+          const dateFrom = first.toISOString().split('T')[0];
+          const dateTo = last.toISOString().split('T')[0];
+          return AttendanceService.getLeavesByDateRange(userId, dateFrom, dateTo);
+        })(),
+      ]);
+
+      setMonthlyConfig(config);
+
+      // Count approved leaves by type for this month based on UNIQUE dates,
+      // so duplicate leave records for the same day don't inflate the counts.
+      const casualDates = new Set<string>();
+      const sickDates = new Set<string>();
+      const lopDates = new Set<string>();
+
+      (leavesByRange.leaves ?? []).forEach((l) => {
+        if (l.status !== LeaveStatus.APPROVED || !l.leaveDate || !l.leaveType) return;
+
+        const dateKey =
+          (l as any).formattedLeaveDate ||
+          (typeof l.leaveDate === 'string'
+            ? l.leaveDate.split('T')[0]
+            : new Date(l.leaveDate).toISOString().split('T')[0]);
+
+        if (l.leaveType === LeaveType.CASUAL) {
+          casualDates.add(dateKey);
+        } else if (l.leaveType === LeaveType.SICK) {
+          sickDates.add(dateKey);
+        } else if (l.leaveType === LeaveType.LOP) {
+          lopDates.add(dateKey);
+        }
+      });
+
+      setMonthlyUsage({
+        casualApproved: casualDates.size,
+        sickApproved: sickDates.size,
+        lopApproved: lopDates.size,
+      });
+    } catch (error) {
+      console.error('Error loading monthly leave context:', error);
+      setMonthlyConfig(null);
+      setMonthlyUsage(null);
+    }
+  };
+
+  // Load config/usage whenever modal opens for a specific date
+  useEffect(() => {
+    if (!isLeaveModalOpen || !user?.id) return;
+    const dateForContext =
+      selectedDate || new Date().toISOString().split('T')[0];
+    loadMonthlyLeaveContext(user.id, dateForContext);
+  }, [isLeaveModalOpen, selectedDate, user]);
+
   // Get status badge variant
   const getStatusBadgeVariant = (status: LeaveStatus) => {
     switch (status) {
@@ -153,6 +224,30 @@ export default function AttendancePage() {
         return <Clock className="w-3 h-3" />;
     }
   };
+
+  const getLeaveTypeLabel = (leaveType?: LeaveType | string | null) => {
+    switch (leaveType) {
+      case LeaveType.CASUAL:
+      case 'casual':
+        return 'Casual';
+      case LeaveType.SICK:
+      case 'sick':
+        return 'Sick';
+      case LeaveType.LOP:
+      case 'lop':
+        return 'LOP';
+      default:
+        return null;
+    }
+  };
+
+  // Also load monthly usage whenever current month/year changes
+  useEffect(() => {
+    if (!user?.id) return;
+    const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+    loadMonthlyLeaveContext(user.id, dateStr);
+  }, [user, currentMonth, currentYear]);
+
   const currentDate = new Date().toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "2-digit",
@@ -199,11 +294,43 @@ export default function AttendancePage() {
           </TabsList>
 
           <TabsContent value="calendar" className="space-y-6">
+            {/* Monthly leave summary by type */}
+            {monthlyUsage && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-xs text-gray-500">Casual Leaves (this month)</p>
+                    <p className="text-xl font-semibold text-blue-600">
+                      {monthlyUsage.casualApproved}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-xs text-gray-500">Sick Leaves (this month)</p>
+                    <p className="text-xl font-semibold text-blue-600">
+                      {monthlyUsage.sickApproved}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-xs text-gray-500">LOP Leaves (this month)</p>
+                    <p className="text-xl font-semibold text-blue-600">
+                      {monthlyUsage.lopApproved}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             {/* Attendance Calendar */}
             {user ? (
               <AttendanceCalendar
                 userId={user.id}
-                userJoiningDate={user.joiningDate || '2020-01-01'} // Fallback if joining date not available
+                // Use joiningDate if available, else createdAt; dates before this = "Before Joining" (never Present)
+                // If both missing, use far future so all dates show "Before Joining"
+                userJoiningDate={user.joiningDate || user.createdAt || '2099-12-31'}
                 month={currentMonth}
                 year={currentYear}
                 onDateClick={handleDateClick}
@@ -272,9 +399,16 @@ export default function AttendancePage() {
                                   </p>
                                 </div>
                               </div>
-                              <Badge variant="secondary" className="capitalize px-3 py-1">
-                                {leave.status}
-                              </Badge>
+                              <div className="flex flex-col items-end space-y-1">
+                                {getLeaveTypeLabel(leave.leaveType as any) && (
+                                  <Badge variant="outline" className="px-2 py-0.5 text-xs">
+                                    {getLeaveTypeLabel(leave.leaveType as any)}
+                                  </Badge>
+                                )}
+                                <Badge variant="secondary" className="capitalize px-3 py-1">
+                                  {leave.status}
+                                </Badge>
+                              </div>
                             </div>
 
                             <div className="pl-12">
@@ -366,7 +500,12 @@ export default function AttendancePage() {
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900">{AttendanceService.formatDate(leave.leaveDate)}</p>
-                                <p className="text-sm text-gray-500">{leave.reason}</p>
+                                {getLeaveTypeLabel(leave.leaveType as any) && (
+                                  <Badge variant="outline" className="mt-1 text-xs">
+                                    {getLeaveTypeLabel(leave.leaveType as any)}
+                                  </Badge>
+                                )}
+                                <p className="text-sm text-gray-500 mt-1">{leave.reason}</p>
                               </div>
                             </div>
                             <Button variant="ghost" size="sm" onClick={() => setSelectedLeave(leave)}>View</Button>
@@ -400,7 +539,19 @@ export default function AttendancePage() {
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900">{AttendanceService.formatDate(leave.leaveDate)}</p>
-                                <Badge variant={getStatusBadgeVariant(leave.status)} className="mt-1">{leave.status}</Badge>
+                                <div className="flex items-center gap-2 mt-1">
+                                  {getLeaveTypeLabel(leave.leaveType as any) && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {getLeaveTypeLabel(leave.leaveType as any)}
+                                    </Badge>
+                                  )}
+                                  <Badge variant={getStatusBadgeVariant(leave.status)} className="capitalize">
+                                    {leave.status}
+                                  </Badge>
+                                </div>
+                                {leave.status === 'rejected' && leave.adminComments && (
+                                  <p className="text-xs text-red-600 mt-1 line-clamp-2">{leave.adminComments}</p>
+                                )}
                               </div>
                             </div>
                             <Button variant="ghost" size="sm" onClick={() => setSelectedLeave(leave)}>View</Button>
@@ -415,6 +566,66 @@ export default function AttendancePage() {
           </TabsContent>
         </Tabs>
 
+        {/* Leave Details Modal */}
+        <Dialog open={!!selectedLeave} onOpenChange={(open) => !open && handleDetailsModalClose()}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Leave Request Details</DialogTitle>
+            </DialogHeader>
+            {selectedLeave && (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-500">Date</p>
+                  <p className="font-medium">{AttendanceService.formatDate(selectedLeave.leaveDate)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Reason</p>
+                  <p className="text-gray-900">{selectedLeave.reason}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <Badge variant={getStatusBadgeVariant(selectedLeave.status)} className="capitalize">
+                    {selectedLeave.status}
+                  </Badge>
+                </div>
+                {getLeaveTypeLabel(selectedLeave.leaveType as any) && (
+                  <div>
+                    <p className="text-sm text-gray-500">Leave Type</p>
+                    <p className="text-gray-900">
+                      {getLeaveTypeLabel(selectedLeave.leaveType as any)}
+                    </p>
+                  </div>
+                )}
+                {selectedLeave.status === 'rejected' && selectedLeave.adminComments && (
+                  <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                    <p className="text-sm font-medium text-red-800 dark:text-red-200">Rejection reason</p>
+                    <p className="text-sm text-red-700 dark:text-red-300 mt-1">{selectedLeave.adminComments}</p>
+                  </div>
+                )}
+                {selectedLeave.documents && selectedLeave.documents.length > 0 && (
+                  <div>
+                    <p className="text-sm text-gray-500 mb-2">Attachments</p>
+                    <div className="space-y-1">
+                      {selectedLeave.documents.map((doc, idx) => (
+                        <a
+                          key={idx}
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+                        >
+                          <FileText className="w-4 h-4" />
+                          {doc.title || `Document ${idx + 1}`}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
         {/* Leave Request Modal */}
         <LeaveRequestModal
           isOpen={isLeaveModalOpen}
@@ -426,6 +637,8 @@ export default function AttendancePage() {
           selectedDate={selectedDate}
           userId={user?.id || ''}
           isLoading={isLoading}
+          monthlyConfig={monthlyConfig || undefined}
+          monthlyUsage={monthlyUsage || undefined}
         />
       </div>
     </ModernDashboardLayout>

@@ -59,7 +59,7 @@ export const menuItems = [
     ],
   },
   {
-    title: "Staff Management",
+    title: "User Management",
     icon: UserPlus,
     color: "bg-yellow-500",
     items: [
@@ -115,7 +115,6 @@ export const menuItems = [
       },
     ],
   },
-  ,
   {
     title: 'Branch',
     icon: Blocks,
@@ -166,22 +165,11 @@ export const menuItems = [
         url: "/admin/terminations",
         icon: UserX,
       },
-        // {
-        //   title: "Attendance",
-        //   icon: ClipboardList,
-        //   items: [
-        //     {
-        //       title: "Request",
-        //       url: "/admin/attendance/request",
-        //       icon: FileText,
-        //     },
-        //     {
-        //       title: "Attendance",
-        //       url: "/admin/attendance/view",
-        //       icon: Eye,
-        //     },
-        //   ],
-        // },
+      {
+        title: "Attendance",
+        url: "/admin/attendance/view",
+        icon: Eye,
+      },
     ],
   },
     
