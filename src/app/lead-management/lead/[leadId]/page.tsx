@@ -27,7 +27,6 @@ export default function LeadHistoryPage() {
       setLeadData(data)
       setFollowupData({id: data.id, date: data?.updatedAt, time: "", user: data?.assignedAgent_name , createdDate: data?.createdAt, remarks:data?.remarks, assignedAgentId: data?.assignedAgent_id, call_result: data?.call_result})
     } catch (error) {
-      console.log(error)
     }
   }
   useEffect(() => { getLeadData() },[isAddFollowupOpen])

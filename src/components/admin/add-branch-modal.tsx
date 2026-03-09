@@ -85,7 +85,6 @@ export default function AddBranchModal({ onBranchAdded }: AddBranchModalProps) {
         toast.error(response.message || "Failed to create branch")
       }
     } catch (error) {
-      console.error("Error creating branch:", error)
       toast.error("Failed to create branch. Please try again.")
     } finally {
       setLoading(false)

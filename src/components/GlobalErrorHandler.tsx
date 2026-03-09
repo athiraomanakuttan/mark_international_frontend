@@ -23,15 +23,11 @@ export const GlobalErrorHandler = () => {
           errorMessage.includes('ERR_INVALID_CHAR') ||
           (error.code && error.code === 'ERR_INVALID_CHAR')
         ) {
-          console.warn('Caught x-action-redirect error:', error);
           
-          // Prevent the default unhandled rejection behavior
           event.preventDefault();
           
-          // Clean up any problematic state
           try {
             if (typeof window !== 'undefined') {
-              // Clear problematic session/local storage
               if (typeof sessionStorage !== 'undefined') {
                 sessionStorage.removeItem('x-action-redirect');
                 sessionStorage.removeItem('redirect');
@@ -64,7 +60,6 @@ export const GlobalErrorHandler = () => {
       }
       
       // Log other unhandled rejections
-      console.error('Unhandled promise rejection:', error);
     };
 
     const handleGlobalError = (event: ErrorEvent) => {
@@ -79,7 +74,6 @@ export const GlobalErrorHandler = () => {
           errorMessage.includes('Invalid character in header') ||
           errorMessage.includes('ERR_INVALID_CHAR')
         ) {
-          console.warn('Caught global x-action-redirect error:', error);
           
           // Prevent default error handling
           event.preventDefault();

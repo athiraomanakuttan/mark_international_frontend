@@ -88,7 +88,6 @@ const ResignationReviewModal: React.FC<ResignationReviewModalProps> = ({
       
       toast.success('Document downloaded successfully');
     } catch (error: any) {
-      console.error('Error downloading document:', error);
       toast.error('Failed to download document. Opening in new tab instead.');
       // If download fails, open in new tab as fallback
       window.open(resignation.document, '_blank');

@@ -101,7 +101,6 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
         toast.error('Failed to load designations');
       }
     } catch (error) {
-      console.error('Error loading designations:', error);
       toast.error('Failed to load designations. Please try again.');
     }
   };
@@ -232,7 +231,6 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error('Error saving employee:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee';
       toast.error(errorMessage);
     } finally {

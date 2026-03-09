@@ -170,7 +170,6 @@ export default function LeadsReportPage() {
         }))
       }
     } catch (error) {
-      console.error("Error fetching leads:", error)
     }
   }
 

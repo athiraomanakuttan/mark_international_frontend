@@ -45,7 +45,7 @@ export const adminMenuItems: MenuItemType[] = [
     type: 'dropdown',
     subItems: [
       { label: 'Add Staff', href: '/staff-management/add-staff', icon: UserPlus },
-      { label: 'View Staff', href: '/staff-management/view-staff', icon: Eye },
+      { label: 'View User', href: '/staff-management/view-staff', icon: Eye },
       { label: 'Designation', href: '/staff-management/designation', icon: UserCog },
       { label: 'Deleted Staff', href: '/staff-management/deleted', icon: Trash2 },
     ],

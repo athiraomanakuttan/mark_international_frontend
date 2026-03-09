@@ -66,7 +66,6 @@ export default function EditLeadsModal({ open, setOpen, leadData, onLeadUpdated 
           code: matchingCode.code,
         })
         const phoneWithoutCode = leadData.phoneNumber.split(" ")[1]
-        console.log("phoneWithoutCode",phoneWithoutCode)
         const updatedFormData = {
           name: leadData.name || "",
           phoneNumber: phoneWithoutCode,
@@ -88,7 +87,6 @@ export default function EditLeadsModal({ open, setOpen, leadData, onLeadUpdated 
           phoneNumber: leadData.phoneNumber, // Store original full phone number
         })
       } else {
-        console.log("phoneWithoutCode",leadData.phoneNumber.split(" "))
         const updatedFormData = {
           ...formData,
           phoneNumber: leadData.phoneNumber.split(" ")[1] || "",
@@ -183,16 +181,13 @@ export default function EditLeadsModal({ open, setOpen, leadData, onLeadUpdated 
     }
 
     try {
-      console.log("Sending only changed fields:", changedFields)
       const response = await updateLead(leadData.id!, changedFields)
-      console.log("response", response)
       if (response.status) {
         toast.success("Lead updated successfully")
         setOpen(false)
       }
     } catch (err: any) {
       toast.error("Error while updating lead")
-      console.log("error while updating lead", err)
     }
   }
 

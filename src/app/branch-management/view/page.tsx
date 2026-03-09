@@ -61,7 +61,6 @@ export default function BranchManagementPage() {
         toast.error("Failed to fetch branches")
       }
     } catch (error) {
-      console.error("Error fetching branches:", error)
       toast.error("Failed to fetch branches")
     } finally {
       setLoading(false)
@@ -79,7 +78,6 @@ export default function BranchManagementPage() {
         toast.error(response.message || "Failed to delete branch")
       }
     } catch (error) {
-      console.error("Error deleting branch:", error)
       toast.error("Failed to delete branch")
     } finally {
       setDeleteLoading(null)

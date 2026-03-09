@@ -75,7 +75,6 @@ export const useSafeAsync = (
               attemptCall().then(resolve).catch(reject);
             }, retryDelay);
           } else {
-            console.error('❌ Async call failed after retries:', error);
             onError?.(error);
             reject(error);
           }

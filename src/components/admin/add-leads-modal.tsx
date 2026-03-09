@@ -94,7 +94,6 @@ const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
   } ;
     try{
         const response = await createLead(finalFormData)
-        console.log("response", response)
         if(response.status){
             toast.success("Lead created successfully")
             setOpen(false)
@@ -103,7 +102,6 @@ const { formData, setForm } = useFetchFormData<LeadBasicType>(initialLead);
     }
     catch(err:any){
         toast.error("Error while creating lead ")
-        console.log("error while creating lead", err)
     }
     
   };

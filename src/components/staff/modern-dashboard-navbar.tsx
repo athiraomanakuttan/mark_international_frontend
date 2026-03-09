@@ -224,7 +224,6 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
   const getNotification = async () => {
     try {
       const response = await getFollowupData()
-      console.log("getNotification", response)
       const transformedData = response.data.map((lead: LeadData, index: number) => ({
         followupId: lead.id,
         id: lead.leadId,
@@ -235,7 +234,6 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
       }))
       setLeadReminders(transformedData)
     } catch (error) {
-      console.error("Error fetching follow-up notifications:", error)
     }
   }
 
@@ -248,21 +246,17 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
   }
 
   const handleRemoveSelectedLeadReminders = async () => {
-    console.log("selectedLeadReminders", selectedLeadReminders)
     try {
       const response = await deleteFollowup(selectedLeadReminders)
       getNotification()
     } catch (err) {
-      console.error("Error deleting follow-up notifications")
     }
     setLeadReminders((prev) => prev.filter((notification) => !selectedLeadReminders.includes(notification.id)))
     setSelectedLeadReminders([])
     toast.success(`Removed ${selectedLeadReminders.length} lead reminder(s)`)
   }
 
-  useEffect(() => {
-    console.log("user data", user)
-  }, [user])
+ 
 
   useEffect(() => {
     getNotification()

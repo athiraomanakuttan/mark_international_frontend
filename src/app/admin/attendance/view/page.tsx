@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,14 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CalendarDays,
+  Search,
+  UserCheck,
+  UserX,
+  Users,
+  TrendingUp,
+  CalendarCheck,
+  CalendarClock,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { cn } from "@/lib/utils";
@@ -97,6 +105,11 @@ export default function AttendanceViewPage() {
   });
   const [staffAttendance, setStaffAttendance] = useState<any>(null);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
+  const [staffSearchInput, setStaffSearchInput] = useState("");
+  const [staffSearchDebounced, setStaffSearchDebounced] = useState("");
+  const [staffPage, setStaffPage] = useState(1);
+  const staffSearchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const STAFF_PAGE_SIZE = 10;
   const [actionId, setActionId] = useState<string | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectRequestId, setRejectRequestId] = useState<string | null>(null);
@@ -112,6 +125,10 @@ export default function AttendanceViewPage() {
   const [confirmAbsentOpen, setConfirmAbsentOpen] = useState(false);
   const [pendingAbsentDate, setPendingAbsentDate] = useState<string | null>(null);
   const [pendingAbsentType, setPendingAbsentType] = useState<LeaveType | null>(null);
+
+  // Today's present/absent list modal
+  const [dayListModalOpen, setDayListModalOpen] = useState(false);
+  const [dayListType, setDayListType] = useState<"present" | "absent">("present");
 
   const fetchRequests = useCallback(async () => {
     if (activeTab !== "requests") return;
@@ -201,6 +218,7 @@ export default function AttendanceViewPage() {
 
   const loadAllStaffAttendance = useCallback(async () => {
     setAttendanceLoading(true);
+    setStaffPage(1);
     try {
       const { data } = await getAllStaffAttendance(dateFrom, dateTo);
       setStaffAttendance(data?.data ?? null);
@@ -335,6 +353,93 @@ export default function AttendanceViewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
+  // Debounce staff search input (300ms)
+  useEffect(() => {
+    if (staffSearchDebounceRef.current) {
+      clearTimeout(staffSearchDebounceRef.current);
+    }
+    staffSearchDebounceRef.current = setTimeout(() => {
+      setStaffSearchDebounced(staffSearchInput.trim());
+      setStaffPage(1);
+    }, 300);
+    return () => {
+      if (staffSearchDebounceRef.current) {
+        clearTimeout(staffSearchDebounceRef.current);
+        staffSearchDebounceRef.current = null;
+      }
+    };
+  }, [staffSearchInput]);
+
+  // Filter and paginate staff for All Staff Attendance table
+  const { filteredStaff, paginatedStaff, totalStaffPages } = useMemo(() => {
+    const list = staffAttendance?.staffAttendance ?? [];
+    const term = staffSearchDebounced.toLowerCase();
+    const filtered =
+      term.length > 0
+        ? list.filter((s: any) => {
+            const name = (s.userName ?? "").toLowerCase();
+            const email = (s.email ?? "").toLowerCase();
+            const designation = (s.designation ?? "").toLowerCase();
+            return (
+              name.includes(term) ||
+              email.includes(term) ||
+              designation.includes(term)
+            );
+          })
+        : list;
+    const totalPages = Math.max(1, Math.ceil(filtered.length / STAFF_PAGE_SIZE));
+    const start = (staffPage - 1) * STAFF_PAGE_SIZE;
+    const paginated = filtered.slice(start, start + STAFF_PAGE_SIZE);
+    return { filteredStaff: filtered, paginatedStaff: paginated, totalStaffPages: totalPages };
+  }, [staffAttendance?.staffAttendance, staffSearchDebounced, staffPage]);
+
+  useEffect(() => {
+    if (staffPage > totalStaffPages && totalStaffPages >= 1) {
+      setStaffPage(totalStaffPages);
+    }
+  }, [staffPage, totalStaffPages]);
+
+  // Today's date (YYYY-MM-DD) and today's present/absent lists (only when today is in date range)
+  const { todayStr, todayPresentList, todayAbsentList } = useMemo(() => {
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const from = staffAttendance?.dateFrom ?? "";
+    const to = staffAttendance?.dateTo ?? "";
+    const inRange = from && to && today >= from && today <= to;
+    if (!inRange || !staffAttendance?.staffAttendance) {
+      return { todayStr: today, todayPresentList: [], todayAbsentList: [] };
+    }
+    const present: { userId: string; userName: string; email?: string; designation?: string }[] = [];
+    const absent: { userId: string; userName: string; email?: string; designation?: string; status?: string }[] = [];
+    for (const s of staffAttendance.staffAttendance) {
+      const daily = (s.dailyAttendance ?? []).find((d: any) => d.date === today);
+      const status = daily?.status ?? "";
+      if (status === "present") {
+        present.push({ userId: s.userId, userName: s.userName, email: s.email, designation: s.designation });
+      } else if (["absent", "leave", "pending"].includes(status)) {
+        absent.push({
+          userId: s.userId,
+          userName: s.userName,
+          email: s.email,
+          designation: s.designation,
+          status,
+        });
+      }
+    }
+    return { todayStr: today, todayPresentList: present, todayAbsentList: absent };
+  }, [staffAttendance]);
+
+  const isTodayInRange =
+    staffAttendance &&
+    todayStr >= (staffAttendance.dateFrom ?? "") &&
+    todayStr <= (staffAttendance.dateTo ?? "");
+
+  const openDayListModal = (type: "present" | "absent") => {
+    if (!isTodayInRange) return;
+    setDayListType(type);
+    setDayListModalOpen(true);
+  };
+
   return (
     <ModernDashboardLayout>
       <div className="p-6 space-y-6">
@@ -343,7 +448,7 @@ export default function AttendanceViewPage() {
             Attendance
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            View staff attendance and manage leave requests
+            View User attendance and manage leave requests
           </p>
         </div>
 
@@ -374,7 +479,7 @@ export default function AttendanceViewPage() {
           <div className="space-y-6">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <p className="text-sm text-muted-foreground">
-                Select date range to view staff attendance
+                Select date range to view User attendance
               </p>
               <div className="flex flex-wrap items-end gap-3 ml-auto">
                 <div>
@@ -406,41 +511,162 @@ export default function AttendanceViewPage() {
 
             {staffAttendance && (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-white rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">Total Staff</p>
-                    <p className="text-2xl font-bold">{staffAttendance.totalStaff}</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  {/* Total Staff */}
+                  <div className="group relative overflow-hidden rounded-xl border border-slate-200/80 dark:border-slate-700/50 bg-gradient-to-br from-slate-50 via-white to-slate-100/80 dark:from-slate-900/60 dark:via-slate-800/50 dark:to-slate-900/70 p-5 shadow-sm hover:shadow-lg transition-all duration-300">
+                    <div className="absolute -right-2 -top-2 h-20 w-20 rounded-full bg-slate-200/40 dark:bg-slate-600/20" />
+                    <div className="relative">
+                      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-600/10 dark:bg-slate-500/20 text-slate-600 dark:text-slate-400">
+                        <Users className="h-5 w-5" />
+                      </div>
+                      <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Staff</p>
+                      <p className="mt-1 text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">{staffAttendance.totalStaff}</p>
+                    </div>
                   </div>
-                  <div className="bg-white rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">Avg Attendance</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      {staffAttendance.overallSummary?.averageAttendanceRate?.toFixed(1) ?? 0}%
-                    </p>
+
+                  {/* Avg Attendance */}
+                  <div className="group relative overflow-hidden rounded-xl border border-emerald-200/60 dark:border-emerald-800/40 bg-gradient-to-br from-emerald-50 via-white to-teal-50/60 dark:from-emerald-950/30 dark:via-slate-800/50 dark:to-teal-950/20 p-5 shadow-sm hover:shadow-lg transition-all duration-300">
+                    <div className="absolute -right-2 -top-2 h-20 w-20 rounded-full bg-emerald-300/20 dark:bg-emerald-500/10" />
+                    <div className="relative">
+                      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                        <TrendingUp className="h-5 w-5" />
+                      </div>
+                      <p className="text-xs font-medium uppercase tracking-wider text-emerald-700/80 dark:text-emerald-400/80">Avg Attendance</p>
+                      <p className="mt-1 text-2xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
+                        {staffAttendance.overallSummary?.averageAttendanceRate?.toFixed(1) ?? 0}%
+                      </p>
+                    </div>
                   </div>
-                  <div className="bg-white rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">Total Present</p>
-                    <p className="text-2xl font-bold">
-                      {staffAttendance.overallSummary?.totalPresentDays ?? 0}
-                    </p>
+
+                  {/* Today's Present */}
+                  <button
+                    type="button"
+                    onClick={() => openDayListModal("present")}
+                    disabled={!isTodayInRange}
+                    className={cn(
+                      "group relative overflow-hidden rounded-xl border p-5 text-left shadow-sm transition-all duration-300",
+                      "border-emerald-200/70 dark:border-emerald-800/50",
+                      "bg-gradient-to-br from-emerald-50 via-white to-green-50/70 dark:from-emerald-950/40 dark:via-slate-800/50 dark:to-green-950/30",
+                      isTodayInRange
+                        ? "hover:shadow-xl hover:shadow-emerald-500/10 hover:scale-[1.02] cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:ring-offset-2"
+                        : "cursor-not-allowed opacity-70"
+                    )}
+                  >
+                    <div className="absolute -right-2 -top-2 h-24 w-24 rounded-full bg-emerald-400/15 dark:bg-emerald-500/10" />
+                    <div className="relative flex items-start justify-between">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 dark:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400">
+                          <UserCheck className="h-5 w-5" />
+                        </div>
+                        <p className="text-xs font-medium uppercase tracking-wider text-emerald-700/80 dark:text-emerald-400/80">Today&apos;s Present</p>
+                        <p className="mt-1 text-2xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
+                          {isTodayInRange ? todayPresentList.length : "—"}
+                        </p>
+                        {isTodayInRange && (
+                          <p className="mt-2 flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-500">
+                            View list <ChevronRight className="h-3.5 w-3.5" />
+                          </p>
+                        )}
+                      </div>
+                      {isTodayInRange && (
+                        <div className="rounded-full bg-emerald-500/10 p-1.5 dark:bg-emerald-500/15 group-hover:bg-emerald-500/20 transition-colors">
+                          <ChevronRight className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Today's Absent */}
+                  <button
+                    type="button"
+                    onClick={() => openDayListModal("absent")}
+                    disabled={!isTodayInRange}
+                    className={cn(
+                      "group relative overflow-hidden rounded-xl border p-5 text-left shadow-sm transition-all duration-300",
+                      "border-rose-200/70 dark:border-rose-800/50",
+                      "bg-gradient-to-br from-rose-50/80 via-white to-red-50/50 dark:from-rose-950/40 dark:via-slate-800/50 dark:to-red-950/30",
+                      isTodayInRange
+                        ? "hover:shadow-xl hover:shadow-rose-500/10 hover:scale-[1.02] cursor-pointer focus:outline-none focus:ring-2 focus:ring-rose-500/60 focus:ring-offset-2"
+                        : "cursor-not-allowed opacity-70"
+                    )}
+                  >
+                    <div className="absolute -right-2 -top-2 h-24 w-24 rounded-full bg-rose-400/15 dark:bg-rose-500/10" />
+                    <div className="relative flex items-start justify-between">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/20 dark:bg-rose-500/25 text-rose-600 dark:text-rose-400">
+                          <UserX className="h-5 w-5" />
+                        </div>
+                        <p className="text-xs font-medium uppercase tracking-wider text-rose-700/80 dark:text-rose-400/80">Today&apos;s Absent</p>
+                        <p className="mt-1 text-2xl font-bold tracking-tight text-rose-700 dark:text-rose-400">
+                          {isTodayInRange ? todayAbsentList.length : "—"}
+                        </p>
+                        {isTodayInRange && (
+                          <p className="mt-2 flex items-center gap-1 text-xs font-medium text-rose-600 dark:text-rose-500">
+                            View list <ChevronRight className="h-3.5 w-3.5" />
+                          </p>
+                        )}
+                      </div>
+                      {isTodayInRange && (
+                        <div className="rounded-full bg-rose-500/10 p-1.5 dark:bg-rose-500/15 group-hover:bg-rose-500/20 transition-colors">
+                          <ChevronRight className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Total Present (period) */}
+                  <div className="group relative overflow-hidden rounded-xl border border-blue-200/60 dark:border-blue-800/40 bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/50 dark:from-blue-950/30 dark:via-slate-800/50 dark:to-indigo-950/20 p-5 shadow-sm hover:shadow-lg transition-all duration-300">
+                    <div className="absolute -right-2 -top-2 h-20 w-20 rounded-full bg-blue-300/20 dark:bg-blue-500/10" />
+                    <div className="relative">
+                      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/15 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400">
+                        <CalendarCheck className="h-5 w-5" />
+                      </div>
+                      <p className="text-xs font-medium uppercase tracking-wider text-blue-700/80 dark:text-blue-400/80">Total Present</p>
+                      <p className="mt-1 text-2xl font-bold tracking-tight text-blue-700 dark:text-blue-400">
+                        {staffAttendance.overallSummary?.totalPresentDays ?? 0}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-blue-600/70 dark:text-blue-500/70">period total</p>
+                    </div>
                   </div>
-                  <div className="bg-white rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">Leaves (C / S / LOP)</p>
-                    <p className="text-sm font-semibold text-blue-600 leading-tight">
-                      Casual:{" "}
-                      {staffAttendance.overallSummary?.totalCasualLeaves ?? 0}
-                    </p>
-                    <p className="text-sm font-semibold text-blue-600 leading-tight">
-                      Sick: {staffAttendance.overallSummary?.totalSickLeaves ?? 0}
-                    </p>
-                    <p className="text-sm font-semibold text-blue-600 leading-tight">
-                      LOP: {staffAttendance.overallSummary?.totalLopLeaves ?? 0}
-                    </p>
+
+                  {/* Leaves (C / S / LOP) */}
+                  <div className="group relative overflow-hidden rounded-xl border border-amber-200/60 dark:border-amber-800/40 bg-gradient-to-br from-amber-50/70 via-white to-orange-50/40 dark:from-amber-950/30 dark:via-slate-800/50 dark:to-orange-950/20 p-5 shadow-sm hover:shadow-lg transition-all duration-300">
+                    <div className="absolute -right-2 -top-2 h-20 w-20 rounded-full bg-amber-300/20 dark:bg-amber-500/10" />
+                    <div className="relative">
+                      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/15 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                        <CalendarClock className="h-5 w-5" />
+                      </div>
+                      <p className="text-xs font-medium uppercase tracking-wider text-amber-700/80 dark:text-amber-400/80">Leaves</p>
+                      <div className="mt-2 space-y-1">
+                        <p className="flex justify-between text-sm font-semibold text-blue-600 dark:text-blue-400">
+                          <span>Casual</span> <span>{staffAttendance.overallSummary?.totalCasualLeaves ?? 0}</span>
+                        </p>
+                        <p className="flex justify-between text-sm font-semibold text-amber-600 dark:text-amber-400">
+                          <span>Sick</span> <span>{staffAttendance.overallSummary?.totalSickLeaves ?? 0}</span>
+                        </p>
+                        <p className="flex justify-between text-sm font-semibold text-rose-600 dark:text-rose-400">
+                          <span>LOP</span> <span>{staffAttendance.overallSummary?.totalLopLeaves ?? 0}</span>
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <p className="text-sm text-muted-foreground">
-                  {formatDate(staffAttendance.dateFrom)} – {formatDate(staffAttendance.dateTo)}
-                </p>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(staffAttendance.dateFrom)} – {formatDate(staffAttendance.dateTo)}
+                  </p>
+                  <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                      type="text"
+                      placeholder="Search by name, email, designation..."
+                      value={staffSearchInput}
+                      onChange={(e) => setStaffSearchInput(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
 
                 <div className="bg-white rounded-lg border overflow-hidden">
                   <div className="overflow-x-auto">
@@ -460,7 +686,7 @@ export default function AttendanceViewPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {(staffAttendance.staffAttendance ?? []).map(
+                        {paginatedStaff.map(
                           (s: any) => (
                             <tr
                               key={s.userId}
@@ -518,10 +744,43 @@ export default function AttendanceViewPage() {
                       </tbody>
                     </table>
                   </div>
-                  {(!staffAttendance.staffAttendance || staffAttendance.staffAttendance.length === 0) && (
+                  {filteredStaff.length === 0 && (
                     <p className="p-8 text-center text-muted-foreground">
-                      No staff records found for this period.
+                      {staffSearchDebounced
+                        ? "No staff match your search."
+                        : "No staff records found for this period."}
                     </p>
+                  )}
+                  {filteredStaff.length > 0 && (
+                    <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/30">
+                      <p className="text-sm text-muted-foreground">
+                        Showing {(staffPage - 1) * STAFF_PAGE_SIZE + 1}–
+                        {Math.min(staffPage * STAFF_PAGE_SIZE, filteredStaff.length)} of {filteredStaff.length}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={staffPage <= 1}
+                          onClick={() => setStaffPage((p) => Math.max(1, p - 1))}
+                        >
+                          <ChevronLeftIcon className="h-4 w-4" />
+                          Previous
+                        </Button>
+                        <span className="text-sm text-muted-foreground min-w-[80px] text-center">
+                          Page {staffPage} of {totalStaffPages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={staffPage >= totalStaffPages}
+                          onClick={() => setStaffPage((p) => p + 1)}
+                        >
+                          Next
+                          <ChevronRightIcon className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   )}
                 </div>
               </>
@@ -728,6 +987,92 @@ export default function AttendanceViewPage() {
           </>
         )}
       </div>
+
+      {/* Today's Present / Absent List Modal */}
+      <Dialog
+        open={dayListModalOpen}
+        onOpenChange={(open) => !open && setDayListModalOpen(false)}
+      >
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {dayListType === "present" ? (
+                <>
+                  <UserCheck className="h-5 w-5 text-green-600" />
+                  Today&apos;s Present — {formatDate(todayStr)}
+                </>
+              ) : (
+                <>
+                  <UserX className="h-5 w-5 text-red-600" />
+                  Today&apos;s Absent — {formatDate(todayStr)}
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {dayListType === "present"
+                ? `${todayPresentList.length} staff member${todayPresentList.length === 1 ? "" : "s"} marked present today`
+                : `${todayAbsentList.length} staff member${todayAbsentList.length === 1 ? "" : "s"} absent or on leave today`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-y-auto flex-1 min-h-0 -mx-6 px-6">
+            {dayListType === "present" ? (
+              todayPresentList.length === 0 ? (
+                <p className="py-8 text-center text-muted-foreground text-sm">No one marked present today.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {todayPresentList.map((u) => (
+                    <li
+                      key={u.userId}
+                      className="flex items-center gap-3 p-3 rounded-lg border bg-green-50/50 dark:bg-green-950/20 border-green-200/50 dark:border-green-800/50"
+                    >
+                      <UserCheck className="h-5 w-5 text-green-600 shrink-0" />
+                      <div>
+                        <p className="font-medium">{u.userName}</p>
+                        {u.email && (
+                          <p className="text-xs text-muted-foreground">{u.email}</p>
+                        )}
+                        {u.designation && (
+                          <p className="text-xs text-muted-foreground">{u.designation}</p>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )
+            ) : todayAbsentList.length === 0 ? (
+              <p className="py-8 text-center text-muted-foreground text-sm">No one absent today.</p>
+            ) : (
+              <ul className="space-y-2">
+                {todayAbsentList.map((u) => (
+                  <li
+                    key={u.userId}
+                    className="flex items-center gap-3 p-3 rounded-lg border bg-red-50/50 dark:bg-red-950/20 border-red-200/50 dark:border-red-800/50"
+                  >
+                    <UserX className="h-5 w-5 text-red-600 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium">{u.userName}</p>
+                      {u.email && (
+                        <p className="text-xs text-muted-foreground">{u.email}</p>
+                      )}
+                      {u.designation && (
+                        <p className="text-xs text-muted-foreground">{u.designation}</p>
+                      )}
+                      {u.status && (
+                        <Badge
+                          variant="outline"
+                          className="mt-1 text-xs"
+                        >
+                          {u.status === "leave" ? "On Leave" : u.status === "pending" ? "Leave Pending" : "Absent"}
+                        </Badge>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Staff Detail Modal */}
       <Dialog

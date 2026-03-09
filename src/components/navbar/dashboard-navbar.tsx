@@ -83,7 +83,7 @@ const menuItems = [
     icon: UserPlus,
     items: [
       {
-        title: "View Staff",
+        title: "View User",
         url: "/staff-management/view",
         icon: Eye,
       },

@@ -44,7 +44,6 @@ export const GlobalFormInterceptor = () => {
               // Check if this looks like a server action
               const hasServerActionInputs = form.querySelector('input[name^="$ACTION_"]');
               if (hasServerActionInputs) {
-                console.warn('Detected potential server action, preventing submission');
                 e.preventDefault();
                 e.stopPropagation();
                 return false;

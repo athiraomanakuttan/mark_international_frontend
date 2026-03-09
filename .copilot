@@ -349,7 +349,6 @@ catch (error: any) {
 
 // Loading states for data fetching
 catch (error: any) {
-  console.error('Error loading data:', error);
   toast.error('Failed to load data. Please try again.');
 }
 ```

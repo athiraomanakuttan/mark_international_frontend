@@ -125,7 +125,6 @@ export default function StaffManagementViewPage() {
         setIsLoading(false);
       } catch (error) {
         toast.error('Failed to fetch designations');
-        console.error('Error fetching designations:', error);
       } finally {
         setIsLoading(false);
       }
@@ -155,7 +154,6 @@ const [paginationData, setPaginationData]= useState({
     const response = await getStaffList(staffStatus, currentPage, paginationData.limit);
     if (response.status) {
       const { users, totalRecords } = response.data;
-      console.log("user list", users)
       setStaffData(users);
       setPaginationData((prev) => ({
         ...prev,
@@ -166,7 +164,6 @@ const [paginationData, setPaginationData]= useState({
 
     setLoading(false);
   } catch (error) {
-    console.error("Error fetching staff list", error);
     setLoading(false);
   }
 };
@@ -231,7 +228,6 @@ const [paginationData, setPaginationData]= useState({
     event.preventDefault();
     const isValidate = staffFormValidation(formData);
     if (!isValidate.isValid) {
-      console.error("Form validation failed", isValidate.errors);
       toast.error(isValidate.errors);
       return;
     }
@@ -259,7 +255,6 @@ const [paginationData, setPaginationData]= useState({
   };
 
 const changeLimit = (value: string) => {
-  console.log("Selected limit:", value);
   const limit = Number(value);
   setPaginationData((prev) => ({ ...prev, limit }));
 

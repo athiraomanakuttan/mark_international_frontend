@@ -248,7 +248,6 @@ export default function RegistrationPage() {
       {
         onStart: () => setLoading(true),
         onError: (error) => {
-          console.error("Registration error:", error)
           toast.error("Failed to submit registration. Please try again.")
         },
         onSuccess: () => setLoading(false),

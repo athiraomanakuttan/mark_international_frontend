@@ -28,7 +28,6 @@ export default function LeadHistoryModal({ leadId, isOpen, onClose }: LeadHistor
     try {
       const response = await getLeadDataById(leadId)
       const data = response.data
-      console.log("response=======================", data)
       setLeadData(data)
       setFollowupData({
         id: data.id,

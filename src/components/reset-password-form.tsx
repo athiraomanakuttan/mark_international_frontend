@@ -44,7 +44,6 @@ export default function ResetPasswordForm() {
       {
         onStart: () => setSubmitting(true),
         onError: (error) => {
-          console.error('Password reset error:', error)
           setError("Something went wrong. Please try again.")
         },
         onSuccess: () => setSubmitting(false),

@@ -76,12 +76,7 @@ const AdminResignationTable: React.FC = () => {
       const response = await ResignationService.getResignations(params);
 
       if (response.status) {
-        console.log('✅ Frontend: Received resignation data:', {
-          total: response.data.totalRecords,
-          count: response.data.resignations.length,
-          sampleEmployee: response.data.resignations[0]?.employeeName,
-          sampleData: response.data.resignations[0]
-        });
+
 
         setResignations(response.data.resignations);
         setTotalCount(response.data.totalRecords);
@@ -90,7 +85,6 @@ const AdminResignationTable: React.FC = () => {
         toast.error('Failed to load resignations');
       }
     } catch (error) {
-      console.error('Error loading resignations:', error);
       toast.error('Failed to load resignations. Please try again.');
     } finally {
       setIsLoading(false);
@@ -126,7 +120,6 @@ const AdminResignationTable: React.FC = () => {
       setIsReviewModalOpen(false);
       setSelectedResignation(null);
     } catch (error: any) {
-      console.error('Error reviewing resignation:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Failed to review resignation';
       toast.error(errorMessage);
     }
@@ -159,7 +152,6 @@ const AdminResignationTable: React.FC = () => {
       
       toast.success('Document downloaded successfully');
     } catch (error: any) {
-      console.error('Error downloading document:', error);
       toast.error('Failed to download document. Opening in new tab instead.');
       // If download fails, open in new tab as fallback
       window.open(resignation.document, '_blank');
@@ -178,7 +170,6 @@ const AdminResignationTable: React.FC = () => {
       toast.success(`Resignation ${status === ResignationStatus.APPROVED ? 'approved' : 'rejected'} successfully!`);
       loadResignations();
     } catch (error: any) {
-      console.error('Error reviewing resignation:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Failed to review resignation';
       toast.error(errorMessage);
     }

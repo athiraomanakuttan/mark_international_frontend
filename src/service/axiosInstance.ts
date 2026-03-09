@@ -247,10 +247,13 @@ axiosInstance.interceptors.response.use(
     }
 
     const originalRequest = error.config as any;
+    const isAuthEndpoint = originalRequest?.url?.includes('/auth/') || originalRequest?.url?.includes('/login');
 
+    // Skip token refresh for auth endpoints (e.g. login) - let them handle 401 with their own message (e.g. "Invalid password")
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      !isAuthEndpoint
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

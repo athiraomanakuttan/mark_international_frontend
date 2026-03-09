@@ -72,7 +72,6 @@ const TerminationTable: React.FC = () => {
         toast.error(response.message || 'Failed to fetch terminations');
       }
     } catch (error: any) {
-      console.error('Error loading terminations:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load terminations';
       toast.error(errorMessage);
     } finally {

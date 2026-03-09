@@ -36,13 +36,11 @@ class HeaderErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Header Error Boundary caught an error:', error, errorInfo);
 
     // Check if this is the specific x-action-redirect error
     if (error.message?.includes('x-action-redirect') || 
         error.message?.includes('Invalid character in header content')) {
       
-      console.warn('Detected x-action-redirect header error, attempting recovery...');
       
       // Clear any problematic state
       try {

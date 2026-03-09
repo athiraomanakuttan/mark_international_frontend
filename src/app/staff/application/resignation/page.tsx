@@ -34,7 +34,6 @@ const ResignationPage: React.FC = () => {
         setShowForm(true);
       }
     } catch (error: any) {
-      console.error('Error loading resignation:', error);
       // If 404, no resignation exists - show form
       if (error?.response?.status === 404) {
         setResignation(null);

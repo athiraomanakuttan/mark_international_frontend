@@ -6,10 +6,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { User, Phone, Mail, MapPin, Search, X } from "lucide-react"
 import { toast } from "react-toastify"
 import { createStudent } from "@/service/studentService"
 import { handleSafeFormSubmit } from "@/lib/formHelpers"
@@ -47,7 +44,6 @@ const countries = [
 export function StudentRegistrationForm({ eventId}:{eventId:string}) {
   
   const nameInputRef = useRef<HTMLInputElement>(null)
-  const [countrySearch, setCountrySearch] = useState("")
   const [formData, setFormData] = useState<StudentData>({
     name: "",
     phoneNumber: "",
@@ -57,14 +53,13 @@ export function StudentRegistrationForm({ eventId}:{eventId:string}) {
     eventId
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [countrySearch, setCountrySearch] = useState("")
 
   useEffect(() => {
     if (nameInputRef.current) {
       nameInputRef.current.focus()
     }
   }, [])
-
-  const filteredCountries = countries.filter((country) => country.toLowerCase().includes(countrySearch.toLowerCase()))
 
   const handleInputChange = (field: keyof StudentData, value: string) => {
     setFormData((prev) => ({
@@ -73,19 +68,12 @@ export function StudentRegistrationForm({ eventId}:{eventId:string}) {
     }))
   }
 
-  const handleCountryChange = (country: string, checked: boolean) => {
+  const handleCountryToggle = (country: string, checked: boolean) => {
     setFormData((prev) => ({
       ...prev,
       preferredCountry: checked
-        ? [...prev?.preferredCountry, country]
-        : prev?.preferredCountry?.filter((c) => c !== country),
-    }))
-  }
-
-  const removeCountry = (countryToRemove: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      preferredCountry: prev?.preferredCountry?.filter((c) => c !== countryToRemove),
+        ? [...prev.preferredCountry, country]
+        : prev.preferredCountry.filter((c) => c !== country),
     }))
   }
 
@@ -105,21 +93,13 @@ export function StudentRegistrationForm({ eventId}:{eventId:string}) {
         
         const response = await createStudent(formData)
         if(response.status){
-          toast.success("Student registration completed successfully")
-          setFormData({
-            name: "",
-            phoneNumber: "",
-            preferredCountry: [],
-            address: "",
-            email: "",
-            eventId
-          })
+          toast.success("Registration completed")
+          resetForm()
         }
       },
       {
         onStart: () => setIsSubmitting(true),
         onError: (error) => {
-          console.error("Student registration error:", error)
           toast.error("Registration failed. Please try again.")
         },
         onSuccess: () => setIsSubmitting(false),
@@ -129,192 +109,154 @@ export function StudentRegistrationForm({ eventId}:{eventId:string}) {
     setIsSubmitting(false)
   }
 
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      phoneNumber: "",
+      preferredCountry: [],
+      address: "",
+      email: "",
+      eventId
+    })
+    setCountrySearch("")
+    nameInputRef.current?.focus()
+  }
+
+  const filteredCountries = countries.filter((c) =>
+    c.toLowerCase().includes(countrySearch.toLowerCase())
+  )
+
   return (
-    <Card className="bg-white border-slate-200 shadow-sm">
-      <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <User className="h-4 w-4" />
-          Student Information
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Required Fields Column */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-slate-900 border-b border-slate-200 pb-1">
-                Required Information
-              </h3>
-
-              <div className="space-y-1">
-                <Label htmlFor="name" className="text-sm text-slate-700 font-medium">
-                  Full Name *
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-2 top-2.5 h-3 w-3 text-slate-400" />
-                  <Input
-                    ref={nameInputRef}
-                    id="name"
-                    type="text"
-                    placeholder="Enter student's full name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    className="pl-8 h-9 text-sm border-slate-300 focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="phone" className="text-sm text-slate-700 font-medium">
-                  Phone Number *
-                </Label>
-                <div className="relative">
-                  <Phone className="absolute left-2 top-2.5 h-3 w-3 text-slate-400" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="Enter phone number"
-                    value={formData.phoneNumber}
-                    onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
-                    className="pl-8 h-9 text-sm border-slate-300 focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="email" className="text-sm text-slate-700 font-medium">
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-2 top-2.5 h-3 w-3 text-slate-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter email address"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="pl-8 h-9 text-sm border-slate-300 focus:border-green-500 focus:ring-green-500"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="address" className="text-sm text-slate-700 font-medium">
-                  Address
-                </Label>
-                <div className="relative">
-                  <MapPin className="absolute left-2 top-2.5 h-3 w-3 text-slate-400" />
-                  <Textarea
-                    id="address"
-                    placeholder="Enter full address"
-                    value={formData.address}
-                    onChange={(e) => handleInputChange("address", e.target.value)}
-                    className="pl-8 pt-2.5 min-h-[60px] text-sm border-slate-300 focus:border-green-500 focus:ring-green-500 resize-none"
-                  />
-                </div>
-              </div>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-md p-6">
+      <h2 className="text-xl font-semibold text-slate-900 mb-4">Student Registration</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-4 lg:gap-x-8">
+          {/* Left: Name, Phone, Email, Address */}
+          <div className="space-y-4 lg:pr-8 lg:border-r lg:border-slate-300">
+            <div>
+              <Label htmlFor="name" className="text-base font-medium text-slate-700">
+                Full Name *
+              </Label>
+              <Input
+                ref={nameInputRef}
+                id="name"
+                type="text"
+                placeholder="Student's full name"
+                value={formData.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                className="mt-2 h-12 text-base"
+                required
+              />
             </div>
-
-            {/* Countries Column */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-slate-900 border-b border-slate-200 pb-1">Preferred Countries</h3>
-
-              <div className="space-y-2">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-3 w-3 text-slate-400" />
-                  <Input
-                    type="text"
-                    placeholder="Search countries..."
-                    value={countrySearch}
-                    onChange={(e) => setCountrySearch(e.target.value)}
-                    className="pl-8 h-9 text-sm border-slate-300 focus:border-green-500 focus:ring-green-500"
-                  />
-                </div>
-
-                {formData.preferredCountry.length > 0 && (
-                  <div className="flex flex-wrap gap-1 p-2 bg-slate-50 rounded-md border border-slate-200 max-h-16 overflow-y-auto">
-                    {formData.preferredCountry.map((country) => (
-                      <div
-                        key={country}
-                        className="flex items-center gap-1 bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs"
-                      >
-                        {country}
-                        <button
-                          type="button"
-                          onClick={() => removeCountry(country)}
-                          className="ml-0.5 hover:bg-green-200 rounded-full p-0.5"
-                        >
-                          <X className="h-2.5 w-2.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="border border-slate-300 rounded-md p-2 max-h-32 overflow-y-auto bg-slate-50">
-                  {filteredCountries.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-1.5">
-                      {filteredCountries.map((country) => (
-                        <div key={country} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={country}
-                            checked={formData.preferredCountry.includes(country)}
-                            onCheckedChange={(checked) => handleCountryChange(country, checked as boolean)}
-                            className="border-slate-400 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 h-3 w-3"
-                          />
-                          <Label
-                            htmlFor={country}
-                            className="text-sm text-slate-700 cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {country}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center text-slate-500 py-2 text-xs">
-                      No countries found matching "{countrySearch}"
-                    </div>
-                  )}
-                </div>
-              </div>
+            <div>
+              <Label htmlFor="phone" className="text-base font-medium text-slate-700">
+                Phone Number *
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="Phone number"
+                value={formData.phoneNumber}
+                onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
+                className="mt-2 h-12 text-base"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="email" className="text-base font-medium text-slate-700">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Email address"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                className="mt-2 h-12 text-base"
+              />
+            </div>
+            <div>
+              <Label htmlFor="address" className="text-base font-medium text-slate-700">
+                Address
+              </Label>
+              <textarea
+                id="address"
+                rows={4}
+                placeholder="Enter full address..."
+                value={formData.address}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+                className="mt-2 h-[96px] w-full rounded-md border border-input bg-transparent px-4 py-3 text-base shadow-xs focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 resize-y min-h-[96px] leading-relaxed"
+              />
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium h-9 text-sm"
-            >
-              {isSubmitting ? "Registering..." : "Register Student"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setFormData({
-                  name: "",
-                  phoneNumber: "",
-                  preferredCountry: [],
-                  address: "",
-                  email: "",
-                  eventId
-                })
-                setCountrySearch("")
-                if (nameInputRef.current) {
-                  nameInputRef.current.focus()
-                }
-              }}
-              className="px-4 h-9 text-sm border-slate-300 text-slate-700 hover:bg-slate-50"
-            >
-              Clear
-            </Button>
+          {/* Right: Countries */}
+          <div className="lg:pl-8 lg:flex lg:flex-col">
+            <Label className="text-base font-medium text-slate-700 block mb-1">Preferred Countries</Label>
+            <p className="text-sm text-slate-500 mb-3">Select one or more countries</p>
+            <Input
+              type="text"
+              placeholder="Search countries..."
+              value={countrySearch}
+              onChange={(e) => setCountrySearch(e.target.value)}
+              className="mb-3 h-10 text-base"
+            />
+            {formData.preferredCountry.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {formData.preferredCountry.map((country) => (
+                  <span
+                    key={country}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  >
+                    {country}
+                    <button
+                      type="button"
+                      onClick={() => handleCountryToggle(country, false)}
+                      className="rounded-full hover:bg-emerald-100 p-0.5 transition-colors"
+                      aria-label={`Remove ${country}`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-2 overflow-y-auto max-h-[280px] lg:max-h-[280px] pr-2 border border-slate-200 rounded-lg p-2.5 bg-slate-50/50">
+              {filteredCountries.map((country) => (
+                <label
+                  key={country}
+                  className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 hover:border-slate-300 cursor-pointer transition-colors min-h-[48px]"
+                >
+                  <Checkbox
+                    checked={formData.preferredCountry.includes(country)}
+                    onCheckedChange={(checked) => handleCountryToggle(country, checked === true)}
+                    className="h-5 w-5 shrink-0"
+                  />
+                  <span className="text-base">{country}</span>
+                </label>
+              ))}
+            </div>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+
+        <div className="flex gap-4 pt-1">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1 h-12 text-base font-medium"
+          >
+            {isSubmitting ? "Registering..." : "Register"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={resetForm}
+            className="h-12 px-6 text-base"
+          >
+            Clear
+          </Button>
+        </div>
+      </form>
+    </div>
   )
 }

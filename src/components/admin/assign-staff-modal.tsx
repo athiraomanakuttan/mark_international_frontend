@@ -48,7 +48,6 @@ export default function AssignLeadModal({ open, setOpen, leadList, leadAssinedSu
         }
         try {
            const response = await assignLeads(leadList,selectedStaff)
-           console.log("response response", response)
             if(response.status){
               toast.success("Lead Assigning successfull")
               setOpen(false)

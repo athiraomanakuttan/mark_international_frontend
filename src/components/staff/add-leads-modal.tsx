@@ -74,7 +74,6 @@ export default function AddLeadsModal({ open, setOpen }: AddLeadsModalProps) {
   } ;
     try{
         const response = await createLead(finalFormData)
-        console.log("response", response)
         if(response.status){
             toast.success("Lead created successfully")
             setOpen(false)

@@ -35,7 +35,6 @@ export class TerminationService {
 
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching terminations:', error);
       throw error;
     }
   }
@@ -50,7 +49,6 @@ export class TerminationService {
 
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching termination:', error);
       throw error;
     }
   }
@@ -67,7 +65,6 @@ export class TerminationService {
 
       return response.data;
     } catch (error) {
-      console.error('❌ Error creating termination:', error);
       throw error;
     }
   }
@@ -82,7 +79,6 @@ export class TerminationService {
 
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching active staff:', error);
       throw error;
     }
   }
@@ -97,7 +93,6 @@ export class TerminationService {
 
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching active employees:', error);
       throw error;
     }
   }

@@ -107,9 +107,7 @@ export default function LeadsReportPage() {
   }
   
   
-  useEffect(()=>{
-    console.log(priority)
-  },[priority])
+  
   useEffect(()=>{
     if(selectedLead)
       setIsUpdateModelOpen(true)
@@ -158,7 +156,6 @@ const handleLeadSelection = (leadId: string, isChecked: boolean) => {
       const statusParam = leadStatus.length > 0 ? leadStatus.join(",") : "7" // '7' for All, or empty string if backend expects that
       const response = await getLeads(statusParam, paginationData.currentPage, paginationData.limit,{fromDate, createBy,leadCategory, leadSource, leadStatus, priority, staff, toDate} as LeadFilterType, searchQuery)
       if (response.status) {
-        console.log("lead response", response.data)
         setLeadData(response?.data?.lead)
         setPaginationData((prev) => ({
           ...prev,

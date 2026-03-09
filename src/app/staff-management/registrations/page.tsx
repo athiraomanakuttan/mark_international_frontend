@@ -82,7 +82,6 @@ export default function RegistrationsPage() {
         toast.error("Failed to fetch registrations")
       }
     } catch (error) {
-      console.error("Error fetching registrations:", error)
       toast.error("Failed to fetch registrations")
     } finally {
       setLoading(false)
@@ -104,7 +103,6 @@ export default function RegistrationsPage() {
         setShowModal(false)
       }
     } catch (error) {
-      console.error("Error fetching registration details:", error)
       toast.error("Failed to fetch registration details")
       setShowModal(false)
     } finally {
@@ -156,7 +154,6 @@ export default function RegistrationsPage() {
       window.URL.revokeObjectURL(downloadUrl);
       toast.success('Document downloaded successfully!');
     } catch (error) {
-      console.error('Error downloading document:', error);
       toast.error('Failed to download document');
     }
   }
@@ -182,7 +179,7 @@ export default function RegistrationsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">
-            View Staff Registrations
+            View User Registrations
           </h1>
         </div>
 

@@ -4,18 +4,22 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowLeft, Users, Calendar, MapPin, Download, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowLeft, Users, Calendar, MapPin, Download, ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { getRecentEvents, getStudentData } from "@/service/eventService"
+import { getAllEvents, getStudentData } from "@/service/eventService"
 import { IEventWithStaff, IStudentData } from "@/types/event-types"
 import { ModernDashboardLayout } from "@/components/navbar/modern-dashboard-navbar"
 import { toast } from "react-toastify"
 import * as XLSX from 'xlsx'
+import { cn } from "@/lib/utils"
 
 export default function DataViewPage() {
   const router = useRouter()
   const [selectedEvent, setSelectedEvent] = useState<string>("")
+  const [eventComboboxOpen, setEventComboboxOpen] = useState(false)
   const [selectedStaff, setSelectedStaff] = useState<string>("")
   const [sampleEvents, setSampleEvents] = useState<IEventWithStaff[]>([])
   const [availableStaff, setAvailableStaff] = useState<Array<{ _id: string; name: string }>>([])
@@ -66,7 +70,7 @@ export default function DataViewPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await getRecentEvents();
+        const response = await getAllEvents();
         if (response.status) {
           // Convert startDate and endDate fields into real Date objects
           const eventsWithDate = response.data.map((event: any) => ({
@@ -77,7 +81,6 @@ export default function DataViewPage() {
           setSampleEvents(eventsWithDate);
         }
       } catch (error) {
-        console.error("Error fetching recent events:", error);
       }
     };
 
@@ -176,18 +179,60 @@ export default function DataViewPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Select value={selectedEvent} onValueChange={setSelectedEvent}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose an event..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sampleEvents.map((event) => (
-                        <SelectItem key={event._id} value={event._id}>
-                          {event.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={eventComboboxOpen} onOpenChange={setEventComboboxOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={eventComboboxOpen}
+                        className="w-full justify-between font-normal"
+                      >
+                        {selectedEvent
+                          ? sampleEvents.find((e) => e._id === selectedEvent)?.name
+                          : "Choose an event..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search events..." />
+                        <CommandList>
+                          <CommandEmpty>No events found.</CommandEmpty>
+                          <CommandGroup>
+                            {sampleEvents.map((event) => (
+                              <CommandItem
+                                key={event._id}
+                                value={`${event.name} ${event.location || ""}`}
+                                onSelect={() => {
+                                  setSelectedEvent(event._id)
+                                  setEventComboboxOpen(false)
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <span className={cn(
+                                  "mr-2 flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-primary",
+                                  selectedEvent === event._id
+                                    ? "bg-primary text-primary-foreground"
+                                    : "opacity-50"
+                                )}>
+                                  {selectedEvent === event._id ? "✓" : ""}
+                                </span>
+                                <div>
+                                  <div>{event.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {event.startDate instanceof Date
+                                      ? event.startDate.toLocaleDateString()
+                                      : event.startDate}
+                                    {event.location ? ` • ${event.location}` : ""}
+                                  </div>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </CardContent>
               </Card>
 

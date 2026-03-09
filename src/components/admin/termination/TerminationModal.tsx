@@ -81,7 +81,6 @@ const TerminationModal: React.FC<TerminationModalProps> = ({
         toast.error('Failed to load staff list');
       }
     } catch (error: any) {
-      console.error('Error loading staff:', error);
       toast.error('Failed to load staff list');
     } finally {
       setIsLoadingList(false);
@@ -98,7 +97,6 @@ const TerminationModal: React.FC<TerminationModalProps> = ({
         toast.error('Failed to load employee list');
       }
     } catch (error: any) {
-      console.error('Error loading employees:', error);
       toast.error('Failed to load employee list');
     } finally {
       setIsLoadingList(false);
@@ -154,7 +152,6 @@ const TerminationModal: React.FC<TerminationModalProps> = ({
         toast.error(response.message || 'Failed to create termination');
       }
     } catch (error: any) {
-      console.error('Error creating termination:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create termination';
       toast.error(errorMessage);
     } finally {

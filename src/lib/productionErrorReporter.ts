@@ -210,19 +210,7 @@ class ProductionErrorReporter {
       // });
 
       // Option 2: For immediate debugging, use console.error with structured data
-      console.group(`🚨 Production Error Report - ${report.errorType.toUpperCase()}`);
-      console.error('Error Details:', {
-        timestamp: report.timestamp,
-        type: report.errorType,
-        message: report.errorMessage,
-        url: report.url,
-        requestUrl: report.requestUrl,
-        responseTime: report.responseTime,
-        userId: report.userId,
-        sessionId: report.sessionId,
-      });
-      console.error('Network Info:', report.networkInfo);
-      console.error('Recent User Actions:', report.userActions.slice(-10));
+      
       console.groupEnd();
 
       // Option 3: Send to external service like Sentry, LogRocket, etc.

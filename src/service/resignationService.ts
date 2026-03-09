@@ -21,7 +21,6 @@ export class ResignationService {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error fetching user resignation:', error);
       // If no resignation found, return a proper response
       if (error?.response?.status === 404) {
         return {
@@ -55,7 +54,6 @@ export class ResignationService {
 
       return response.data;
     } catch (error) {
-      console.error('❌ Error creating resignation:', error);
       throw error;
     }
   }
@@ -77,7 +75,6 @@ export class ResignationService {
 
       return response.data;
     } catch (error) {
-      console.error('❌ Error updating resignation:', error);
       throw error;
     }
   }
@@ -87,12 +84,9 @@ export class ResignationService {
    */
   static async deleteResignation(id: string): Promise<DeleteResignationResponse> {
     try {
-      console.log('🗑️ Deleting resignation:', id);
       const response = await axiosInstance.delete(`/staff/resignation/${id}`);
-      console.log('✅ Resignation deleted successfully:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ Error deleting resignation:', error);
       throw error;
     }
   }
@@ -114,16 +108,13 @@ export class ResignationService {
         requestParams.status = status;
       }
 
-      console.log('📋 Fetching resignations with params:', requestParams);
 
       const response = await axiosInstance.get('/admin/resignations', {
         params: requestParams,
       });
 
-      console.log('✅ Resignations fetched successfully:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching resignations:', error);
       throw error;
     }
   }
@@ -133,12 +124,9 @@ export class ResignationService {
    */
   static async getResignationById(id: string): Promise<ResignationResponse> {
     try {
-      console.log('🔍 Fetching resignation by ID:', id);
       const response = await axiosInstance.get(`/admin/resignations/${id}`);
-      console.log('✅ Resignation fetched:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching resignation:', error);
       throw error;
     }
   }
@@ -148,14 +136,11 @@ export class ResignationService {
    */
   static async reviewResignation(id: string, reviewData: ReviewResignationRequest): Promise<ResignationResponse> {
     try {
-      console.log('👨‍💼 Reviewing resignation:', id, reviewData);
 
       const response = await axiosInstance.patch(`/admin/resignations/${id}/review`, reviewData);
 
-      console.log('✅ Resignation reviewed successfully:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ Error reviewing resignation:', error);
       throw error;
     }
   }
@@ -165,16 +150,13 @@ export class ResignationService {
    */
   static async downloadDocument(resignationId: string): Promise<Blob> {
     try {
-      console.log('📄 Downloading resignation document:', resignationId);
 
       const response = await axiosInstance.get(`/resignation/${resignationId}/document`, {
         responseType: 'blob',
       });
 
-      console.log('✅ Document downloaded successfully');
       return response.data;
     } catch (error) {
-      console.error('❌ Error downloading document:', error);
       throw error;
     }
   }

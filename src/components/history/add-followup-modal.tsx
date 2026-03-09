@@ -50,7 +50,6 @@ export function AddFollowupModal({
   })
 
   const handleSubmit = async () => {
-    console.log("Submitting formData:", formData)
     try {
       const response = await updatedFollowupType(userId, formData,assignedAgentId )
       toast.success("Followup added")
@@ -64,9 +63,7 @@ export function AddFollowupModal({
     followup_date: ""
       })
       onOpenChange(false)
-      console.log("response", response)
     } catch (err) {
-      console.log("err", err)
     }
     
   }

@@ -233,7 +233,6 @@ export default function LeadImportForm() {
       setColumnMapping(autoMapping)
     } catch (err) {
       setError("Error reading Excel file. Please try again.")
-      console.error("File reading error:", err)
     } finally {
       setIsProcessing(false)
     }
@@ -438,7 +437,6 @@ export default function LeadImportForm() {
       resetForm()
 
     } catch (err) {
-      console.error("Upload error:", err)
       toast.error("Error during upload process")
       setError("Upload failed. Please try again.")
     } finally {

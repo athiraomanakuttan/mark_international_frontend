@@ -96,7 +96,6 @@ export default function EditBranchModal({
         toast.error(response.message || "Failed to update branch")
       }
     } catch (error) {
-      console.error("Error updating branch:", error)
       toast.error("Failed to update branch. Please try again.")
     } finally {
       setLoading(false)

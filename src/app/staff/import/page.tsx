@@ -441,7 +441,6 @@ export default function LeadImportForm() {
       resetForm()
 
     } catch (err) {
-      console.error("Upload error:", err)
       toast.error("Error during upload process")
       setError("Upload failed. Please try again.")
     } finally {

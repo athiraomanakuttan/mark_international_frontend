@@ -87,7 +87,6 @@ export function middleware(request: NextRequest, _event: NextFetchEvent) {
 
     return NextResponse.next()
   } catch (err) {
-    console.error('[middleware] error:', err)
     return NextResponse.next()
   }
 }

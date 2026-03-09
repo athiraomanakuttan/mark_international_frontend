@@ -41,7 +41,6 @@ export const handleSafeFormSubmit = async (
       options.onSuccess();
     }
   } catch (error) {
-    console.error('Form submission error:', error);
     if (options.onError) {
       options.onError(error);
     }
@@ -74,7 +73,6 @@ export const safeRedirect = (url: string, method: 'href' | 'replace' | 'assign' 
           break;
       }
     } catch (error) {
-      console.error('Redirect failed:', error);
       // Fallback to next method
       if (method === 'href') {
         safeRedirect(url, 'replace');

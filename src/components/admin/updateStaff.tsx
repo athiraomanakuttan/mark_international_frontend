@@ -95,7 +95,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     }
   } catch (error) {
     toast.error("Failed to update staff member.");
-    console.error("Error updating staff:", error);
   }
   selectedFile = null;
 }

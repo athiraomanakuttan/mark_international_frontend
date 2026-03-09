@@ -64,14 +64,12 @@ class StaffDataManager {
     this.isLoading = true;
     
     try {
-      console.log('🔄 Fetching staff list from API (singleton)');
       const response = await axiosInstance.get("/admin/staff/get-all-active");
       this.staffList = response?.data?.data || [];
       this.lastFetch = now;
       this.notifySubscribers();
       return this.staffList;
     } catch (error) {
-      console.error('❌ Error fetching staff list:', error);
       throw error;
     } finally {
       this.isLoading = false;
@@ -80,7 +78,6 @@ class StaffDataManager {
 
   public invalidateCache() {
     this.lastFetch = 0;
-    console.log('🗑️ Staff cache invalidated');
   }
 
   public getStats() {

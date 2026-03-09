@@ -64,7 +64,7 @@ export const menuItems = [
     color: "bg-yellow-500",
     items: [
       {
-        title: "View Staff",
+        title: "View User",
         url: "/staff-management/view",
         icon: Eye,
       },

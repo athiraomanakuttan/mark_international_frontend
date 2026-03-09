@@ -57,7 +57,6 @@ export function AttendanceCalendar(props: AttendanceCalendarWithDeleteProps) {
     setLoading(true);
     AttendanceService.generateMonthlyCalendar(userId, currentMonth, currentYear, userJoiningDate)
       .then((calendarData) => {
-        console.log('Loaded calendar data:=========================', calendarData);
         setCalendar(calendarData);
         // Use backend-provided summary if available, otherwise fallback to calculated summary
         setSummary(calendarData.summary || AttendanceService.calculateAttendanceSummary(calendarData));

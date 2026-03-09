@@ -86,7 +86,6 @@ const DesignationPage: React.FC = () => {
       }
     } catch (error) {
       toast.error('Failed to fetch designations');
-      console.error('Error fetching designations:', error);
     } finally {
       setIsLoading(false);
     }

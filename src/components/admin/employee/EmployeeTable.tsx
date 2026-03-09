@@ -67,12 +67,9 @@ const EmployeeTable: React.FC = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
   // Debug effect to track filter changes
-  useEffect(() => {
-    console.log('🔍 Filters state changed:', filters);
-  }, [filters]);
+ 
 
   useEffect(() => {
-    console.log('📊 Loading employees due to change in:', { currentPage, searchTerm, filters });
     loadEmployees();
   }, [currentPage, searchTerm, filters]);
 
@@ -91,12 +88,6 @@ const EmployeeTable: React.FC = () => {
         return acc;
       }, {} as EmployeeFilter);
 
-      console.log('Loading employees with params:', {
-        page: currentPage,
-        limit: pageSize,
-        search: searchTerm.trim(),
-        filter: cleanedFilters,
-      });
 
       const response = await EmployeeService.getEmployees({
         page: currentPage,
@@ -113,7 +104,6 @@ const EmployeeTable: React.FC = () => {
         toast.error('Failed to load employees');
       }
     } catch (error) {
-      console.error('Error loading employees:', error);
       toast.error('Failed to load employees. Please try again.');
     } finally {
       setIsLoading(false);
@@ -129,7 +119,6 @@ const EmployeeTable: React.FC = () => {
         toast.error('Failed to load designations');
       }
     } catch (error) {
-      console.error('Error loading designations:', error);
       toast.error('Failed to load designations for filtering');
     }
   };
@@ -155,14 +144,12 @@ const EmployeeTable: React.FC = () => {
         }
       }
       
-      console.log(`Filter changed - ${key}:`, value, 'New filters:', newFilters);
       return newFilters;
     });
     setCurrentPage(1);
   };
 
   const clearFilters = () => {
-    console.log('🧹 Clearing all filters');
     setFilters({});
     setCurrentPage(1);
   };
@@ -192,7 +179,6 @@ const EmployeeTable: React.FC = () => {
       setIsDeleteModalOpen(false);
       setSelectedEmployee(null);
     } catch (error: any) {
-      console.error('Error deleting employee:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete employee';
       toast.error(errorMessage);
     }
@@ -258,7 +244,6 @@ const EmployeeTable: React.FC = () => {
               <Select
                 value={filters.designation || 'all'}
                 onValueChange={(value) => {
-                  console.log('Designation filter changed to:', value);
                   handleFilterChange('designation', value);
                 }}
               >
@@ -278,7 +263,6 @@ const EmployeeTable: React.FC = () => {
               <Select
                 value={filters.status !== undefined ? filters.status.toString() : 'all'}
                 onValueChange={(value) => {
-                  console.log('Status filter changed to:', value);
                   handleFilterChange('status', value);
                 }}
               >

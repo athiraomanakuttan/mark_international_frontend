@@ -43,7 +43,6 @@ export default function AttendancePage() {
   // Load recent leave requests
   const loadRecentLeaves = async () => {
     if (!user?.id) {
-      console.error('User not authenticated');
       toast.error('Please log in to view attendance data');
       return;
     }
@@ -58,7 +57,6 @@ export default function AttendancePage() {
         setRecentLeaves(response.data); // Show all fetched leaves
       }
     } catch (error) {
-      console.error('Error loading recent leaves:', error);
       toast.error('Failed to load leave requests');
     }
   };
@@ -66,7 +64,6 @@ export default function AttendancePage() {
   // Add debugging for user data
   useEffect(() => {
     if (!user) {
-      console.warn('User not authenticated');
     } else {
       loadRecentLeaves();
     }
@@ -102,7 +99,6 @@ export default function AttendancePage() {
         toast.error(res?.message || 'Failed to delete leave request');
       }
     } catch (error) {
-      console.error('Error deleting leave request:', error);
       toast.dismiss();
       toast.error('Failed to delete leave request');
     }
@@ -125,7 +121,6 @@ export default function AttendancePage() {
         throw new Error(response.message || 'Failed to submit leave request');
       }
     } catch (error) {
-      console.error('Error submitting leave request:', error);
       throw error; // Re-throw to be handled by the modal
     } finally {
       setIsLoading(false);
@@ -183,7 +178,6 @@ export default function AttendancePage() {
         lopApproved: lopDates.size,
       });
     } catch (error) {
-      console.error('Error loading monthly leave context:', error);
       setMonthlyConfig(null);
       setMonthlyUsage(null);
     }
