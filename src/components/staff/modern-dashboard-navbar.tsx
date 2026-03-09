@@ -31,7 +31,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Checkbox } from "@/components/ui/checkbox" // Added Checkbox import
 import { useDispatch, useSelector } from "react-redux"
 import type { AppDispatch, RootState } from "@/lib/redux/store"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { toast } from "react-toastify"
 import { deleteFollowup, getFollowupData } from "@/service/followupService" // Added service imports
 import { safeRedirect } from "@/lib/formHelpers"
@@ -112,13 +112,26 @@ const menuItems = [
   },
 ]
 
-function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function ModernSidebar({
+  isOpen,
+  onClose,
+  onNavigateStart,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  onNavigateStart?: () => void
+}) {
   const [expandedItems, setExpandedItems] = useState<string[]>([])
 
   const toggleExpanded = (title: string) => {
     setExpandedItems((prev) => (prev.includes(title) ? prev.filter((item) => item !== title) : [...prev, title]))
   }
   const { user } = useSelector((state: RootState) => state.user)
+
+  const handleNavigate = () => {
+    onNavigateStart?.()
+    onClose()
+  }
   return (
     <>
       {/* Mobile Overlay */}
@@ -180,7 +193,7 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                           key={subItem.title}
                           href={subItem.url}
                           className="flex items-center space-x-3 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/30 transition-all duration-200"
-                          onClick={onClose}
+                          onClick={handleNavigate}
                         >
                           <subItem.icon className="h-4 w-4" />
                           <span className="text-sm">{subItem.title}</span>
@@ -193,7 +206,7 @@ function ModernSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                 <Link
                   href={item.url}
                   className="flex items-center space-x-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all duration-200 group"
-                  onClick={onClose}
+                  onClick={handleNavigate}
                 >
                   <div
                     className={`w-8 h-8 ${item.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}
@@ -398,10 +411,29 @@ function ModernHeader({ onMenuClick }: { onMenuClick: () => void }) {
 
 export function ModernDashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false)
+  const pathname = usePathname()
+
+  useEffect(() => {
+    // When the route changes, stop showing the navigation loader
+    setIsNavigating(false)
+  }, [pathname])
 
   return (
-    <div className="h-screen bg-slate-50 flex overflow-hidden">
-      <ModernSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="h-screen bg-slate-50 flex overflow-hidden relative">
+      {isNavigating && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+            <p className="text-sm font-medium text-slate-700">Loading…</p>
+          </div>
+        </div>
+      )}
+      <ModernSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onNavigateStart={() => setIsNavigating(true)}
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
         <ModernHeader onMenuClick={() => setSidebarOpen(true)} />
