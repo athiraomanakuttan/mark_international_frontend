@@ -16,15 +16,39 @@ import { toast } from "react-toastify"
 import * as XLSX from 'xlsx'
 import { cn } from "@/lib/utils"
 
+type StaffOption = { _id: string; name: string }
+
 export default function DataViewPage() {
   const router = useRouter()
   const [selectedEvent, setSelectedEvent] = useState<string>("")
   const [eventComboboxOpen, setEventComboboxOpen] = useState(false)
   const [selectedStaff, setSelectedStaff] = useState<string>("")
   const [sampleEvents, setSampleEvents] = useState<IEventWithStaff[]>([])
-  const [availableStaff, setAvailableStaff] = useState<Array<{ _id: string; name: string }>>([])
+  const [availableStaff, setAvailableStaff] = useState<StaffOption[]>([])
   const [filteredStudents, setFilteredStudents] = useState<IStudentData[]>([])
   const [sampleStudentData, setSampleStudentData] = useState<IStudentData[]>([])
+
+  const normalizeStaffList = (staffIds: unknown): StaffOption[] => {
+    if (!Array.isArray(staffIds)) return []
+
+    return staffIds
+      .map((staff) => {
+        if (typeof staff === "string") {
+          return { _id: staff, name: "N/A" }
+        }
+
+        if (staff && typeof staff === "object" && "_id" in staff) {
+          const staffObj = staff as { _id?: string; name?: string }
+          return {
+            _id: staffObj._id || "",
+            name: staffObj.name || "N/A",
+          }
+        }
+
+        return null
+      })
+      .filter((staff): staff is StaffOption => Boolean(staff?._id))
+  }
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -41,7 +65,7 @@ export default function DataViewPage() {
   useEffect(() => {
     if (selectedEvent) {
       const event = sampleEvents.find((e) => e._id === selectedEvent)
-      setAvailableStaff(event?.staffIds || [])
+      setAvailableStaff(normalizeStaffList(event?.staffIds))
       setSelectedStaff("") // Reset staff selection
     } else {
       setAvailableStaff([])
@@ -254,7 +278,7 @@ export default function DataViewPage() {
                       </SelectItem>
                       {availableStaff.map((staff) => (
                         <SelectItem key={staff._id} value={staff._id}>
-                          {staff.name}
+                          {staff.name || "N/A"}
                         </SelectItem>
                       ))}
                     </SelectContent>
